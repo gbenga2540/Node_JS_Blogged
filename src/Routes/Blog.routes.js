@@ -2116,48 +2116,395 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                         }
                                     }
                                 ])
-                                    .catch(err => {
-                                        res.json({
-                                            status: "success",
-                                            response: {
-                                                bid: result[0]?._id?.toString(),
-                                                title: result[0]?.title,
-                                                author: "Not Found",
-                                                a_id: "Not Found",
-                                                a_followed: false,
-                                                a_dp_link: "none",
-                                                a_followers: "Not Found",
-                                                a_createdAt: "Not Found",
-                                                b_dp_link: result[0]?.dp_link,
-                                                message: result[0]?.message,
-                                                likes_l: result[0]?.likes_l,
-                                                comments: result[0]?.comments,
-                                                comments_l: result[0]?.comments_l,
-                                                tags: result[0]?.tags,
-                                                liked: false,
-                                                createdAt: result[0]?.createdAt,
-                                                updatedAt: result[0]?.updatedAt
+                                    .catch(async err => {
+                                        const old_comments = result[0]?.comments;
+                                        const new_comments = [];
+                                        const cmt_users = [];
+                                        const processed_cmt_users = [];
+                                        if (old_comments?.length > 0) {
+                                            old_comments?.map(item => {
+                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                    cmt_users?.push(item?.commenter?.toString());
+                                                }
+                                            });
+                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                            if (processed_cmt_users?.length > 0) {
+                                                try {
+                                                    await User.aggregate([
+                                                        {
+                                                            $match: {
+                                                                _id: { $in: processed_cmt_users }
+                                                            }
+                                                        },
+                                                        {
+                                                            $project: {
+                                                                username: 1
+                                                            }
+                                                        }
+                                                    ])
+                                                        .catch(err => {
+                                                            old_comments?.map(item => {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            });
+                                                        })
+                                                        .then(response => {
+                                                            if (response?.length > 0) {
+                                                                const cmt_usernames = response;
+                                                                old_comments?.map(item => {
+                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                    if (user?.length > 0) {
+                                                                        new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                    } else {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                old_comments?.map(item => {
+                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                });
+                                                            }
+                                                        });
+                                                } catch (error) {
+                                                    old_comments?.map(item => {
+                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                    });
+                                                }
+                                            } else {
+                                                old_comments?.map(item => {
+                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                });
                                             }
-                                        });
+                                            res.json({
+                                                status: "success",
+                                                response: {
+                                                    bid: result[0]?._id?.toString(),
+                                                    title: result[0]?.title,
+                                                    author: "Not Found",
+                                                    a_id: "Not Found",
+                                                    a_followed: false,
+                                                    a_dp_link: "none",
+                                                    a_followers: "Not Found",
+                                                    a_createdAt: "Not Found",
+                                                    b_dp_link: result[0]?.dp_link,
+                                                    message: result[0]?.message,
+                                                    likes_l: result[0]?.likes_l,
+                                                    comments: new_comments,
+                                                    comments_l: result[0]?.comments_l,
+                                                    tags: result[0]?.tags,
+                                                    liked: false,
+                                                    createdAt: result[0]?.createdAt,
+                                                    updatedAt: result[0]?.updatedAt
+                                                }
+                                            });
+                                        } else {
+                                            res.json({
+                                                status: "success",
+                                                response: {
+                                                    bid: result[0]?._id?.toString(),
+                                                    title: result[0]?.title,
+                                                    author: "Not Found",
+                                                    a_id: "Not Found",
+                                                    a_followed: false,
+                                                    a_dp_link: "none",
+                                                    a_followers: "Not Found",
+                                                    a_createdAt: "Not Found",
+                                                    b_dp_link: result[0]?.dp_link,
+                                                    message: result[0]?.message,
+                                                    likes_l: result[0]?.likes_l,
+                                                    comments: result[0]?.comments,
+                                                    comments_l: result[0]?.comments_l,
+                                                    tags: result[0]?.tags,
+                                                    liked: false,
+                                                    createdAt: result[0]?.createdAt,
+                                                    updatedAt: result[0]?.updatedAt
+                                                }
+                                            });
+                                        }
                                     })
-                                    .then(response => {
+                                    .then(async response => {
                                         if (response !== null || response !== undefined) {
                                             if (response?.length > 0) {
+                                                const old_comments = result[0]?.comments;
+                                                const new_comments = [];
+                                                const cmt_users = [];
+                                                const processed_cmt_users = [];
+                                                if (old_comments?.length > 0) {
+                                                    old_comments?.map(item => {
+                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                            cmt_users?.push(item?.commenter?.toString());
+                                                        }
+                                                    });
+                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                    if (processed_cmt_users?.length > 0) {
+                                                        try {
+                                                            await User.aggregate([
+                                                                {
+                                                                    $match: {
+                                                                        _id: { $in: processed_cmt_users }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    $project: {
+                                                                        username: 1
+                                                                    }
+                                                                }
+                                                            ])
+                                                                .catch(err => {
+                                                                    old_comments?.map(item => {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    });
+                                                                })
+                                                                .then(response => {
+                                                                    if (response?.length > 0) {
+                                                                        const cmt_usernames = response;
+                                                                        old_comments?.map(item => {
+                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                            if (user?.length > 0) {
+                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                            } else {
+                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        old_comments?.map(item => {
+                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                        });
+                                                                    }
+                                                                });
+                                                        } catch (error) {
+                                                            old_comments?.map(item => {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            });
+                                                        }
+                                                    } else {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: response[0]?.username,
+                                                            a_id: response[0]?._id?.toString(),
+                                                            a_followed: false,
+                                                            a_dp_link: response[0]?.dp_link,
+                                                            a_followers: response[0]?.followers_l,
+                                                            a_createdAt: response[0]?.createdAt,
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: new_comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: false,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: response[0]?.username,
+                                                            a_id: response[0]?._id?.toString(),
+                                                            a_followed: false,
+                                                            a_dp_link: response[0]?.dp_link,
+                                                            a_followers: response[0]?.followers_l,
+                                                            a_createdAt: response[0]?.createdAt,
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: result[0]?.comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: false,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                }
+                                            } else {
+                                                const old_comments = result[0]?.comments;
+                                                const new_comments = [];
+                                                const cmt_users = [];
+                                                const processed_cmt_users = [];
+                                                if (old_comments?.length > 0) {
+                                                    old_comments?.map(item => {
+                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                            cmt_users?.push(item?.commenter?.toString());
+                                                        }
+                                                    });
+                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                    if (processed_cmt_users?.length > 0) {
+                                                        try {
+                                                            await User.aggregate([
+                                                                {
+                                                                    $match: {
+                                                                        _id: { $in: processed_cmt_users }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    $project: {
+                                                                        username: 1
+                                                                    }
+                                                                }
+                                                            ])
+                                                                .catch(err => {
+                                                                    old_comments?.map(item => {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    });
+                                                                })
+                                                                .then(response => {
+                                                                    if (response?.length > 0) {
+                                                                        const cmt_usernames = response;
+                                                                        old_comments?.map(item => {
+                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                            if (user?.length > 0) {
+                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                            } else {
+                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        old_comments?.map(item => {
+                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                        });
+                                                                    }
+                                                                });
+                                                        } catch (error) {
+                                                            old_comments?.map(item => {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            });
+                                                        }
+                                                    } else {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: "Not Found",
+                                                            a_id: "Not Found",
+                                                            a_followed: false,
+                                                            a_dp_link: "none",
+                                                            a_followers: "Not Found",
+                                                            a_createdAt: "Not Found",
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: new_comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: false,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: "Not Found",
+                                                            a_id: "Not Found",
+                                                            a_followed: false,
+                                                            a_dp_link: "none",
+                                                            a_followers: "Not Found",
+                                                            a_createdAt: "Not Found",
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: result[0]?.comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: false,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        } else {
+                                            const old_comments = result[0]?.comments;
+                                            const new_comments = [];
+                                            const cmt_users = [];
+                                            const processed_cmt_users = [];
+                                            if (old_comments?.length > 0) {
+                                                old_comments?.map(item => {
+                                                    if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                        cmt_users?.push(item?.commenter?.toString());
+                                                    }
+                                                });
+                                                cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                if (processed_cmt_users?.length > 0) {
+                                                    try {
+                                                        await User.aggregate([
+                                                            {
+                                                                $match: {
+                                                                    _id: { $in: processed_cmt_users }
+                                                                }
+                                                            },
+                                                            {
+                                                                $project: {
+                                                                    username: 1
+                                                                }
+                                                            }
+                                                        ])
+                                                            .catch(err => {
+                                                                old_comments?.map(item => {
+                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                });
+                                                            })
+                                                            .then(response => {
+                                                                if (response?.length > 0) {
+                                                                    const cmt_usernames = response;
+                                                                    old_comments?.map(item => {
+                                                                        const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                        if (user?.length > 0) {
+                                                                            new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                        } else {
+                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    old_comments?.map(item => {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    });
+                                                                }
+                                                            });
+                                                    } catch (error) {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                } else {
+                                                    old_comments?.map(item => {
+                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                    });
+                                                }
                                                 res.json({
                                                     status: "success",
                                                     response: {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
-                                                        author: response[0]?.username,
-                                                        a_id: response[0]?._id?.toString(),
+                                                        author: "Not Found",
+                                                        a_id: "Not Found",
                                                         a_followed: false,
-                                                        a_dp_link: response[0]?.dp_link,
-                                                        a_followers: response[0]?.followers_l,
-                                                        a_createdAt: response[0]?.createdAt,
+                                                        a_dp_link: "none",
+                                                        a_followers: "Not Found",
+                                                        a_createdAt: "Not Found",
                                                         b_dp_link: result[0]?.dp_link,
                                                         message: result[0]?.message,
                                                         likes_l: result[0]?.likes_l,
-                                                        comments: result[0]?.comments,
+                                                        comments: new_comments,
                                                         comments_l: result[0]?.comments_l,
                                                         tags: result[0]?.tags,
                                                         liked: false,
@@ -2189,54 +2536,112 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     }
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: {
-                                                    bid: result[0]?._id?.toString(),
-                                                    title: result[0]?.title,
-                                                    author: "Not Found",
-                                                    a_id: "Not Found",
-                                                    a_followed: false,
-                                                    a_dp_link: "none",
-                                                    a_followers: "Not Found",
-                                                    a_createdAt: "Not Found",
-                                                    b_dp_link: result[0]?.dp_link,
-                                                    message: result[0]?.message,
-                                                    likes_l: result[0]?.likes_l,
-                                                    comments: result[0]?.comments,
-                                                    comments_l: result[0]?.comments_l,
-                                                    tags: result[0]?.tags,
-                                                    liked: false,
-                                                    createdAt: result[0]?.createdAt,
-                                                    updatedAt: result[0]?.updatedAt
-                                                }
-                                            });
                                         }
                                     });
                             } catch (error) {
-                                res.json({
-                                    status: "success",
-                                    response: {
-                                        bid: result[0]?._id?.toString(),
-                                        title: result[0]?.title,
-                                        author: "Not Found",
-                                        a_id: "Not Found",
-                                        a_followed: false,
-                                        a_dp_link: "none",
-                                        a_followers: "Not Found",
-                                        a_createdAt: "Not Found",
-                                        b_dp_link: result[0]?.dp_link,
-                                        message: result[0]?.message,
-                                        likes_l: result[0]?.likes_l,
-                                        comments: result[0]?.comments,
-                                        comments_l: result[0]?.comments_l,
-                                        tags: result[0]?.tags,
-                                        liked: false,
-                                        createdAt: result[0]?.createdAt,
-                                        updatedAt: result[0]?.updatedAt
+                                const old_comments = result[0]?.comments;
+                                const new_comments = [];
+                                const cmt_users = [];
+                                const processed_cmt_users = [];
+                                if (old_comments?.length > 0) {
+                                    old_comments?.map(item => {
+                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                            cmt_users?.push(item?.commenter?.toString());
+                                        }
+                                    });
+                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                    if (processed_cmt_users?.length > 0) {
+                                        try {
+                                            await User.aggregate([
+                                                {
+                                                    $match: {
+                                                        _id: { $in: processed_cmt_users }
+                                                    }
+                                                },
+                                                {
+                                                    $project: {
+                                                        username: 1
+                                                    }
+                                                }
+                                            ])
+                                                .catch(err => {
+                                                    old_comments?.map(item => {
+                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                    });
+                                                })
+                                                .then(response => {
+                                                    if (response?.length > 0) {
+                                                        const cmt_usernames = response;
+                                                        old_comments?.map(item => {
+                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                            if (user?.length > 0) {
+                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                            } else {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            }
+                                                        });
+                                                    } else {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                });
+                                        } catch (error) {
+                                            old_comments?.map(item => {
+                                                new_comments?.push({ ...item, username: "Not Found" });
+                                            });
+                                        }
+                                    } else {
+                                        old_comments?.map(item => {
+                                            new_comments?.push({ ...item, username: "Not Found" });
+                                        });
                                     }
-                                });
+                                    res.json({
+                                        status: "success",
+                                        response: {
+                                            bid: result[0]?._id?.toString(),
+                                            title: result[0]?.title,
+                                            author: "Not Found",
+                                            a_id: "Not Found",
+                                            a_followed: false,
+                                            a_dp_link: "none",
+                                            a_followers: "Not Found",
+                                            a_createdAt: "Not Found",
+                                            b_dp_link: result[0]?.dp_link,
+                                            message: result[0]?.message,
+                                            likes_l: result[0]?.likes_l,
+                                            comments: new_comments,
+                                            comments_l: result[0]?.comments_l,
+                                            tags: result[0]?.tags,
+                                            liked: false,
+                                            createdAt: result[0]?.createdAt,
+                                            updatedAt: result[0]?.updatedAt
+                                        }
+                                    });
+                                } else {
+                                    res.json({
+                                        status: "success",
+                                        response: {
+                                            bid: result[0]?._id?.toString(),
+                                            title: result[0]?.title,
+                                            author: "Not Found",
+                                            a_id: "Not Found",
+                                            a_followed: false,
+                                            a_dp_link: "none",
+                                            a_followers: "Not Found",
+                                            a_createdAt: "Not Found",
+                                            b_dp_link: result[0]?.dp_link,
+                                            message: result[0]?.message,
+                                            likes_l: result[0]?.likes_l,
+                                            comments: result[0]?.comments,
+                                            comments_l: result[0]?.comments_l,
+                                            tags: result[0]?.tags,
+                                            liked: false,
+                                            createdAt: result[0]?.createdAt,
+                                            updatedAt: result[0]?.updatedAt
+                                        }
+                                    });
+                                }
                             }
                         } else {
                             res.json({
@@ -2309,51 +2714,398 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                         }
                                     }
                                 ])
-                                    .catch(err => {
-                                        res.json({
-                                            status: "success",
-                                            response: {
-                                                bid: result[0]?._id?.toString(),
-                                                title: result[0]?.title,
-                                                author: "Not Found",
-                                                a_id: "Not Found",
-                                                a_followed: false,
-                                                a_dp_link: "none",
-                                                a_followers: "Not Found",
-                                                a_createdAt: "Not Found",
-                                                b_dp_link: result[0]?.dp_link,
-                                                message: result[0]?.message,
-                                                likes_l: result[0]?.likes_l,
-                                                comments: result[0]?.comments,
-                                                comments_l: result[0]?.comments_l,
-                                                tags: result[0]?.tags,
-                                                liked: false,
-                                                createdAt: result[0]?.createdAt,
-                                                updatedAt: result[0]?.updatedAt
+                                    .catch(async err => {
+                                        const old_comments = result[0]?.comments;
+                                        const new_comments = [];
+                                        const cmt_users = [];
+                                        const processed_cmt_users = [];
+                                        if (old_comments?.length > 0) {
+                                            old_comments?.map(item => {
+                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                    cmt_users?.push(item?.commenter?.toString());
+                                                }
+                                            });
+                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                            if (processed_cmt_users?.length > 0) {
+                                                try {
+                                                    await User.aggregate([
+                                                        {
+                                                            $match: {
+                                                                _id: { $in: processed_cmt_users }
+                                                            }
+                                                        },
+                                                        {
+                                                            $project: {
+                                                                username: 1
+                                                            }
+                                                        }
+                                                    ])
+                                                        .catch(err => {
+                                                            old_comments?.map(item => {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            });
+                                                        })
+                                                        .then(response => {
+                                                            if (response?.length > 0) {
+                                                                const cmt_usernames = response;
+                                                                old_comments?.map(item => {
+                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                    if (user?.length > 0) {
+                                                                        new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                    } else {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                old_comments?.map(item => {
+                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                });
+                                                            }
+                                                        });
+                                                } catch (error) {
+                                                    old_comments?.map(item => {
+                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                    });
+                                                }
+                                            } else {
+                                                old_comments?.map(item => {
+                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                });
                                             }
-                                        });
+                                            res.json({
+                                                status: "success",
+                                                response: {
+                                                    bid: result[0]?._id?.toString(),
+                                                    title: result[0]?.title,
+                                                    author: "Not Found",
+                                                    a_id: "Not Found",
+                                                    a_followed: false,
+                                                    a_dp_link: "none",
+                                                    a_followers: "Not Found",
+                                                    a_createdAt: "Not Found",
+                                                    b_dp_link: result[0]?.dp_link,
+                                                    message: result[0]?.message,
+                                                    likes_l: result[0]?.likes_l,
+                                                    comments: new_comments,
+                                                    comments_l: result[0]?.comments_l,
+                                                    tags: result[0]?.tags,
+                                                    liked: false,
+                                                    createdAt: result[0]?.createdAt,
+                                                    updatedAt: result[0]?.updatedAt
+                                                }
+                                            });
+                                        } else {
+                                            res.json({
+                                                status: "success",
+                                                response: {
+                                                    bid: result[0]?._id?.toString(),
+                                                    title: result[0]?.title,
+                                                    author: "Not Found",
+                                                    a_id: "Not Found",
+                                                    a_followed: false,
+                                                    a_dp_link: "none",
+                                                    a_followers: "Not Found",
+                                                    a_createdAt: "Not Found",
+                                                    b_dp_link: result[0]?.dp_link,
+                                                    message: result[0]?.message,
+                                                    likes_l: result[0]?.likes_l,
+                                                    comments: result[0]?.comments,
+                                                    comments_l: result[0]?.comments_l,
+                                                    tags: result[0]?.tags,
+                                                    liked: false,
+                                                    createdAt: result[0]?.createdAt,
+                                                    updatedAt: result[0]?.updatedAt
+                                                }
+                                            });
+                                        }
                                     })
-                                    .then(response => {
+                                    .then(async response => {
                                         if (response !== null || response !== undefined) {
                                             if (response?.length > 0) {
+                                                const old_comments = result[0]?.comments;
+                                                const new_comments = [];
+                                                const cmt_users = [];
+                                                const processed_cmt_users = [];
+                                                if (old_comments?.length > 0) {
+                                                    old_comments?.map(item => {
+                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                            cmt_users?.push(item?.commenter?.toString());
+                                                        }
+                                                    });
+                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                    if (processed_cmt_users?.length > 0) {
+                                                        try {
+                                                            await User.aggregate([
+                                                                {
+                                                                    $match: {
+                                                                        _id: { $in: processed_cmt_users }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    $project: {
+                                                                        username: 1
+                                                                    }
+                                                                }
+                                                            ])
+                                                                .catch(err => {
+                                                                    old_comments?.map(item => {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    });
+                                                                })
+                                                                .then(response => {
+                                                                    if (response?.length > 0) {
+                                                                        const cmt_usernames = response;
+                                                                        old_comments?.map(item => {
+                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                            if (user?.length > 0) {
+                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                            } else {
+                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        old_comments?.map(item => {
+                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                        });
+                                                                    }
+                                                                });
+                                                        } catch (error) {
+                                                            old_comments?.map(item => {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            });
+                                                        }
+                                                    } else {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: response[0]?.username,
+                                                            a_id: response[0]?._id?.toString(),
+                                                            a_followed: response[0]?.a_followed,
+                                                            a_dp_link: response[0]?.dp_link,
+                                                            a_followers: response[0]?.followers_l,
+                                                            a_createdAt: response[0]?.createdAt,
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: new_comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: result[0]?.liked,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: response[0]?.username,
+                                                            a_id: response[0]?._id?.toString(),
+                                                            a_followed: response[0]?.a_followed,
+                                                            a_dp_link: response[0]?.dp_link,
+                                                            a_followers: response[0]?.followers_l,
+                                                            a_createdAt: response[0]?.createdAt,
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: result[0]?.comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: result[0]?.liked,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                }
+                                            } else {
+                                                const old_comments = result[0]?.comments;
+                                                const new_comments = [];
+                                                const cmt_users = [];
+                                                const processed_cmt_users = [];
+                                                if (old_comments?.length > 0) {
+                                                    old_comments?.map(item => {
+                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                            cmt_users?.push(item?.commenter?.toString());
+                                                        }
+                                                    });
+                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                    if (processed_cmt_users?.length > 0) {
+                                                        try {
+                                                            await User.aggregate([
+                                                                {
+                                                                    $match: {
+                                                                        _id: { $in: processed_cmt_users }
+                                                                    }
+                                                                },
+                                                                {
+                                                                    $project: {
+                                                                        username: 1
+                                                                    }
+                                                                }
+                                                            ])
+                                                                .catch(err => {
+                                                                    old_comments?.map(item => {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    });
+                                                                })
+                                                                .then(response => {
+                                                                    if (response?.length > 0) {
+                                                                        const cmt_usernames = response;
+                                                                        old_comments?.map(item => {
+                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                            if (user?.length > 0) {
+                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                            } else {
+                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        old_comments?.map(item => {
+                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                        });
+                                                                    }
+                                                                });
+                                                        } catch (error) {
+                                                            old_comments?.map(item => {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            });
+                                                        }
+                                                    } else {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: "Not Found",
+                                                            a_id: "Not Found",
+                                                            a_followed: false,
+                                                            a_dp_link: "none",
+                                                            a_followers: "Not Found",
+                                                            a_createdAt: "Not Found",
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: new_comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: false,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: {
+                                                            bid: result[0]?._id?.toString(),
+                                                            title: result[0]?.title,
+                                                            author: "Not Found",
+                                                            a_id: "Not Found",
+                                                            a_followed: false,
+                                                            a_dp_link: "none",
+                                                            a_followers: "Not Found",
+                                                            a_createdAt: "Not Found",
+                                                            b_dp_link: result[0]?.dp_link,
+                                                            message: result[0]?.message,
+                                                            likes_l: result[0]?.likes_l,
+                                                            comments: result[0]?.comments,
+                                                            comments_l: result[0]?.comments_l,
+                                                            tags: result[0]?.tags,
+                                                            liked: false,
+                                                            createdAt: result[0]?.createdAt,
+                                                            updatedAt: result[0]?.updatedAt
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        } else {
+                                            const old_comments = result[0]?.comments;
+                                            const new_comments = [];
+                                            const cmt_users = [];
+                                            const processed_cmt_users = [];
+                                            if (old_comments?.length > 0) {
+                                                old_comments?.map(item => {
+                                                    if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                        cmt_users?.push(item?.commenter?.toString());
+                                                    }
+                                                });
+                                                cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                if (processed_cmt_users?.length > 0) {
+                                                    try {
+                                                        await User.aggregate([
+                                                            {
+                                                                $match: {
+                                                                    _id: { $in: processed_cmt_users }
+                                                                }
+                                                            },
+                                                            {
+                                                                $project: {
+                                                                    username: 1
+                                                                }
+                                                            }
+                                                        ])
+                                                            .catch(err => {
+                                                                old_comments?.map(item => {
+                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                });
+                                                            })
+                                                            .then(response => {
+                                                                if (response?.length > 0) {
+                                                                    const cmt_usernames = response;
+                                                                    old_comments?.map(item => {
+                                                                        const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                                        if (user?.length > 0) {
+                                                                            new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                        } else {
+                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    old_comments?.map(item => {
+                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                    });
+                                                                }
+                                                            });
+                                                    } catch (error) {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                } else {
+                                                    old_comments?.map(item => {
+                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                    });
+                                                }
                                                 res.json({
                                                     status: "success",
                                                     response: {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
-                                                        author: response[0]?.username,
-                                                        a_id: response[0]?._id?.toString(),
-                                                        a_followed: response[0]?.a_followed,
-                                                        a_dp_link: response[0]?.dp_link,
-                                                        a_followers: response[0]?.followers_l,
-                                                        a_createdAt: response[0]?.createdAt,
+                                                        author: "Not Found",
+                                                        a_id: "Not Found",
+                                                        a_followed: false,
+                                                        a_dp_link: "none",
+                                                        a_followers: "Not Found",
+                                                        a_createdAt: "Not Found",
                                                         b_dp_link: result[0]?.dp_link,
                                                         message: result[0]?.message,
                                                         likes_l: result[0]?.likes_l,
-                                                        comments: result[0]?.comments,
+                                                        comments: new_comments,
                                                         comments_l: result[0]?.comments_l,
                                                         tags: result[0]?.tags,
-                                                        liked: result[0]?.liked,
+                                                        liked: false,
                                                         createdAt: result[0]?.createdAt,
                                                         updatedAt: result[0]?.updatedAt
                                                     }
@@ -2382,54 +3134,112 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     }
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: {
-                                                    bid: result[0]?._id?.toString(),
-                                                    title: result[0]?.title,
-                                                    author: "Not Found",
-                                                    a_id: "Not Found",
-                                                    a_followed: false,
-                                                    a_dp_link: "none",
-                                                    a_followers: "Not Found",
-                                                    a_createdAt: "Not Found",
-                                                    b_dp_link: result[0]?.dp_link,
-                                                    message: result[0]?.message,
-                                                    likes_l: result[0]?.likes_l,
-                                                    comments: result[0]?.comments,
-                                                    comments_l: result[0]?.comments_l,
-                                                    tags: result[0]?.tags,
-                                                    liked: false,
-                                                    createdAt: result[0]?.createdAt,
-                                                    updatedAt: result[0]?.updatedAt
-                                                }
-                                            });
                                         }
                                     });
                             } catch (error) {
-                                res.json({
-                                    status: "success",
-                                    response: {
-                                        bid: result[0]?._id?.toString(),
-                                        title: result[0]?.title,
-                                        author: "Not Found",
-                                        a_id: "Not Found",
-                                        a_followed: false,
-                                        a_dp_link: "none",
-                                        a_followers: "Not Found",
-                                        a_createdAt: "Not Found",
-                                        b_dp_link: result[0]?.dp_link,
-                                        message: result[0]?.message,
-                                        likes_l: result[0]?.likes_l,
-                                        comments: result[0]?.comments,
-                                        comments_l: result[0]?.comments_l,
-                                        tags: result[0]?.tags,
-                                        liked: false,
-                                        createdAt: result[0]?.createdAt,
-                                        updatedAt: result[0]?.updatedAt
+                                const old_comments = result[0]?.comments;
+                                const new_comments = [];
+                                const cmt_users = [];
+                                const processed_cmt_users = [];
+                                if (old_comments?.length > 0) {
+                                    old_comments?.map(item => {
+                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                            cmt_users?.push(item?.commenter?.toString());
+                                        }
+                                    });
+                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                    if (processed_cmt_users?.length > 0) {
+                                        try {
+                                            await User.aggregate([
+                                                {
+                                                    $match: {
+                                                        _id: { $in: processed_cmt_users }
+                                                    }
+                                                },
+                                                {
+                                                    $project: {
+                                                        username: 1
+                                                    }
+                                                }
+                                            ])
+                                                .catch(err => {
+                                                    old_comments?.map(item => {
+                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                    });
+                                                })
+                                                .then(response => {
+                                                    if (response?.length > 0) {
+                                                        const cmt_usernames = response;
+                                                        old_comments?.map(item => {
+                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
+                                                            if (user?.length > 0) {
+                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                            } else {
+                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                            }
+                                                        });
+                                                    } else {
+                                                        old_comments?.map(item => {
+                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                        });
+                                                    }
+                                                });
+                                        } catch (error) {
+                                            old_comments?.map(item => {
+                                                new_comments?.push({ ...item, username: "Not Found" });
+                                            });
+                                        }
+                                    } else {
+                                        old_comments?.map(item => {
+                                            new_comments?.push({ ...item, username: "Not Found" });
+                                        });
                                     }
-                                });
+                                    res.json({
+                                        status: "success",
+                                        response: {
+                                            bid: result[0]?._id?.toString(),
+                                            title: result[0]?.title,
+                                            author: "Not Found",
+                                            a_id: "Not Found",
+                                            a_followed: false,
+                                            a_dp_link: "none",
+                                            a_followers: "Not Found",
+                                            a_createdAt: "Not Found",
+                                            b_dp_link: result[0]?.dp_link,
+                                            message: result[0]?.message,
+                                            likes_l: result[0]?.likes_l,
+                                            comments: new_comments,
+                                            comments_l: result[0]?.comments_l,
+                                            tags: result[0]?.tags,
+                                            liked: false,
+                                            createdAt: result[0]?.createdAt,
+                                            updatedAt: result[0]?.updatedAt
+                                        }
+                                    });
+                                } else {
+                                    res.json({
+                                        status: "success",
+                                        response: {
+                                            bid: result[0]?._id?.toString(),
+                                            title: result[0]?.title,
+                                            author: "Not Found",
+                                            a_id: "Not Found",
+                                            a_followed: false,
+                                            a_dp_link: "none",
+                                            a_followers: "Not Found",
+                                            a_createdAt: "Not Found",
+                                            b_dp_link: result[0]?.dp_link,
+                                            message: result[0]?.message,
+                                            likes_l: result[0]?.likes_l,
+                                            comments: result[0]?.comments,
+                                            comments_l: result[0]?.comments_l,
+                                            tags: result[0]?.tags,
+                                            liked: false,
+                                            createdAt: result[0]?.createdAt,
+                                            updatedAt: result[0]?.updatedAt
+                                        }
+                                    });
+                                }
                             }
                         } else {
                             res.json({
