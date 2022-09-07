@@ -1518,6 +1518,7 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                                     blog_item["bid"] = item?._id?.toString();
                                                     blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                                     blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                                    blog_item["isowner"] = none_null(p_author) ? false : item?.author?.toString() === uid;
                                                     blog_item["title"] = item?.title;
                                                     blog_item["b_dp_link"] = item?.dp_link;
                                                     blog_item["likes_l"] = item?.likes_length;
@@ -1663,6 +1664,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                 blog_item["bid"] = item?._id?.toString();
                                 blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                 blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                blog_item["isowner"] = false;
                                 blog_item["title"] = item?.title;
                                 blog_item["b_dp_link"] = item?.dp_link;
                                 blog_item["likes_l"] = item?.likes_length;
@@ -1773,6 +1775,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                 blog_item["bid"] = item?._id?.toString();
                                 blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                 blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                blog_item["isowner"] = none_null(p_author) ? false : item?.author?.toString() === uid;
                                 blog_item["title"] = item?.title;
                                 blog_item["b_dp_link"] = item?.dp_link;
                                 blog_item["likes_l"] = item?.likes_length;
@@ -2180,6 +2183,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     bid: result[0]?._id?.toString(),
                                                     title: result[0]?.title,
                                                     author: "Not Found",
+                                                    isowner: false,
                                                     a_id: "Not Found",
                                                     a_followed: false,
                                                     a_dp_link: "none",
@@ -2203,6 +2207,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     bid: result[0]?._id?.toString(),
                                                     title: result[0]?.title,
                                                     author: "Not Found",
+                                                    isowner: false,
                                                     a_id: "Not Found",
                                                     a_followed: false,
                                                     a_dp_link: "none",
@@ -2287,6 +2292,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: response[0]?.username,
+                                                            isowner: false,
                                                             a_id: response[0]?._id?.toString(),
                                                             a_followed: false,
                                                             a_dp_link: response[0]?.dp_link,
@@ -2310,6 +2316,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: response[0]?.username,
+                                                            isowner: false,
                                                             a_id: response[0]?._id?.toString(),
                                                             a_followed: false,
                                                             a_dp_link: response[0]?.dp_link,
@@ -2391,6 +2398,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: "Not Found",
+                                                            isowner: false,
                                                             a_id: "Not Found",
                                                             a_followed: false,
                                                             a_dp_link: "none",
@@ -2414,6 +2422,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: "Not Found",
+                                                            isowner: false,
                                                             a_id: "Not Found",
                                                             a_followed: false,
                                                             a_dp_link: "none",
@@ -2496,6 +2505,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
                                                         author: "Not Found",
+                                                        isowner: false,
                                                         a_id: "Not Found",
                                                         a_followed: false,
                                                         a_dp_link: "none",
@@ -2519,6 +2529,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
                                                         author: "Not Found",
+                                                        isowner: false,
                                                         a_id: "Not Found",
                                                         a_followed: false,
                                                         a_dp_link: "none",
@@ -2602,6 +2613,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             bid: result[0]?._id?.toString(),
                                             title: result[0]?.title,
                                             author: "Not Found",
+                                            isowner: false,
                                             a_id: "Not Found",
                                             a_followed: false,
                                             a_dp_link: "none",
@@ -2625,6 +2637,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             bid: result[0]?._id?.toString(),
                                             title: result[0]?.title,
                                             author: "Not Found",
+                                            isowner: false,
                                             a_id: "Not Found",
                                             a_followed: false,
                                             a_dp_link: "none",
@@ -2778,6 +2791,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     bid: result[0]?._id?.toString(),
                                                     title: result[0]?.title,
                                                     author: "Not Found",
+                                                    isowner: false,
                                                     a_id: "Not Found",
                                                     a_followed: false,
                                                     a_dp_link: "none",
@@ -2801,6 +2815,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     bid: result[0]?._id?.toString(),
                                                     title: result[0]?.title,
                                                     author: "Not Found",
+                                                    isowner: false,
                                                     a_id: "Not Found",
                                                     a_followed: false,
                                                     a_dp_link: "none",
@@ -2885,6 +2900,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: response[0]?.username,
+                                                            isowner: response[0]?._id?.toString() === uid,
                                                             a_id: response[0]?._id?.toString(),
                                                             a_followed: response[0]?.a_followed,
                                                             a_dp_link: response[0]?.dp_link,
@@ -2908,6 +2924,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: response[0]?.username,
+                                                            isowner: response[0]?._id?.toString() === uid,
                                                             a_id: response[0]?._id?.toString(),
                                                             a_followed: response[0]?.a_followed,
                                                             a_dp_link: response[0]?.dp_link,
@@ -2989,6 +3006,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: "Not Found",
+                                                            isowner: false,
                                                             a_id: "Not Found",
                                                             a_followed: false,
                                                             a_dp_link: "none",
@@ -3012,6 +3030,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
                                                             author: "Not Found",
+                                                            isowner: false,
                                                             a_id: "Not Found",
                                                             a_followed: false,
                                                             a_dp_link: "none",
@@ -3094,6 +3113,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
                                                         author: "Not Found",
+                                                        isowner: false,
                                                         a_id: "Not Found",
                                                         a_followed: false,
                                                         a_dp_link: "none",
@@ -3117,6 +3137,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
                                                         author: "Not Found",
+                                                        isowner: false,
                                                         a_id: "Not Found",
                                                         a_followed: false,
                                                         a_dp_link: "none",
@@ -3200,6 +3221,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             bid: result[0]?._id?.toString(),
                                             title: result[0]?.title,
                                             author: "Not Found",
+                                            isowner: false,
                                             a_id: "Not Found",
                                             a_followed: false,
                                             a_dp_link: "none",
@@ -3223,6 +3245,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             bid: result[0]?._id?.toString(),
                                             title: result[0]?.title,
                                             author: "Not Found",
+                                            isowner: false,
                                             a_id: "Not Found",
                                             a_followed: false,
                                             a_dp_link: "none",
@@ -3356,6 +3379,7 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     blog_item["bid"] = item?._id?.toString();
                                     blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                     blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                    blog_item["isowner"] = false;
                                     blog_item["title"] = item?.title;
                                     blog_item["b_dp_link"] = item?.dp_link;
                                     blog_item["likes_l"] = item?.likes_l;
@@ -3461,6 +3485,7 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     blog_item["bid"] = item?._id?.toString();
                                     blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                     blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                    blog_item["isowner"] = false;
                                     blog_item["title"] = item?.title;
                                     blog_item["b_dp_link"] = item?.dp_link;
                                     blog_item["likes_l"] = item?.likes_l;
@@ -3572,6 +3597,7 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     blog_item["bid"] = item?._id?.toString();
                                     blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                     blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                    blog_item["isowner"] = none_null(p_author) ? false : item?.author?.toString() === uid;
                                     blog_item["title"] = item?.title;
                                     blog_item["b_dp_link"] = item?.dp_link;
                                     blog_item["likes_l"] = item?.likes_l;
@@ -3678,6 +3704,7 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     blog_item["bid"] = item?._id?.toString();
                                     blog_item["aid"] = none_null(p_author) ? "Not Found" : item?.author?.toString();
                                     blog_item["author"] = none_null(p_author) ? "Not Found" : p_author;
+                                    blog_item["isowner"] = none_null(p_author) ? false : item?.author?.toString() === uid;
                                     blog_item["title"] = item?.title;
                                     blog_item["b_dp_link"] = item?.dp_link;
                                     blog_item["likes_l"] = item?.likes_l;

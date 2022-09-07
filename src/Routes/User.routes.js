@@ -2185,6 +2185,7 @@ router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
                                                         blog_info["bid"] = item?._id?.toString();
                                                         blog_info["aid"] = result[0]?._id?.toString();
                                                         blog_info["author"] = result[0]?.username;
+                                                        blog_info["isowner"] = false;
                                                         blog_info["title"] = item?.title;
                                                         blog_info["b_dp_link"] = item?.dp_link;
                                                         blog_info["likes_l"] = item?.likes_l;
@@ -2303,6 +2304,7 @@ router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
                                                         blog_info["bid"] = item?._id?.toString();
                                                         blog_info["aid"] = result[0]?._id?.toString();
                                                         blog_info["author"] = result[0]?.username;
+                                                        blog_info["isowner"] = result[0]?._id?.toString() === uid;
                                                         blog_info["title"] = item?.title;
                                                         blog_info["b_dp_link"] = item?.dp_link;
                                                         blog_info["likes_l"] = item?.likes_l;
