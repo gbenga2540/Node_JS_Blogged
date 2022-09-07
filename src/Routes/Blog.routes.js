@@ -2147,7 +2147,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     ])
                                                         .catch(err => {
                                                             old_comments?.map(item => {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             });
                                                         })
                                                         .then(response => {
@@ -2156,25 +2160,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 old_comments?.map(item => {
                                                                     const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                     if (user?.length > 0) {
-                                                                        new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: user?.[0]?.username,
+                                                                            is_c_owner: false
+                                                                        });
                                                                     } else {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     }
                                                                 });
                                                             } else {
                                                                 old_comments?.map(item => {
-                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                    new_comments?.push({
+                                                                        ...item,
+                                                                        username: "Not Found",
+                                                                        is_c_owner: false
+                                                                    });
                                                                 });
                                                             }
                                                         });
                                                 } catch (error) {
                                                     old_comments?.map(item => {
-                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                        new_comments?.push({
+                                                            ...item,
+                                                            username: "Not Found",
+                                                            is_c_owner: false
+                                                        });
                                                     });
                                                 }
                                             } else {
                                                 old_comments?.map(item => {
-                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                    new_comments?.push({
+                                                        ...item,
+                                                        username: "Not Found",
+                                                        is_c_owner: false
+                                                    });
                                                 });
                                             }
                                             res.json({
@@ -2256,7 +2280,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     });
                                                                 })
                                                                 .then(response => {
@@ -2265,25 +2293,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         old_comments?.map(item => {
                                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                             if (user?.length > 0) {
-                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: user?.[0]?.username,
+                                                                                    is_c_owner: false
+                                                                                });
                                                                             } else {
-                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: "Not Found",
+                                                                                    is_c_owner: false
+                                                                                });
                                                                             }
                                                                         });
                                                                     } else {
                                                                         old_comments?.map(item => {
-                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: "Not Found",
+                                                                                is_c_owner: false
+                                                                            });
                                                                         });
                                                                     }
                                                                 });
                                                         } catch (error) {
                                                             old_comments?.map(item => {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             });
                                                         }
                                                     } else {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                     res.json({
@@ -2362,7 +2410,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     });
                                                                 })
                                                                 .then(response => {
@@ -2371,25 +2423,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         old_comments?.map(item => {
                                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                             if (user?.length > 0) {
-                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: user?.[0]?.username,
+                                                                                    is_c_owner: false
+                                                                                });
                                                                             } else {
-                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: "Not Found",
+                                                                                    is_c_owner: false
+                                                                                });
                                                                             }
                                                                         });
                                                                     } else {
                                                                         old_comments?.map(item => {
-                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: "Not Found",
+                                                                                is_c_owner: false
+                                                                            });
                                                                         });
                                                                     }
                                                                 });
                                                         } catch (error) {
                                                             old_comments?.map(item => {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             });
                                                         }
                                                     } else {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                     res.json({
@@ -2469,7 +2541,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         ])
                                                             .catch(err => {
                                                                 old_comments?.map(item => {
-                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                    new_comments?.push({
+                                                                        ...item,
+                                                                        username: "Not Found",
+                                                                        is_c_owner: false
+                                                                    });
                                                                 });
                                                             })
                                                             .then(response => {
@@ -2478,25 +2554,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     old_comments?.map(item => {
                                                                         const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                         if (user?.length > 0) {
-                                                                            new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: user?.[0]?.username,
+                                                                                is_c_owner: false
+                                                                            });
                                                                         } else {
-                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: "Not Found",
+                                                                                is_c_owner: false
+                                                                            });
                                                                         }
                                                                     });
                                                                 } else {
                                                                     old_comments?.map(item => {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     });
                                                                 }
                                                             });
                                                     } catch (error) {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                 } else {
                                                     old_comments?.map(item => {
-                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                        new_comments?.push({
+                                                            ...item,
+                                                            username: "Not Found",
+                                                            is_c_owner: false
+                                                        });
                                                     });
                                                 }
                                                 res.json({
@@ -2577,7 +2673,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             ])
                                                 .catch(err => {
                                                     old_comments?.map(item => {
-                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                        new_comments?.push({
+                                                            ...item,
+                                                            username: "Not Found",
+                                                            is_c_owner: false
+                                                        });
                                                     });
                                                 })
                                                 .then(response => {
@@ -2586,25 +2686,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         old_comments?.map(item => {
                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                             if (user?.length > 0) {
-                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: user?.[0]?.username,
+                                                                    is_c_owner: false
+                                                                });
                                                             } else {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             }
                                                         });
                                                     } else {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                 });
                                         } catch (error) {
                                             old_comments?.map(item => {
-                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                new_comments?.push({
+                                                    ...item,
+                                                    username: "Not Found",
+                                                    is_c_owner: false
+                                                });
                                             });
                                         }
                                     } else {
                                         old_comments?.map(item => {
-                                            new_comments?.push({ ...item, username: "Not Found" });
+                                            new_comments?.push({
+                                                ...item,
+                                                username: "Not Found",
+                                                is_c_owner: false
+                                            });
                                         });
                                     }
                                     res.json({
@@ -2755,7 +2875,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     ])
                                                         .catch(err => {
                                                             old_comments?.map(item => {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             });
                                                         })
                                                         .then(response => {
@@ -2764,25 +2888,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 old_comments?.map(item => {
                                                                     const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                     if (user?.length > 0) {
-                                                                        new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: user?.[0]?.username,
+                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                        });
                                                                     } else {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     }
                                                                 });
                                                             } else {
                                                                 old_comments?.map(item => {
-                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                    new_comments?.push({
+                                                                        ...item,
+                                                                        username: "Not Found",
+                                                                        is_c_owner: false
+                                                                    });
                                                                 });
                                                             }
                                                         });
                                                 } catch (error) {
                                                     old_comments?.map(item => {
-                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                        new_comments?.push({
+                                                            ...item,
+                                                            username: "Not Found",
+                                                            is_c_owner: false
+                                                        });
                                                     });
                                                 }
                                             } else {
                                                 old_comments?.map(item => {
-                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                    new_comments?.push({
+                                                        ...item,
+                                                        username: "Not Found",
+                                                        is_c_owner: false
+                                                    });
                                                 });
                                             }
                                             res.json({
@@ -2864,34 +3008,59 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     });
                                                                 })
                                                                 .then(response => {
+                                                                    console.log('object');
                                                                     if (response?.length > 0) {
                                                                         const cmt_usernames = response;
                                                                         old_comments?.map(item => {
                                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                             if (user?.length > 0) {
-                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: user?.[0]?.username,
+                                                                                    is_c_owner: uid === item?.commenter?.toString()
+                                                                                });
                                                                             } else {
-                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: "Not Found",
+                                                                                    is_c_owner: false
+                                                                                });
                                                                             }
                                                                         });
                                                                     } else {
                                                                         old_comments?.map(item => {
-                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: "Not Found",
+                                                                                is_c_owner: false
+                                                                            });
                                                                         });
                                                                     }
                                                                 });
                                                         } catch (error) {
                                                             old_comments?.map(item => {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             });
                                                         }
                                                     } else {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                     res.json({
@@ -2970,7 +3139,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     });
                                                                 })
                                                                 .then(response => {
@@ -2979,25 +3152,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         old_comments?.map(item => {
                                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                             if (user?.length > 0) {
-                                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: user?.[0]?.username,
+                                                                                    is_c_owner: uid === item?.commenter?.toString()
+                                                                                });
                                                                             } else {
-                                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                                new_comments?.push({
+                                                                                    ...item,
+                                                                                    username: "Not Found",
+                                                                                    is_c_owner: false
+                                                                                });
                                                                             }
                                                                         });
                                                                     } else {
                                                                         old_comments?.map(item => {
-                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: "Not Found",
+                                                                                is_c_owner: false
+                                                                            });
                                                                         });
                                                                     }
                                                                 });
                                                         } catch (error) {
                                                             old_comments?.map(item => {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             });
                                                         }
                                                     } else {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                     res.json({
@@ -3077,7 +3270,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         ])
                                                             .catch(err => {
                                                                 old_comments?.map(item => {
-                                                                    new_comments?.push({ ...item, username: "Not Found" });
+                                                                    new_comments?.push({
+                                                                        ...item,
+                                                                        username: "Not Found",
+                                                                        is_c_owner: false
+                                                                    });
                                                                 });
                                                             })
                                                             .then(response => {
@@ -3086,25 +3283,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     old_comments?.map(item => {
                                                                         const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                         if (user?.length > 0) {
-                                                                            new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: user?.[0]?.username,
+                                                                                is_c_owner: uid === item?.commenter?.toString()
+                                                                            });
                                                                         } else {
-                                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                                            new_comments?.push({
+                                                                                ...item,
+                                                                                username: "Not Found",
+                                                                                is_c_owner: false
+                                                                            });
                                                                         }
                                                                     });
                                                                 } else {
                                                                     old_comments?.map(item => {
-                                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                                        new_comments?.push({
+                                                                            ...item,
+                                                                            username: "Not Found",
+                                                                            is_c_owner: false
+                                                                        });
                                                                     });
                                                                 }
                                                             });
                                                     } catch (error) {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                 } else {
                                                     old_comments?.map(item => {
-                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                        new_comments?.push({
+                                                            ...item,
+                                                            username: "Not Found",
+                                                            is_c_owner: false
+                                                        });
                                                     });
                                                 }
                                                 res.json({
@@ -3185,7 +3402,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             ])
                                                 .catch(err => {
                                                     old_comments?.map(item => {
-                                                        new_comments?.push({ ...item, username: "Not Found" });
+                                                        new_comments?.push({
+                                                            ...item,
+                                                            username: "Not Found",
+                                                            is_c_owner: false
+                                                        });
                                                     });
                                                 })
                                                 .then(response => {
@@ -3194,25 +3415,45 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         old_comments?.map(item => {
                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                             if (user?.length > 0) {
-                                                                new_comments?.push({ ...item, username: user?.[0]?.username });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: user?.[0]?.username,
+                                                                    is_c_owner: uid === item?.commenter?.toString()
+                                                                });
                                                             } else {
-                                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                                new_comments?.push({
+                                                                    ...item,
+                                                                    username: "Not Found",
+                                                                    is_c_owner: false
+                                                                });
                                                             }
                                                         });
                                                     } else {
                                                         old_comments?.map(item => {
-                                                            new_comments?.push({ ...item, username: "Not Found" });
+                                                            new_comments?.push({
+                                                                ...item,
+                                                                username: "Not Found",
+                                                                is_c_owner: false
+                                                            });
                                                         });
                                                     }
                                                 });
                                         } catch (error) {
                                             old_comments?.map(item => {
-                                                new_comments?.push({ ...item, username: "Not Found" });
+                                                new_comments?.push({
+                                                    ...item,
+                                                    username: "Not Found",
+                                                    is_c_owner: false
+                                                });
                                             });
                                         }
                                     } else {
                                         old_comments?.map(item => {
-                                            new_comments?.push({ ...item, username: "Not Found" });
+                                            new_comments?.push({
+                                                ...item,
+                                                username: "Not Found",
+                                                is_c_owner: false
+                                            });
                                         });
                                     }
                                     res.json({
