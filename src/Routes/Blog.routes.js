@@ -3016,7 +3016,6 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                                 })
                                                                 .then(response => {
-                                                                    console.log('object');
                                                                     if (response?.length > 0) {
                                                                         const cmt_usernames = response;
                                                                         old_comments?.map(item => {
