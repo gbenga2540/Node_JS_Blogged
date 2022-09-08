@@ -261,7 +261,8 @@ router.post('/auth/signin', async (req, res) => {
                                                 status: "success",
                                                 response: {
                                                     token: token,
-                                                    uid: uid
+                                                    uid: uid,
+                                                    email_v: result[0]?.email_v
                                                 }
                                             });
                                         } else {
