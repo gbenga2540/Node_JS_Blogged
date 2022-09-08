@@ -91,12 +91,15 @@ router.post('/auth/signup', async (req, res) => {
                                                     })
                                                     .then(async result => {
                                                         if (result) {
-                                                            const uid = result?.id;
+                                                            const uid = result?._id?.toString();
                                                             const token = jwt.sign({ uid: uid }, process.env.NODE_AUTH_SECRET_KEY);
                                                             if (none_null(dp)) {
                                                                 res.json({
                                                                     status: "success",
-                                                                    response: token
+                                                                    response: {
+                                                                        token: token,
+                                                                        uid: uid
+                                                                    }
                                                                 });
                                                             } else {
                                                                 try {
@@ -129,7 +132,10 @@ router.post('/auth/signup', async (req, res) => {
                                                                                             } else {
                                                                                                 res.json({
                                                                                                     status: "success",
-                                                                                                    response: token
+                                                                                                    response: {
+                                                                                                        token: token,
+                                                                                                        uid: uid
+                                                                                                    }
                                                                                                 });
                                                                                             }
                                                                                         });
@@ -253,7 +259,10 @@ router.post('/auth/signin', async (req, res) => {
                                             const token = jwt.sign({ uid: uid }, process.env.NODE_AUTH_SECRET_KEY);
                                             res.json({
                                                 status: "success",
-                                                response: token
+                                                response: {
+                                                    token: token,
+                                                    uid: uid
+                                                }
                                             });
                                         } else {
                                             res.json({
