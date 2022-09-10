@@ -739,10 +739,10 @@ router.patch('/forgotpassword', async (req, res) => {
 router.patch('/resetpassword', verifyJWTbody, async (req, res) => {
     try {
         const uid = req?.uid;
-        const password = req.body.password;
+        const oldpassword = req.body.oldpassword;
         const newpassword = req.body.newpassword;
 
-        if (none_null(password) === false && none_null(newpassword) === false) {
+        if (none_null(oldpassword) === false && none_null(newpassword) === false) {
             try {
                 await User.aggregate([
                     {
@@ -769,7 +769,7 @@ router.patch('/resetpassword', verifyJWTbody, async (req, res) => {
                             if (result?.length > 0) {
                                 if (result[0]?.email_v === true) {
                                     try {
-                                        bcrypt.compare(password, result[0]?.password, async (err, response) => {
+                                        bcrypt.compare(oldpassword, result[0]?.password, async (err, response) => {
                                             if (err) {
                                                 res.json({
                                                     status: "error",
