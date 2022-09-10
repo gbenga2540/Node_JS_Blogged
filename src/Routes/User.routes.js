@@ -562,15 +562,15 @@ router.patch('/verifymail/confirm', verifyJWTbody, async (req, res) => {
 // Sends New Numeric Password to user's email
 // INFO REQUIRED:
 // token
-router.patch('/forgotpassword', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
+router.patch('/forgotpassword', async (req, res) => {
+    const email = req?.body?.email;
     const user_new_pwd = generate_random_number(6);
 
     try {
         await User.aggregate([
             {
                 $match: {
-                    _id: ObjectId(uid)
+                    email: email
                 }
             },
             {
@@ -588,6 +588,7 @@ router.patch('/forgotpassword', verifyJWTbody, async (req, res) => {
                 });
             })
             .then(async result => {
+                const uid = result[0]?._id?.toString();
                 if (result !== null || result !== undefined) {
                     if (result?.length > 0) {
                         const transporter = nodemailer.createTransport({
