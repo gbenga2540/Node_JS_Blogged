@@ -25,7 +25,7 @@ const blogged_master_errors = [
     },
     {
         code: "ERR-M-BLGD-007",
-        message: "Error trying to load Feedback"
+        message: "Error trying to load Feedbacks"
     },
     {
         code: "ERR-M-BLGD-008",
@@ -82,5 +82,9 @@ const blogged_master_errors = [
     {
         code: "ERR-M-BLGD-021",
         message: "Fields cannot be empty"
+    },
+    {
+        code: "ERR-M-BLGD-022",
+        message: "Error trying to verify or unverify users"
     }
 ]

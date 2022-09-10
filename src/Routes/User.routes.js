@@ -8,6 +8,7 @@ const verifyJWTbody = require('../Utils/Verify_JWT_Body');
 const verifyJWTHeader = require('../Utils/Verify_JWT_Header');
 const verifyJWTHeaderIA = require('../Utils/Verify_JWT_Header_IA');
 const none_null = require('../Utils/None_Null_Checker');
+const none_null_bool = require('../Utils/None_Null_Bool_Checker');
 const none_null_dp = require('../Utils/None_Null_Checker_DP');
 const pagination_indexer = require('../Utils/Pagination_Indexer');
 const generate_random_number = require('../Utils/Generate_Random_Number');
@@ -23,167 +24,174 @@ const ObjectId = require('mongodb').ObjectId;
 // password
 // display picture --> send none if image isn't to be uploaded
 router.post('/auth/signup', async (req, res) => {
-    const email = req.body.email;
-    const username = req.body.username;
-    const password = req.body.password;
-    const dp = none_null_dp(req.body.dp);
+    try {
+        const email = req.body.email;
+        const username = req.body.username;
+        const password = req.body.password;
+        const dp = none_null_dp(req.body.dp);
 
-    if (none_null(email) === false && none_null(username) === false && none_null(password) === false) {
-        try {
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-            await User.aggregate([
-                {
-                    $match: {
-                        email: email
+        if (none_null(email) === false && none_null(username) === false && none_null(password) === false) {
+            try {
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(password, salt);
+                await User.aggregate([
+                    {
+                        $match: {
+                            email: email
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-002"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length === 0) {
-                            try {
-                                await User.aggregate([
-                                    {
-                                        $match: {
-                                            username: username
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-002"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length === 0) {
+                                try {
+                                    await User.aggregate([
+                                        {
+                                            $match: {
+                                                username: username
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1
-                                        }
-                                    }
-                                ])
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-004"
-                                        });
-                                    })
-                                    .then(async response => {
-                                        if (response?.length === 0) {
-                                            const user = new User({
-                                                username: username,
-                                                email: email,
-                                                password: hashedPassword,
-                                                dp_link: "none"
+                                    ])
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-004"
                                             });
+                                        })
+                                        .then(async response => {
+                                            if (response?.length === 0) {
+                                                const user = new User({
+                                                    username: username,
+                                                    email: email,
+                                                    password: hashedPassword,
+                                                    dp_link: "none"
+                                                });
 
-                                            try {
-                                                await user.save()
-                                                    .catch(err => {
-                                                        res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-006"
-                                                        });
-                                                    })
-                                                    .then(async result => {
-                                                        if (result) {
-                                                            const uid = result?._id?.toString();
-                                                            const token = jwt.sign({ uid: uid }, process.env.NODE_AUTH_SECRET_KEY);
-                                                            if (none_null(dp)) {
-                                                                res.json({
-                                                                    status: "success",
-                                                                    response: {
-                                                                        token: token,
-                                                                        uid: uid
-                                                                    }
-                                                                });
-                                                            } else {
-                                                                try {
-                                                                    await cloudinary.uploader.upload(dp, {
-                                                                        folder: `${process.env.NODE_CLOUDINARY_USERS_FOLDER}`,
-                                                                        public_id: `${uid}`
-                                                                    }, async (error, result) => {
-                                                                        if (error) {
-                                                                            res.json({
-                                                                                status: "error",
-                                                                                code: "ERR-BLGD-007"
-                                                                            });
-                                                                        } else {
-                                                                            if (result) {
-                                                                                const imageurl = result?.url;
-                                                                                try {
-                                                                                    await User.findByIdAndUpdate(uid, { dp_link: imageurl })
-                                                                                        .catch(err => {
-                                                                                            res.json({
-                                                                                                status: "error",
-                                                                                                code: "ERR-BLGD-020"
-                                                                                            });
-                                                                                        })
-                                                                                        .then(data => {
-                                                                                            if (data === null || data === undefined) {
-                                                                                                res.json({
-                                                                                                    status: "error",
-                                                                                                    code: "ERR-BLGD-020"
-                                                                                                });
-                                                                                            } else {
-                                                                                                res.json({
-                                                                                                    status: "success",
-                                                                                                    response: {
-                                                                                                        token: token,
-                                                                                                        uid: uid
-                                                                                                    }
-                                                                                                });
-                                                                                            }
-                                                                                        });
-                                                                                } catch (err) {
-                                                                                    res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-020"
-                                                                                    });
-                                                                                }
-                                                                            } else {
-                                                                                res.json({
-                                                                                    status: "error",
-                                                                                    code: "ERR-BLGD-008"
-                                                                                });
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                } catch (err) {
-                                                                    res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-007"
-                                                                    });
-                                                                }
-                                                            }
-                                                        } else {
+                                                try {
+                                                    await user.save()
+                                                        .catch(err => {
                                                             res.json({
                                                                 status: "error",
                                                                 code: "ERR-BLGD-006"
                                                             });
-                                                        }
+                                                        })
+                                                        .then(async result => {
+                                                            if (result) {
+                                                                const uid = result?._id?.toString();
+                                                                const token = jwt.sign({ uid: uid }, process.env.NODE_AUTH_SECRET_KEY);
+                                                                if (none_null(dp)) {
+                                                                    res.json({
+                                                                        status: "success",
+                                                                        response: {
+                                                                            token: token,
+                                                                            uid: uid
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    try {
+                                                                        await cloudinary.uploader.upload(dp, {
+                                                                            folder: `${process.env.NODE_CLOUDINARY_USERS_FOLDER}`,
+                                                                            public_id: `${uid}`
+                                                                        }, async (error, result) => {
+                                                                            if (error) {
+                                                                                res.json({
+                                                                                    status: "error",
+                                                                                    code: "ERR-BLGD-007"
+                                                                                });
+                                                                            } else {
+                                                                                if (result) {
+                                                                                    const imageurl = result?.url;
+                                                                                    try {
+                                                                                        await User.findByIdAndUpdate(uid, { dp_link: imageurl })
+                                                                                            .catch(err => {
+                                                                                                res.json({
+                                                                                                    status: "error",
+                                                                                                    code: "ERR-BLGD-020"
+                                                                                                });
+                                                                                            })
+                                                                                            .then(data => {
+                                                                                                if (data === null || data === undefined) {
+                                                                                                    res.json({
+                                                                                                        status: "error",
+                                                                                                        code: "ERR-BLGD-020"
+                                                                                                    });
+                                                                                                } else {
+                                                                                                    res.json({
+                                                                                                        status: "success",
+                                                                                                        response: {
+                                                                                                            token: token,
+                                                                                                            uid: uid
+                                                                                                        }
+                                                                                                    });
+                                                                                                }
+                                                                                            });
+                                                                                    } catch (err) {
+                                                                                        res.json({
+                                                                                            status: "error",
+                                                                                            code: "ERR-BLGD-020"
+                                                                                        });
+                                                                                    }
+                                                                                } else {
+                                                                                    res.json({
+                                                                                        status: "error",
+                                                                                        code: "ERR-BLGD-008"
+                                                                                    });
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    } catch (err) {
+                                                                        res.json({
+                                                                            status: "error",
+                                                                            code: "ERR-BLGD-007"
+                                                                        });
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                res.json({
+                                                                    status: "error",
+                                                                    code: "ERR-BLGD-006"
+                                                                });
+                                                            }
+                                                        });
+                                                } catch (error) {
+                                                    res.json({
+                                                        status: "error",
+                                                        code: "ERR-BLGD-006"
                                                     });
-                                            } catch (error) {
+                                                }
+                                            } else {
                                                 res.json({
                                                     status: "error",
-                                                    code: "ERR-BLGD-006"
+                                                    code: "ERR-BLGD-005"
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "error",
-                                                code: "ERR-BLGD-005"
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-004"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
                                     status: "error",
-                                    code: "ERR-BLGD-004"
+                                    code: "ERR-BLGD-003"
                                 });
                             }
                         } else {
@@ -192,23 +200,23 @@ router.post('/auth/signup', async (req, res) => {
                                 code: "ERR-BLGD-003"
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-003"
-                        });
-                    }
+                    });
+            } catch (err) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-001"
                 });
-        } catch (err) {
+            }
+        } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-001"
+                code: "ERR-BLGD-071"
             });
         }
-    } else {
+    } catch (err) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-071"
+            code: "ERR-BLGD-001"
         });
     }
 });
@@ -218,65 +226,72 @@ router.post('/auth/signup', async (req, res) => {
 // email
 // password
 router.post('/auth/signin', async (req, res) => {
-    const email = req.body.email;
-    const password = req.body.password;
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
 
-    if (none_null(email) === false && none_null(password) === false) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        email: email
+        if (none_null(email) === false && none_null(password) === false) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            email: email
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            email_v: 1,
+                            password: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email_v: 1,
-                        password: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-009"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await bcrypt.compare(password, result[0]?.password, (error, response) => {
-                                    if (error) {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-011"
-                                        });
-                                    } else {
-                                        if (response) {
-                                            const uid = result[0]?._id?.toString();
-                                            const token = jwt.sign({ uid: uid }, process.env.NODE_AUTH_SECRET_KEY);
-                                            res.json({
-                                                status: "success",
-                                                response: {
-                                                    token: token,
-                                                    uid: uid,
-                                                    email_v: result[0]?.email_v
-                                                }
-                                            });
-                                        } else {
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-009"
+                        });
+                    })
+                    .then(result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    bcrypt.compare(password, result[0]?.password, (error, response) => {
+                                        if (error) {
                                             res.json({
                                                 status: "error",
-                                                code: "ERR-BLGD-012"
+                                                code: "ERR-BLGD-011"
                                             });
+                                        } else {
+                                            if (response) {
+                                                const uid = result[0]?._id?.toString();
+                                                const token = jwt.sign({ uid: uid }, process.env.NODE_AUTH_SECRET_KEY);
+                                                res.json({
+                                                    status: "success",
+                                                    response: {
+                                                        token: token,
+                                                        uid: uid,
+                                                        email_v: result[0]?.email_v
+                                                    }
+                                                });
+                                            } else {
+                                                res.json({
+                                                    status: "error",
+                                                    code: "ERR-BLGD-012"
+                                                });
+                                            }
                                         }
-                                    }
-                                });
-                            } catch (error) {
+                                    });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-011"
+                                    });
+                                }
+                            } else {
                                 res.json({
                                     status: "error",
-                                    code: "ERR-BLGD-011"
+                                    code: "ERR-BLGD-010"
                                 });
                             }
                         } else {
@@ -285,23 +300,23 @@ router.post('/auth/signin', async (req, res) => {
                                 code: "ERR-BLGD-010"
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-010"
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-009"
                 });
-        } catch (error) {
+            }
+        } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-009"
+                code: "ERR-BLGD-071"
             });
         }
-    } else {
+    } catch (error) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-071"
+            code: "ERR-BLGD-009"
         });
     }
 });
@@ -310,10 +325,10 @@ router.post('/auth/signin', async (req, res) => {
 // INFO REQUIRED:
 // token
 router.patch('/verifymail/send', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
-    const user_v_code = generate_random_number(6);
-
     try {
+        const uid = req?.uid;
+        const user_v_code = generate_random_number(6);
+
         await User.aggregate([
             {
                 $match: {
@@ -363,7 +378,7 @@ router.patch('/verifymail/send', verifyJWTbody, async (req, res) => {
                                             code: "ERR-BLGD-017"
                                         });
                                     })
-                                    .then(async response => {
+                                    .then(response => {
                                         if (response) {
                                             const mailOptions = {
                                                 from: `Blogged ${process.env.NODE_GMAIL_ACCOUNT}`,
@@ -372,7 +387,7 @@ router.patch('/verifymail/send', verifyJWTbody, async (req, res) => {
                                                 text: `Hi, ${result[0]?.username[0]?.toUpperCase()}${result[0]?.username?.slice(1)?.toLowerCase()}. To verify your email address, please use the One Time Password (OTP) provided below:\n \n \n ${user_v_code}`
                                             }
                                             try {
-                                                await transporter.sendMail(mailOptions, async (error, data) => {
+                                                transporter.sendMail(mailOptions, async (error, data) => {
                                                     if (error) {
                                                         res.json({
                                                             status: "error",
@@ -465,71 +480,78 @@ router.patch('/verifymail/send', verifyJWTbody, async (req, res) => {
 // token
 // OTP
 router.patch('/verifymail/confirm', verifyJWTbody, async (req, res) => {
-    const uid = req.uid;
-    const OTP = req.body.otp?.toString();
+    try {
+        const uid = req.uid;
+        const OTP = req.body.otp?.toString();
 
-    if (none_null(OTP) === false) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(uid)
+        if (none_null(OTP) === false) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(uid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            email_v: 1,
+                            v_code: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email_v: 1,
-                        v_code: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-016"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            if (result[0]?.email_v === false) {
-                                if (result[0]?.v_code === OTP) {
-                                    try {
-                                        await User.updateOne({ _id: ObjectId(uid) }, { $set: { email_v: true } })
-                                            .catch(err => {
-                                                res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-018"
-                                                });
-                                            })
-                                            .then(response => {
-                                                if (response?.acknowledged === true) {
-                                                    res.json({
-                                                        status: "success"
-                                                    });
-                                                } else {
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-016"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                if (result[0]?.email_v === false) {
+                                    if (result[0]?.v_code === OTP) {
+                                        try {
+                                            await User.updateOne({ _id: ObjectId(uid) }, { $set: { email_v: true } })
+                                                .catch(err => {
                                                     res.json({
                                                         status: "error",
                                                         code: "ERR-BLGD-018"
                                                     });
-                                                }
+                                                })
+                                                .then(response => {
+                                                    if (response?.acknowledged === true) {
+                                                        res.json({
+                                                            status: "success"
+                                                        });
+                                                    } else {
+                                                        res.json({
+                                                            status: "error",
+                                                            code: "ERR-BLGD-018"
+                                                        });
+                                                    }
+                                                });
+                                        } catch (error) {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-018"
                                             });
-                                    } catch (error) {
+                                        }
+                                    } else {
                                         res.json({
                                             status: "error",
-                                            code: "ERR-BLGD-018"
+                                            code: "ERR-BLGD-070"
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-070"
+                                        status: "success"
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success"
+                                    status: "error",
+                                    code: "ERR-BLGD-016"
                                 });
                             }
                         } else {
@@ -538,23 +560,23 @@ router.patch('/verifymail/confirm', verifyJWTbody, async (req, res) => {
                                 code: "ERR-BLGD-016"
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-018"
                 });
-        } catch (error) {
+            }
+        } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-018"
+                code: "ERR-BLGD-071"
             });
         }
-    } else {
+    } catch (error) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-071"
+            code: "ERR-BLGD-018"
         });
     }
 });
@@ -563,10 +585,10 @@ router.patch('/verifymail/confirm', verifyJWTbody, async (req, res) => {
 // INFO REQUIRED:
 // token
 router.patch('/forgotpassword', async (req, res) => {
-    const email = req?.body?.email;
-    const user_new_pwd = generate_random_number(6);
-
     try {
+        const email = req?.body?.email;
+        const user_new_pwd = generate_random_number(6);
+
         await User.aggregate([
             {
                 $match: {
@@ -615,7 +637,7 @@ router.patch('/forgotpassword', async (req, res) => {
                                         code: "ERR-BLGD-072"
                                     });
                                 })
-                                .then(async response => {
+                                .then(response => {
                                     if (response) {
                                         const mailOptions = {
                                             from: `Blogged ${process.env.NODE_GMAIL_ACCOUNT}`,
@@ -624,7 +646,7 @@ router.patch('/forgotpassword', async (req, res) => {
                                             text: `Hi, ${result[0]?.username[0]?.toUpperCase()}${result[0]?.username?.slice(1)?.toLowerCase()}. Below is the new password that has been auto-generated for you:\n \n \n ${user_new_pwd}`
                                         }
                                         try {
-                                            await transporter.sendMail(mailOptions, async (error, data) => {
+                                            transporter.sendMail(mailOptions, async (error, data) => {
                                                 if (error) {
                                                     res.json({
                                                         status: "error",
@@ -715,91 +737,98 @@ router.patch('/forgotpassword', async (req, res) => {
 // old password
 // new password
 router.patch('/resetpassword', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
-    const password = req.body.password;
-    const newpassword = req.body.newpassword;
+    try {
+        const uid = req?.uid;
+        const password = req.body.password;
+        const newpassword = req.body.newpassword;
 
-    if (none_null(password) === false && none_null(newpassword) === false) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(uid)
+        if (none_null(password) === false && none_null(newpassword) === false) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(uid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            email_v: 1,
+                            password: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email_v: 1,
-                        password: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-016"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            if (result[0]?.email_v === true) {
-                                try {
-                                    await bcrypt.compare(password, result[0]?.password, async (err, response) => {
-                                        if (err) {
-                                            res.json({
-                                                status: "error",
-                                                code: "ERR-BLGD-011"
-                                            });
-                                        } else {
-                                            if (response) {
-                                                try {
-                                                    const salt = await bcrypt.genSalt(10);
-                                                    const hashedPassword = await bcrypt.hash(newpassword, salt);
-                                                    await User.updateOne({ _id: ObjectId(uid) }, { $set: { password: hashedPassword } })
-                                                        .catch(err => {
-                                                            res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-015"
-                                                            });
-                                                        })
-                                                        .then(response => {
-                                                            if (response?.matchedCount > 0 && response?.modifiedCount > 0) {
-                                                                res.json({
-                                                                    status: "success"
-                                                                });
-                                                            } else {
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-016"
+                        });
+                    })
+                    .then(result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                if (result[0]?.email_v === true) {
+                                    try {
+                                        bcrypt.compare(password, result[0]?.password, async (err, response) => {
+                                            if (err) {
+                                                res.json({
+                                                    status: "error",
+                                                    code: "ERR-BLGD-011"
+                                                });
+                                            } else {
+                                                if (response) {
+                                                    try {
+                                                        const salt = await bcrypt.genSalt(10);
+                                                        const hashedPassword = await bcrypt.hash(newpassword, salt);
+                                                        await User.updateOne({ _id: ObjectId(uid) }, { $set: { password: hashedPassword } })
+                                                            .catch(err => {
                                                                 res.json({
                                                                     status: "error",
                                                                     code: "ERR-BLGD-015"
                                                                 });
-                                                            }
+                                                            })
+                                                            .then(response => {
+                                                                if (response?.matchedCount > 0 && response?.modifiedCount > 0) {
+                                                                    res.json({
+                                                                        status: "success"
+                                                                    });
+                                                                } else {
+                                                                    res.json({
+                                                                        status: "error",
+                                                                        code: "ERR-BLGD-015"
+                                                                    });
+                                                                }
+                                                            });
+                                                    } catch (error) {
+                                                        res.json({
+                                                            status: "error",
+                                                            code: "ERR-BLGD-015"
                                                         });
-                                                } catch (error) {
+                                                    }
+                                                } else {
                                                     res.json({
                                                         status: "error",
-                                                        code: "ERR-BLGD-015"
+                                                        code: "ERR-BLGD-012"
                                                     });
                                                 }
-                                            } else {
-                                                res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-012"
-                                                });
                                             }
-                                        }
-                                    });
-                                } catch (error) {
+                                        });
+                                    } catch (error) {
+                                        res.json({
+                                            status: "error",
+                                            code: "ERR-BLGD-011"
+                                        });
+                                    }
+                                } else {
                                     res.json({
                                         status: "error",
-                                        code: "ERR-BLGD-011"
+                                        code: "ERR-BLGD-022"
                                     });
                                 }
                             } else {
                                 res.json({
                                     status: "error",
-                                    code: "ERR-BLGD-022"
+                                    code: "ERR-BLGD-016"
                                 });
                             }
                         } else {
@@ -808,23 +837,23 @@ router.patch('/resetpassword', verifyJWTbody, async (req, res) => {
                                 code: "ERR-BLGD-016"
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-015"
                 });
-        } catch (error) {
+            }
+        } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-015"
+                code: "ERR-BLGD-071"
             });
         }
-    } else {
+    } catch (error) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-071"
+            code: "ERR-BLGD-015"
         });
     }
 });
@@ -834,64 +863,71 @@ router.patch('/resetpassword', verifyJWTbody, async (req, res) => {
 // token
 // new username
 router.patch('/updateusername', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
-    const username = req.body.username;
+    try {
+        const uid = req?.uid;
+        const username = req.body.username;
 
-    if (none_null(username) === false) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(uid)
+        if (none_null(username) === false) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(uid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            email_v: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email_v: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-016"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            if (result[0]?.email_v === true) {
-                                try {
-                                    await User.updateOne({ _id: ObjectId(uid) }, { $set: { username: username } })
-                                        .catch(err => {
-                                            res.json({
-                                                status: "error",
-                                                code: "ERR-BLGD-019"
-                                            });
-                                        })
-                                        .then(response => {
-                                            if (response?.matchedCount > 0 && response?.modifiedCount > 0) {
-                                                res.json({
-                                                    status: "success"
-                                                });
-                                            } else {
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-016"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                if (result[0]?.email_v === true) {
+                                    try {
+                                        await User.updateOne({ _id: ObjectId(uid) }, { $set: { username: username } })
+                                            .catch(err => {
                                                 res.json({
                                                     status: "error",
                                                     code: "ERR-BLGD-019"
                                                 });
-                                            }
+                                            })
+                                            .then(response => {
+                                                if (response?.matchedCount > 0 && response?.modifiedCount > 0) {
+                                                    res.json({
+                                                        status: "success"
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "error",
+                                                        code: "ERR-BLGD-019"
+                                                    });
+                                                }
+                                            });
+                                    } catch (error) {
+                                        res.json({
+                                            status: "error",
+                                            code: "ERR-BLGD-019"
                                         });
-                                } catch (error) {
+                                    }
+                                } else {
                                     res.json({
                                         status: "error",
-                                        code: "ERR-BLGD-019"
+                                        code: "ERR-BLGD-022"
                                     });
                                 }
                             } else {
                                 res.json({
                                     status: "error",
-                                    code: "ERR-BLGD-022"
+                                    code: "ERR-BLGD-016"
                                 });
                             }
                         } else {
@@ -900,23 +936,23 @@ router.patch('/updateusername', verifyJWTbody, async (req, res) => {
                                 code: "ERR-BLGD-016"
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-019"
                 });
-        } catch (error) {
+            }
+        } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-019"
+                code: "ERR-BLGD-071"
             });
         }
-    } else {
+    } catch (error) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-071"
+            code: "ERR-BLGD-019"
         });
     }
 });
@@ -926,10 +962,10 @@ router.patch('/updateusername', verifyJWTbody, async (req, res) => {
 // token
 // new display picture -> send none if image isn't to be uploaded
 router.patch('/updatedp', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
-    const dp = none_null_dp(req.body.dp);
-
     try {
+        const uid = req?.uid;
+        const dp = none_null_dp(req.body.dp);
+
         await User.aggregate([
             {
                 $match: {
@@ -1090,11 +1126,140 @@ router.patch('/updatedp', verifyJWTbody, async (req, res) => {
 // token
 // Author's ID
 router.patch('/follow', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
-    const aid = req.body.aid;
+    try {
+        const uid = req?.uid;
+        const aid = req.body.aid;
 
-    if (none_null(aid) === false) {
-        if (uid !== aid) {
+        if (none_null(aid) === false) {
+            if (uid !== aid) {
+                try {
+                    await User.aggregate([
+                        {
+                            $match: {
+                                _id: ObjectId(uid)
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                email_v: 1
+                            }
+                        }
+                    ])
+                        .catch(err => {
+                            res.json({
+                                status: "error",
+                                code: "ERR-BLGD-016"
+                            });
+                        })
+                        .then(async result => {
+                            if (result !== null || result !== undefined) {
+                                if (result?.length > 0) {
+                                    if (result[0]?.email_v === true) {
+                                        try {
+                                            await User.findByIdAndUpdate(aid, { $addToSet: { followers: ObjectId(uid) } })
+                                                .catch(err => {
+                                                    res.json({
+                                                        status: "error",
+                                                        code: "ERR-BLGD-032"
+                                                    });
+                                                })
+                                                .then(async response => {
+                                                    if (response === null || response === undefined) {
+                                                        res.json({
+                                                            status: "error",
+                                                            code: "ERR-BLGD-034"
+                                                        });
+                                                    } else {
+                                                        try {
+                                                            await User.findByIdAndUpdate(uid, { $addToSet: { following: ObjectId(aid) } })
+                                                                .catch(err => {
+                                                                    res.json({
+                                                                        status: "error",
+                                                                        code: "ERR-BLGD-032"
+                                                                    });
+                                                                })
+                                                                .then(data => {
+                                                                    if (data === null || data === undefined) {
+                                                                        res.json({
+                                                                            status: "error",
+                                                                            code: "ERR-BLGD-016"
+                                                                        });
+                                                                    } else {
+                                                                        res.json({
+                                                                            status: "success"
+                                                                        });
+                                                                    }
+                                                                });
+                                                        } catch (error) {
+                                                            res.json({
+                                                                status: "error",
+                                                                code: "ERR-BLGD-032"
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                        } catch (error) {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-032"
+                                            });
+                                        }
+                                    } else {
+                                        res.json({
+                                            status: "error",
+                                            code: "ERR-BLGD-022"
+                                        });
+                                    }
+                                } else {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-016"
+                                    });
+                                }
+                            } else {
+                                res.json({
+                                    status: "error",
+                                    code: "ERR-BLGD-016"
+                                });
+                            }
+                        });
+                } catch (error) {
+                    res.json({
+                        status: "error",
+                        code: "ERR-BLGD-032"
+                    });
+                }
+            } else {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-074"
+                });
+            }
+        } else {
+            res.json({
+                status: "error",
+                code: "ERR-BLGD-071"
+            });
+        }
+    } catch (error) {
+        res.json({
+            status: "error",
+            code: "ERR-BLGD-032"
+        });
+    }
+});
+
+// Unfollow a Blog Author
+// INFO REQUIRED:
+// token
+// Author's ID
+router.patch('/unfollow', verifyJWTbody, async (req, res) => {
+    try {
+        const uid = req?.uid;
+        const aid = req.body.aid;
+
+        if (none_null(aid) === false) {
             try {
                 await User.aggregate([
                     {
@@ -1120,26 +1285,21 @@ router.patch('/follow', verifyJWTbody, async (req, res) => {
                             if (result?.length > 0) {
                                 if (result[0]?.email_v === true) {
                                     try {
-                                        await User.findByIdAndUpdate(aid, { $addToSet: { followers: ObjectId(uid) } })
+                                        await User.findByIdAndUpdate(aid, { $pull: { followers: ObjectId(uid) } })
                                             .catch(err => {
                                                 res.json({
                                                     status: "error",
-                                                    code: "ERR-BLGD-032"
+                                                    code: "ERR-BLGD-033"
                                                 });
                                             })
                                             .then(async response => {
                                                 if (response === null || response === undefined) {
-                                                    res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-034"
-                                                    });
-                                                } else {
                                                     try {
-                                                        await User.findByIdAndUpdate(uid, { $addToSet: { following: ObjectId(aid) } })
+                                                        await User.findByIdAndUpdate(uid, { $pull: { following: ObjectId(aid) } })
                                                             .catch(err => {
                                                                 res.json({
                                                                     status: "error",
-                                                                    code: "ERR-BLGD-032"
+                                                                    code: "ERR-BLGD-033"
                                                                 });
                                                             })
                                                             .then(data => {
@@ -1157,7 +1317,34 @@ router.patch('/follow', verifyJWTbody, async (req, res) => {
                                                     } catch (error) {
                                                         res.json({
                                                             status: "error",
-                                                            code: "ERR-BLGD-032"
+                                                            code: "ERR-BLGD-033"
+                                                        });
+                                                    }
+                                                } else {
+                                                    try {
+                                                        await User.findByIdAndUpdate(uid, { $pull: { following: ObjectId(aid) } })
+                                                            .catch(err => {
+                                                                res.json({
+                                                                    status: "error",
+                                                                    code: "ERR-BLGD-033"
+                                                                });
+                                                            })
+                                                            .then(data => {
+                                                                if (data === null || data === undefined) {
+                                                                    res.json({
+                                                                        status: "error",
+                                                                        code: "ERR-BLGD-016"
+                                                                    });
+                                                                } else {
+                                                                    res.json({
+                                                                        status: "success"
+                                                                    });
+                                                                }
+                                                            });
+                                                    } catch (error) {
+                                                        res.json({
+                                                            status: "error",
+                                                            code: "ERR-BLGD-033"
                                                         });
                                                     }
                                                 }
@@ -1165,7 +1352,7 @@ router.patch('/follow', verifyJWTbody, async (req, res) => {
                                     } catch (error) {
                                         res.json({
                                             status: "error",
-                                            code: "ERR-BLGD-032"
+                                            code: "ERR-BLGD-033"
                                         });
                                     }
                                 } else {
@@ -1190,156 +1377,19 @@ router.patch('/follow', verifyJWTbody, async (req, res) => {
             } catch (error) {
                 res.json({
                     status: "error",
-                    code: "ERR-BLGD-032"
+                    code: "ERR-BLGD-033"
                 });
             }
         } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-074"
+                code: "ERR-BLGD-071"
             });
         }
-    } else {
+    } catch (error) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-071"
-        });
-    }
-});
-
-// Unfollow a Blog Author
-// INFO REQUIRED:
-// token
-// Author's ID
-router.patch('/unfollow', verifyJWTbody, async (req, res) => {
-    const uid = req?.uid;
-    const aid = req.body.aid;
-
-    if (none_null(aid) === false) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(uid)
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        email_v: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-016"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            if (result[0]?.email_v === true) {
-                                try {
-                                    await User.findByIdAndUpdate(aid, { $pull: { followers: ObjectId(uid) } })
-                                        .catch(err => {
-                                            res.json({
-                                                status: "error",
-                                                code: "ERR-BLGD-033"
-                                            });
-                                        })
-                                        .then(async response => {
-                                            if (response === null || response === undefined) {
-                                                try {
-                                                    await User.findByIdAndUpdate(uid, { $pull: { following: ObjectId(aid) } })
-                                                        .catch(err => {
-                                                            res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-033"
-                                                            });
-                                                        })
-                                                        .then(data => {
-                                                            if (data === null || data === undefined) {
-                                                                res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-016"
-                                                                });
-                                                            } else {
-                                                                res.json({
-                                                                    status: "success"
-                                                                });
-                                                            }
-                                                        });
-                                                } catch (error) {
-                                                    res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-033"
-                                                    });
-                                                }
-                                            } else {
-                                                try {
-                                                    await User.findByIdAndUpdate(uid, { $pull: { following: ObjectId(aid) } })
-                                                        .catch(err => {
-                                                            res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-033"
-                                                            });
-                                                        })
-                                                        .then(data => {
-                                                            if (data === null || data === undefined) {
-                                                                res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-016"
-                                                                });
-                                                            } else {
-                                                                res.json({
-                                                                    status: "success"
-                                                                });
-                                                            }
-                                                        });
-                                                } catch (error) {
-                                                    res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-033"
-                                                    });
-                                                }
-                                            }
-                                        });
-                                } catch (error) {
-                                    res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-033"
-                                    });
-                                }
-                            } else {
-                                res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-022"
-                                });
-                            }
-                        } else {
-                            res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
-                            });
-                        }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
-                        });
-                    }
-                });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-033"
-            });
-        }
-    } else {
-        res.json({
-            status: "error",
-            code: "ERR-BLGD-071"
+            code: "ERR-BLGD-033"
         });
     }
 });
@@ -1348,9 +1398,9 @@ router.patch('/unfollow', verifyJWTbody, async (req, res) => {
 // INFO REQUIRED:
 // token
 router.delete('/delete', verifyJWTHeader, async (req, res) => {
-    const uid = req?.uid;
-
     try {
+        const uid = req?.uid;
+
         await User.aggregate([
             {
                 $match: {
@@ -1662,99 +1712,108 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
 // URL Query first_index
 // URL Query last_index
 router.get('/:aid/followers', verifyJWTHeaderIA, async (req, res) => {
-    const uid = req.uid;
-    const aid = req.params.aid;
-    const pagination_index = req.query.pagination_index;
-    const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-    const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+    try {
+        const uid = req.uid;
+        const aid = req.params.aid;
+        const pagination_index = req.query.pagination_index;
+        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
 
-    if (none_null(uid)) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
+        if (none_null(uid)) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            followers: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        followers: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-057"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await User.aggregate([
-                                    {
-                                        $match: {
-                                            _id: { $in: result[0]?.followers }
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-057"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    await User.aggregate([
+                                        {
+                                            $match: {
+                                                _id: { $in: result[0]?.followers }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                                username: 1,
+                                                verified: 1,
+                                                dp_link: 1,
+                                                followers_l: { $size: "$followers" },
+                                                createdAt: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
-                                            username: 1,
-                                            dp_link: 1,
-                                            followers_l: { $size: "$followers" },
-                                            createdAt: 1
-                                        }
-                                    }
-                                ])
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-057"
-                                        });
-                                    })
-                                    .then(response => {
-                                        if (response !== null || response !== undefined) {
-                                            if (response?.length > 0) {
-                                                const new_users = [];
+                                    ])
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-057"
+                                            });
+                                        })
+                                        .then(response => {
+                                            if (response !== null || response !== undefined) {
                                                 if (response?.length > 0) {
-                                                    response.map(item => {
-                                                        const user_info = {};
-                                                        user_info["uid"] = item?._id?.toString();
-                                                        user_info["isowner"] = false;
-                                                        user_info["username"] = item?.username;
-                                                        user_info["dp_link"] = item?.dp_link;
-                                                        user_info["followers"] = item?.followers_l;
-                                                        user_info["followed"] = false;
-                                                        new_users.push(user_info);
+                                                    const new_users = [];
+                                                    if (response?.length > 0) {
+                                                        response.map(item => {
+                                                            const user_info = {};
+                                                            user_info["uid"] = item?._id?.toString();
+                                                            user_info["isowner"] = false;
+                                                            user_info["username"] = item?.username;
+                                                            user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
+                                                            user_info["dp_link"] = item?.dp_link;
+                                                            user_info["followers"] = item?.followers_l;
+                                                            user_info["followed"] = false;
+                                                            new_users.push(user_info);
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: new_users
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: []
                                                     });
                                                 }
-                                                res.json({
-                                                    status: "success",
-                                                    response: new_users
-                                                });
                                             } else {
                                                 res.json({
                                                     status: "success",
                                                     response: []
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: []
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-057"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-057"
+                                    status: "success",
+                                    response: []
                                 });
                             }
                         } else {
@@ -1763,107 +1822,109 @@ router.get('/:aid/followers', verifyJWTHeaderIA, async (req, res) => {
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
-                });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-057"
-            });
-        }
-    } else {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        followers: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-057"
                     });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await User.aggregate([
-                                    {
-                                        $match: {
-                                            _id: { $in: result[0]?.followers }
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-057"
+                });
+            }
+        } else {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            followers: 1
+                        }
+                    }
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-057"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    await User.aggregate([
+                                        {
+                                            $match: {
+                                                _id: { $in: result[0]?.followers }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                                username: 1,
+                                                verified: 1,
+                                                dp_link: 1,
+                                                followers_l: { $size: "$followers" },
+                                                followed: { $in: [ObjectId(uid), "$followers"] },
+                                                createdAt: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
-                                            username: 1,
-                                            dp_link: 1,
-                                            followers_l: { $size: "$followers" },
-                                            followed: { $in: [ObjectId(uid), "$followers"] },
-                                            createdAt: 1
-                                        }
-                                    }
-                                ])
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-057"
-                                        });
-                                    })
-                                    .then(response => {
-                                        if (response !== null || response !== undefined) {
-                                            if (response?.length > 0) {
-                                                const new_users = [];
+                                    ])
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-057"
+                                            });
+                                        })
+                                        .then(response => {
+                                            if (response !== null || response !== undefined) {
                                                 if (response?.length > 0) {
-                                                    response.map(item => {
-                                                        const user_info = {};
-                                                        user_info["uid"] = item?._id?.toString();
-                                                        user_info["isowner"] = item?._id?.toString() === uid;
-                                                        user_info["username"] = item?.username;
-                                                        user_info["dp_link"] = item?.dp_link;
-                                                        user_info["followers"] = item?.followers_l;
-                                                        user_info["followed"] = item?.followed;
-                                                        new_users.push(user_info);
+                                                    const new_users = [];
+                                                    if (response?.length > 0) {
+                                                        response.map(item => {
+                                                            const user_info = {};
+                                                            user_info["uid"] = item?._id?.toString();
+                                                            user_info["isowner"] = item?._id?.toString() === uid;
+                                                            user_info["username"] = item?.username;
+                                                            user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
+                                                            user_info["dp_link"] = item?.dp_link;
+                                                            user_info["followers"] = item?.followers_l;
+                                                            user_info["followed"] = item?.followed;
+                                                            new_users.push(user_info);
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: new_users
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: []
                                                     });
                                                 }
-                                                res.json({
-                                                    status: "success",
-                                                    response: new_users
-                                                });
                                             } else {
                                                 res.json({
                                                     status: "success",
                                                     response: []
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: []
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-057"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-057"
+                                    status: "success",
+                                    response: []
                                 });
                             }
                         } else {
@@ -1872,19 +1933,19 @@ router.get('/:aid/followers', verifyJWTHeaderIA, async (req, res) => {
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-057"
                 });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-057"
-            });
+            }
         }
+    } catch (error) {
+        res.json({
+            status: "error",
+            code: "ERR-BLGD-057"
+        });
     }
 });
 
@@ -1894,99 +1955,108 @@ router.get('/:aid/followers', verifyJWTHeaderIA, async (req, res) => {
 // URL Query first_index
 // URL Query last_index
 router.get('/:aid/following', verifyJWTHeaderIA, async (req, res) => {
-    const uid = req.uid;
-    const aid = req.params.aid;
-    const pagination_index = req.query.pagination_index;
-    const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-    const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+    try {
+        const uid = req.uid;
+        const aid = req.params.aid;
+        const pagination_index = req.query.pagination_index;
+        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
 
-    if (none_null(uid)) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
+        if (none_null(uid)) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            following: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        following: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-058"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await User.aggregate([
-                                    {
-                                        $match: {
-                                            _id: { $in: result[0]?.following }
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-058"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    await User.aggregate([
+                                        {
+                                            $match: {
+                                                _id: { $in: result[0]?.following }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                                username: 1,
+                                                verified: 1,
+                                                dp_link: 1,
+                                                followers_l: { $size: "$followers" },
+                                                createdAt: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
-                                            username: 1,
-                                            dp_link: 1,
-                                            followers_l: { $size: "$followers" },
-                                            createdAt: 1
-                                        }
-                                    }
-                                ])
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-058"
-                                        });
-                                    })
-                                    .then(response => {
-                                        if (response !== null || response !== undefined) {
-                                            if (response?.length > 0) {
-                                                const new_users = [];
+                                    ])
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-058"
+                                            });
+                                        })
+                                        .then(response => {
+                                            if (response !== null || response !== undefined) {
                                                 if (response?.length > 0) {
-                                                    response.map(item => {
-                                                        const user_info = {};
-                                                        user_info["uid"] = item?._id?.toString();
-                                                        user_info["isowner"] = false;
-                                                        user_info["username"] = item?.username;
-                                                        user_info["dp_link"] = item?.dp_link;
-                                                        user_info["followers"] = item?.followers_l;
-                                                        user_info["followed"] = false;
-                                                        new_users.push(user_info);
+                                                    const new_users = [];
+                                                    if (response?.length > 0) {
+                                                        response.map(item => {
+                                                            const user_info = {};
+                                                            user_info["uid"] = item?._id?.toString();
+                                                            user_info["isowner"] = false;
+                                                            user_info["username"] = item?.username;
+                                                            user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
+                                                            user_info["dp_link"] = item?.dp_link;
+                                                            user_info["followers"] = item?.followers_l;
+                                                            user_info["followed"] = false;
+                                                            new_users.push(user_info);
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: new_users
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: []
                                                     });
                                                 }
-                                                res.json({
-                                                    status: "success",
-                                                    response: new_users
-                                                });
                                             } else {
                                                 res.json({
                                                     status: "success",
                                                     response: []
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: []
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-058"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-058"
+                                    status: "success",
+                                    response: []
                                 });
                             }
                         } else {
@@ -1995,107 +2065,109 @@ router.get('/:aid/following', verifyJWTHeaderIA, async (req, res) => {
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
-                });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-058"
-            });
-        }
-    } else {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        following: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-058"
                     });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await User.aggregate([
-                                    {
-                                        $match: {
-                                            _id: { $in: result[0]?.following }
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-058"
+                });
+            }
+        } else {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            following: 1
+                        }
+                    }
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-058"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    await User.aggregate([
+                                        {
+                                            $match: {
+                                                _id: { $in: result[0]?.following }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                                username: 1,
+                                                verified: 1,
+                                                dp_link: 1,
+                                                followers_l: { $size: "$followers" },
+                                                followed: { $in: [ObjectId(uid), "$followers"] },
+                                                createdAt: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
-                                            username: 1,
-                                            dp_link: 1,
-                                            followers_l: { $size: "$followers" },
-                                            followed: { $in: [ObjectId(uid), "$followers"] },
-                                            createdAt: 1
-                                        }
-                                    }
-                                ])
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-058"
-                                        });
-                                    })
-                                    .then(response => {
-                                        if (response !== null || result !== undefined) {
-                                            if (response?.length > 0) {
-                                                const new_users = [];
+                                    ])
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-058"
+                                            });
+                                        })
+                                        .then(response => {
+                                            if (response !== null || result !== undefined) {
                                                 if (response?.length > 0) {
-                                                    response.map(item => {
-                                                        const user_info = {};
-                                                        user_info["uid"] = item?._id?.toString();
-                                                        user_info["isowner"] = item?._id?.toString() === uid;
-                                                        user_info["username"] = item?.username;
-                                                        user_info["dp_link"] = item?.dp_link;
-                                                        user_info["followers"] = item?.followers_l;
-                                                        user_info["followed"] = item?.followed;
-                                                        new_users.push(user_info);
+                                                    const new_users = [];
+                                                    if (response?.length > 0) {
+                                                        response.map(item => {
+                                                            const user_info = {};
+                                                            user_info["uid"] = item?._id?.toString();
+                                                            user_info["isowner"] = item?._id?.toString() === uid;
+                                                            user_info["username"] = item?.username;
+                                                            user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
+                                                            user_info["dp_link"] = item?.dp_link;
+                                                            user_info["followers"] = item?.followers_l;
+                                                            user_info["followed"] = item?.followed;
+                                                            new_users.push(user_info);
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: new_users
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: []
                                                     });
                                                 }
-                                                res.json({
-                                                    status: "success",
-                                                    response: new_users
-                                                });
                                             } else {
                                                 res.json({
                                                     status: "success",
                                                     response: []
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: []
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-058"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-058"
+                                    status: "success",
+                                    response: []
                                 });
                             }
                         } else {
@@ -2104,19 +2176,19 @@ router.get('/:aid/following', verifyJWTHeaderIA, async (req, res) => {
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-058"
                 });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-058"
-            });
+            }
         }
+    } catch (error) {
+        res.json({
+            status: "error",
+            code: "ERR-BLGD-058"
+        });
     }
 });
 
@@ -2126,109 +2198,118 @@ router.get('/:aid/following', verifyJWTHeaderIA, async (req, res) => {
 // URL Query first_index
 // URL Query last_index
 router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
-    const uid = req.uid;
-    const aid = req.params.aid;
-    const pagination_index = req.query.pagination_index;
-    const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-    const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+    try {
+        const uid = req.uid;
+        const aid = req.params.aid;
+        const pagination_index = req.query.pagination_index;
+        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
 
-    if (none_null(uid)) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
+        if (none_null(uid)) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            verified: 1,
+                            blogs: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        username: 1,
-                        blogs: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-056"
-                    });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await Blog.aggregate([
-                                    {
-                                        $match: {
-                                            _id: { $in: result[0]?.blogs }
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-056"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    await Blog.aggregate([
+                                        {
+                                            $match: {
+                                                _id: { $in: result[0]?.blogs }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                                title: 1,
+                                                dp_link: 1,
+                                                likes_l: { $size: "$likes" },
+                                                comments_l: { $size: "$comments" },
+                                                tags: 1,
+                                                createdAt: 1,
+                                                updatedAt: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
-                                            title: 1,
-                                            dp_link: 1,
-                                            likes_l: { $size: "$likes" },
-                                            comments_l: { $size: "$comments" },
-                                            tags: 1,
-                                            createdAt: 1,
-                                            updatedAt: 1
-                                        }
-                                    }
-                                ])
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-056"
-                                        });
-                                    })
-                                    .then(response => {
-                                        if (response !== null || response !== undefined) {
-                                            if (response?.length > 0) {
-                                                const new_blogs = [];
+                                    ])
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-056"
+                                            });
+                                        })
+                                        .then(response => {
+                                            if (response !== null || response !== undefined) {
                                                 if (response?.length > 0) {
-                                                    response.map(item => {
-                                                        const blog_info = {};
-                                                        blog_info["bid"] = item?._id?.toString();
-                                                        blog_info["aid"] = result[0]?._id?.toString();
-                                                        blog_info["author"] = result[0]?.username;
-                                                        blog_info["isowner"] = false;
-                                                        blog_info["title"] = item?.title;
-                                                        blog_info["b_dp_link"] = item?.dp_link;
-                                                        blog_info["likes_l"] = item?.likes_l;
-                                                        blog_info["comments_l"] = item?.comments_l;
-                                                        blog_info["tags"] = item?.tags;
-                                                        blog_info["liked"] = false;
-                                                        blog_info["createdAt"] = item?.createdAt;
-                                                        blog_info["updatedAt"] = item?.updatedAt;
-                                                        new_blogs.push(blog_info);
+                                                    const new_blogs = [];
+                                                    if (response?.length > 0) {
+                                                        response.map(item => {
+                                                            const blog_info = {};
+                                                            blog_info["bid"] = item?._id?.toString();
+                                                            blog_info["aid"] = result[0]?._id?.toString();
+                                                            blog_info["author"] = result[0]?.username;
+                                                            blog_info["averified"] = none_null_bool(result[0]?.verified) ? false : result[0]?.verified;
+                                                            blog_info["isowner"] = false;
+                                                            blog_info["title"] = item?.title;
+                                                            blog_info["b_dp_link"] = item?.dp_link;
+                                                            blog_info["likes_l"] = item?.likes_l;
+                                                            blog_info["comments_l"] = item?.comments_l;
+                                                            blog_info["tags"] = item?.tags;
+                                                            blog_info["liked"] = false;
+                                                            blog_info["createdAt"] = item?.createdAt;
+                                                            blog_info["updatedAt"] = item?.updatedAt;
+                                                            new_blogs.push(blog_info);
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: new_blogs
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: []
                                                     });
                                                 }
-                                                res.json({
-                                                    status: "success",
-                                                    response: new_blogs
-                                                });
                                             } else {
                                                 res.json({
                                                     status: "success",
                                                     response: []
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: []
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-056"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-056"
+                                    status: "success",
+                                    response: []
                                 });
                             }
                         } else {
@@ -2237,117 +2318,119 @@ router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
-                });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-056"
-            });
-        }
-    } else {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        username: 1,
-                        blogs: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-056"
                     });
-                })
-                .then(async result => {
-                    if (result !== null || result !== undefined) {
-                        if (result?.length > 0) {
-                            try {
-                                await Blog.aggregate([
-                                    {
-                                        $match: {
-                                            _id: { $in: result[0]?.blogs }
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-056"
+                });
+            }
+        } else {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            verified: 1,
+                            blogs: 1
+                        }
+                    }
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-056"
+                        });
+                    })
+                    .then(async result => {
+                        if (result !== null || result !== undefined) {
+                            if (result?.length > 0) {
+                                try {
+                                    await Blog.aggregate([
+                                        {
+                                            $match: {
+                                                _id: { $in: result[0]?.blogs }
+                                            }
+                                        },
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                                title: 1,
+                                                dp_link: 1,
+                                                likes_l: { $size: "$likes" },
+                                                comments_l: { $size: "$comments" },
+                                                tags: 1,
+                                                liked: { $in: [ObjectId(uid), "$likes"] },
+                                                createdAt: 1,
+                                                updatedAt: 1
+                                            }
                                         }
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
-                                            title: 1,
-                                            dp_link: 1,
-                                            likes_l: { $size: "$likes" },
-                                            comments_l: { $size: "$comments" },
-                                            tags: 1,
-                                            liked: { $in: [ObjectId(uid), "$likes"] },
-                                            createdAt: 1,
-                                            updatedAt: 1
-                                        }
-                                    }
-                                ])
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-056"
-                                        });
-                                    })
-                                    .then(response => {
-                                        if (response !== null || response !== undefined) {
-                                            if (response?.length > 0) {
-                                                const new_blogs = [];
+                                    ])
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: "error",
+                                                code: "ERR-BLGD-056"
+                                            });
+                                        })
+                                        .then(response => {
+                                            if (response !== null || response !== undefined) {
                                                 if (response?.length > 0) {
-                                                    response.map(item => {
-                                                        const blog_info = {};
-                                                        blog_info["bid"] = item?._id?.toString();
-                                                        blog_info["aid"] = result[0]?._id?.toString();
-                                                        blog_info["author"] = result[0]?.username;
-                                                        blog_info["isowner"] = result[0]?._id?.toString() === uid;
-                                                        blog_info["title"] = item?.title;
-                                                        blog_info["b_dp_link"] = item?.dp_link;
-                                                        blog_info["likes_l"] = item?.likes_l;
-                                                        blog_info["comments_l"] = item?.comments_l;
-                                                        blog_info["tags"] = item?.tags;
-                                                        blog_info["liked"] = item?.liked;
-                                                        blog_info["createdAt"] = item?.createdAt;
-                                                        blog_info["updatedAt"] = item?.updatedAt;
-                                                        new_blogs.push(blog_info);
+                                                    const new_blogs = [];
+                                                    if (response?.length > 0) {
+                                                        response.map(item => {
+                                                            const blog_info = {};
+                                                            blog_info["bid"] = item?._id?.toString();
+                                                            blog_info["aid"] = result[0]?._id?.toString();
+                                                            blog_info["author"] = result[0]?.username;
+                                                            blog_info["averified"] = none_null_bool(result[0]?.verified) ? false : result[0]?.verified;
+                                                            blog_info["isowner"] = result[0]?._id?.toString() === uid;
+                                                            blog_info["title"] = item?.title;
+                                                            blog_info["b_dp_link"] = item?.dp_link;
+                                                            blog_info["likes_l"] = item?.likes_l;
+                                                            blog_info["comments_l"] = item?.comments_l;
+                                                            blog_info["tags"] = item?.tags;
+                                                            blog_info["liked"] = item?.liked;
+                                                            blog_info["createdAt"] = item?.createdAt;
+                                                            blog_info["updatedAt"] = item?.updatedAt;
+                                                            new_blogs.push(blog_info);
+                                                        });
+                                                    }
+                                                    res.json({
+                                                        status: "success",
+                                                        response: new_blogs
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: "success",
+                                                        response: []
                                                     });
                                                 }
-                                                res.json({
-                                                    status: "success",
-                                                    response: new_blogs
-                                                });
                                             } else {
                                                 res.json({
                                                     status: "success",
                                                     response: []
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: "success",
-                                                response: []
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: "error",
+                                        code: "ERR-BLGD-056"
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-056"
+                                    status: "success",
+                                    response: []
                                 });
                             }
                         } else {
@@ -2356,19 +2439,19 @@ router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-056"
                 });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-056"
-            });
+            }
         }
+    } catch (error) {
+        res.json({
+            status: "error",
+            code: "ERR-BLGD-056"
+        });
     }
 });
 
@@ -2376,134 +2459,145 @@ router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
 // INFO REQUIRED:
 // User's ID
 router.get('/:aid', verifyJWTHeaderIA, async (req, res) => {
-    const uid = req.uid;
-    const aid = req.params.aid;
+    try {
+        const uid = req.uid;
+        const aid = req.params.aid;
 
-    if (none_null(uid)) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
+        if (none_null(uid)) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            verified: 1,
+                            dp_link: 1,
+                            blogs_l: { $size: "$blogs" },
+                            followers_l: { $size: "$followers" },
+                            following_l: { $size: "$following" },
+                            createdAt: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        username: 1,
-                        dp_link: 1,
-                        blogs_l: { $size: "$blogs" },
-                        followers_l: { $size: "$followers" },
-                        following_l: { $size: "$following" },
-                        createdAt: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-055"
-                    });
-                })
-                .then(response => {
-                    if (response !== null || response !== undefined) {
-                        if (response?.length > 0) {
-                            res.json({
-                                status: "success",
-                                response: {
-                                    uid: response[0]?._id?.toString(),
-                                    isowner: false,
-                                    username: response[0]?.username,
-                                    dp_link: response[0]?.dp_link,
-                                    blogs_l: response[0]?.blogs_l,
-                                    followers_l: response[0]?.followers_l,
-                                    following_l: response[0]?.following_l,
-                                    followed: false,
-                                    createdAt: response[0]?.createdAt
-                                }
-                            });
+                ])
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-055"
+                        });
+                    })
+                    .then(response => {
+                        if (response !== null || response !== undefined) {
+                            if (response?.length > 0) {
+                                res.json({
+                                    status: "success",
+                                    response: {
+                                        uid: response[0]?._id?.toString(),
+                                        isowner: false,
+                                        username: response[0]?.username,
+                                        verified: none_null_bool(response[0]?.verified) ? false : response[0]?.verified,
+                                        dp_link: response[0]?.dp_link,
+                                        blogs_l: response[0]?.blogs_l,
+                                        followers_l: response[0]?.followers_l,
+                                        following_l: response[0]?.following_l,
+                                        followed: false,
+                                        createdAt: response[0]?.createdAt
+                                    }
+                                });
+                            } else {
+                                res.json({
+                                    status: "error",
+                                    code: "ERR-BLGD-055"
+                                });
+                            }
                         } else {
                             res.json({
                                 status: "error",
                                 code: "ERR-BLGD-055"
                             });
                         }
-                    } else {
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-055"
+                });
+            }
+        } else {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            _id: ObjectId(aid)
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            verified: 1,
+                            dp_link: 1,
+                            blogs_l: { $size: "$blogs" },
+                            followers_l: { $size: "$followers" },
+                            following_l: { $size: "$following" },
+                            followed: { $in: [ObjectId(uid), "$followers"] },
+                            createdAt: 1
+                        }
+                    }
+                ])
+                    .catch(err => {
                         res.json({
                             status: "error",
                             code: "ERR-BLGD-055"
                         });
-                    }
-                });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-055"
-            });
-        }
-    } else {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        _id: ObjectId(aid)
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        username: 1,
-                        dp_link: 1,
-                        blogs_l: { $size: "$blogs" },
-                        followers_l: { $size: "$followers" },
-                        following_l: { $size: "$following" },
-                        followed: { $in: [ObjectId(uid), "$followers"] },
-                        createdAt: 1
-                    }
-                }
-            ])
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-055"
-                    });
-                })
-                .then(response => {
-                    if (response !== null || response !== undefined) {
-                        if (response?.length > 0) {
-                            res.json({
-                                status: "success",
-                                response: {
-                                    uid: response[0]?._id?.toString(),
-                                    isowner: uid === aid,
-                                    username: response[0]?.username,
-                                    dp_link: response[0]?.dp_link,
-                                    blogs_l: response[0]?.blogs_l,
-                                    followers_l: response[0]?.followers_l,
-                                    following_l: response[0]?.following_l,
-                                    followed: response[0]?.followed,
-                                    createdAt: response[0]?.createdAt
-                                }
-                            });
+                    })
+                    .then(response => {
+                        if (response !== null || response !== undefined) {
+                            if (response?.length > 0) {
+                                res.json({
+                                    status: "success",
+                                    response: {
+                                        uid: response[0]?._id?.toString(),
+                                        isowner: uid === aid,
+                                        username: response[0]?.username,
+                                        verified: none_null_bool(response[0]?.verified) ? false : response[0]?.verified,
+                                        dp_link: response[0]?.dp_link,
+                                        blogs_l: response[0]?.blogs_l,
+                                        followers_l: response[0]?.followers_l,
+                                        following_l: response[0]?.following_l,
+                                        followed: response[0]?.followed,
+                                        createdAt: response[0]?.createdAt
+                                    }
+                                });
+                            } else {
+                                res.json({
+                                    status: "error",
+                                    code: "ERR-BLGD-055"
+                                });
+                            }
                         } else {
                             res.json({
                                 status: "error",
                                 code: "ERR-BLGD-055"
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "error",
-                            code: "ERR-BLGD-055"
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-055"
                 });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-055"
-            });
+            }
         }
+    } catch (error) {
+        res.json({
+            status: "error",
+            code: "ERR-BLGD-055"
+        });
     }
 });
 
@@ -2513,143 +2607,154 @@ router.get('/:aid', verifyJWTHeaderIA, async (req, res) => {
 // URL Query first_index
 // URL Query last_index
 router.get('/', verifyJWTHeaderIA, async (req, res) => {
-    const uid = req.uid;
-    const search = req.query.search;
-    const new_search = none_null(search) ? "" : search;
-    const processed_search = new_search?.toLowerCase()?.trim();
-    const pagination_index = req.query.pagination_index;
-    const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-    const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+    try {
+        const uid = req.uid;
+        const search = req.query.search;
+        const new_search = none_null(search) ? "" : search;
+        const processed_search = new_search?.toLowerCase()?.trim();
+        const pagination_index = req.query.pagination_index;
+        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
 
-    if (none_null(uid)) {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        username: { $regex: processed_search, $options: 'i' }
+        if (none_null(uid)) {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            username: { $regex: processed_search, $options: 'i' }
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            verified: 1,
+                            dp_link: 1,
+                            followers_l: { $size: "$followers" },
+                            createdAt: 1
+                        }
                     }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        username: 1,
-                        dp_link: 1,
-                        followers_l: { $size: "$followers" },
-                        createdAt: 1
-                    }
-                }
-            ])
-                .sort({ createdAt: -1 })
-                .skip(query_f_i)
-                .limit(query_l_i)
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-060"
-                    });
-                })
-                .then(result => {
-                    if (result !== null || result !== undefined) {
-                        const new_users = [];
-                        if (result?.length > 0) {
-                            result.map(item => {
-                                const user_info = {};
-                                user_info["uid"] = item?._id?.toString();
-                                user_info["isowner"] = false;
-                                user_info["username"] = item?.username;
-                                user_info["dp_link"] = item?.dp_link;
-                                user_info["followers"] = item?.followers_l;
-                                user_info["followed"] = false;
-                                new_users.push(user_info);
-                            });
-                            res.json({
-                                status: "success",
-                                response: new_users
-                            });
+                ])
+                    .sort({ createdAt: -1 })
+                    .skip(query_f_i)
+                    .limit(query_l_i)
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-060"
+                        });
+                    })
+                    .then(result => {
+                        if (result !== null || result !== undefined) {
+                            const new_users = [];
+                            if (result?.length > 0) {
+                                result.map(item => {
+                                    const user_info = {};
+                                    user_info["uid"] = item?._id?.toString();
+                                    user_info["isowner"] = false;
+                                    user_info["username"] = item?.username;
+                                    user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
+                                    user_info["dp_link"] = item?.dp_link;
+                                    user_info["followers"] = item?.followers_l;
+                                    user_info["followed"] = false;
+                                    new_users.push(user_info);
+                                });
+                                res.json({
+                                    status: "success",
+                                    response: new_users
+                                });
+                            } else {
+                                res.json({
+                                    status: "success",
+                                    response: []
+                                });
+                            }
                         } else {
                             res.json({
                                 status: "success",
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
-                });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-060"
-            });
-        }
-    } else {
-        try {
-            await User.aggregate([
-                {
-                    $match: {
-                        username: { $regex: processed_search, $options: 'i' }
-                    }
-                },
-                {
-                    $project: {
-                        _id: 1,
-                        username: 1,
-                        dp_link: 1,
-                        followers_l: { $size: "$followers" },
-                        followed: { $in: [ObjectId(uid), "$followers"] },
-                        createdAt: 1
-                    }
-                }
-            ])
-                .sort({ createdAt: -1 })
-                .skip(query_f_i)
-                .limit(query_l_i)
-                .catch(err => {
-                    res.json({
-                        status: "error",
-                        code: "ERR-BLGD-060"
                     });
-                })
-                .then(result => {
-                    if (result !== null || result !== undefined) {
-                        const new_users = [];
-                        if (result?.length > 0) {
-                            result.map(item => {
-                                const user_info = {};
-                                user_info["uid"] = item?._id?.toString();
-                                user_info["isowner"] = item?._id?.toString() === uid;
-                                user_info["username"] = item?.username;
-                                user_info["dp_link"] = item?.dp_link;
-                                user_info["followers"] = item?.followers_l;
-                                user_info["followed"] = item?.followed;
-                                new_users.push(user_info);
-                            });
-                            res.json({
-                                status: "success",
-                                response: new_users
-                            });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-060"
+                });
+            }
+        } else {
+            try {
+                await User.aggregate([
+                    {
+                        $match: {
+                            username: { $regex: processed_search, $options: 'i' }
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            verified: 1,
+                            dp_link: 1,
+                            followers_l: { $size: "$followers" },
+                            followed: { $in: [ObjectId(uid), "$followers"] },
+                            createdAt: 1
+                        }
+                    }
+                ])
+                    .sort({ createdAt: -1 })
+                    .skip(query_f_i)
+                    .limit(query_l_i)
+                    .catch(err => {
+                        res.json({
+                            status: "error",
+                            code: "ERR-BLGD-060"
+                        });
+                    })
+                    .then(result => {
+                        if (result !== null || result !== undefined) {
+                            const new_users = [];
+                            if (result?.length > 0) {
+                                result.map(item => {
+                                    const user_info = {};
+                                    user_info["uid"] = item?._id?.toString();
+                                    user_info["isowner"] = item?._id?.toString() === uid;
+                                    user_info["username"] = item?.username;
+                                    user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
+                                    user_info["dp_link"] = item?.dp_link;
+                                    user_info["followers"] = item?.followers_l;
+                                    user_info["followed"] = item?.followed;
+                                    new_users.push(user_info);
+                                });
+                                res.json({
+                                    status: "success",
+                                    response: new_users
+                                });
+                            } else {
+                                res.json({
+                                    status: "success",
+                                    response: []
+                                });
+                            }
                         } else {
                             res.json({
                                 status: "success",
                                 response: []
                             });
                         }
-                    } else {
-                        res.json({
-                            status: "success",
-                            response: []
-                        });
-                    }
+                    });
+            } catch (error) {
+                res.json({
+                    status: "error",
+                    code: "ERR-BLGD-060"
                 });
-        } catch (error) {
-            res.json({
-                status: "error",
-                code: "ERR-BLGD-060"
-            });
+            }
         }
+    } catch (error) {
+        res.json({
+            status: "error",
+            code: "ERR-BLGD-060"
+        });
     }
 });
 

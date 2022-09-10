@@ -45,3 +45,6 @@ app.use(`${process.env.NODE_API_INIT}/tags`, TagRouter);
 
 const SuggestTagRouter = require("./src/Routes/SuggestTag.routes");
 app.use(`${process.env.NODE_API_INIT}/suggesttags`, SuggestTagRouter);
+
+const VerifyUsersRouter = require("./src/Routes/VerifyUsers.routes");
+app.use(`${process.env.NODE_API_INIT}/verifyusers`, VerifyUsersRouter);

@@ -1,88 +1,80 @@
 const router = require('express').Router();
-const SuggestTag = require('../Models/Suggest_Tag_Model');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 const none_null = require('../Utils/None_Null_Checker');
+const User = require('../Models/User_Model');
+const invalid_arr_checker = require('../Utils/Invalid_Arr_Checker');
 
 
-// Suggest Tag
+// Creates Master Config
 // INFO REQUIRED:
-// tag_name
-router.post('/', async (req, res) => {
+// master_password
+router.patch('/', (req, res) => {
     try {
-        const tag_name = req.body.tag_name;
+        const master_password = req.body.master_password;
+        const processed_users_to_verify = invalid_arr_checker(req.body.users_to_verify);
+        const processed_verify = (none_null(req.body.verify) || req.body.verify === false) ? false : true;
 
-        if (none_null(tag_name) === false) {
+        if (none_null(master_password) === false) {
             try {
-                await SuggestTag.aggregate([
-                    {
-                        $match: {
-                            tag_name: tag_name
-                        }
-                    },
-                    {
-                        $project: {
-                            tag_name: 1
-                        }
-                    }
-                ])
-                    .catch(err => {
+                bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
+                    if (error) {
                         res.json({
                             status: "error",
-                            code: "ERR-BLGD-065"
+                            code: "ERR-M-BLGD-001"
                         });
-                    })
-                    .then(async result => {
-                        if (result?.length === 0) {
-                            const suggest_tag = new SuggestTag({
-                                tag_name: tag_name
-                            });
+                    } else {
+                        if (response) {
                             try {
-                                await suggest_tag.save()
+                                await User.updateMany({ username: { $in: processed_users_to_verify } }, { verified: processed_verify })
                                     .catch(err => {
                                         res.json({
                                             status: "error",
-                                            code: "ERR-BLGD-064"
+                                            code: "ERR-M-BLGD-022"
                                         });
                                     })
-                                    .then(response => {
-                                        if (response) {
+                                    .then(verify_users_res => {
+                                        if (verify_users_res?.acknowledged) {
                                             res.json({
                                                 status: "success"
                                             });
                                         } else {
                                             res.json({
                                                 status: "error",
-                                                code: "ERR-BLGD-064"
+                                                code: "ERR-M-BLGD-022"
                                             });
                                         }
                                     });
                             } catch (error) {
                                 res.json({
                                     status: "error",
-                                    code: "ERR-BLGD-064"
+                                    code: "ERR-M-BLGD-022"
                                 });
                             }
                         } else {
                             res.json({
-                                status: "success"
+                                status: "error",
+                                code: "ERR-M-BLGD-002"
                             });
                         }
-                    });
-            } catch (err) {
+                    }
+                });
+            } catch (error) {
                 res.json({
                     status: "error",
-                    code: "ERR-BLGD-065"
+                    code: "ERR-M-BLGD-001"
                 });
             }
         } else {
             res.json({
                 status: "error",
-                code: "ERR-BLGD-063"
+                code: "ERR-M-BLGD-020"
             });
         }
     } catch (error) {
         res.json({
             status: "error",
-            code: "ERR-BLGD-064"
+            code: "ERR-M-BLGD-022"
         });
     }
 });

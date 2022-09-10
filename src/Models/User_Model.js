@@ -53,6 +53,11 @@ const UserSchema = new Schema(
             type: String,
             required: true,
             default: "nv"
+        },
+        verified: {
+            type: Boolean,
+            required: true,
+            default: false
         }
     },
     {
