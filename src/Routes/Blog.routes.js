@@ -2230,7 +2230,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             {
                                                                 $project: {
                                                                     username: 1,
-                                                                    verified: 1
+                                                                    verified: 1,
+                                                                    dp_link: 1
                                                                 }
                                                             }
                                                         ])
@@ -2239,6 +2240,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -2253,6 +2255,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: user?.[0]?.username,
+                                                                                dp_link: user?.[0]?.dp_link,
                                                                                 verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                 is_c_owner: false
                                                                             });
@@ -2260,6 +2263,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -2270,6 +2274,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         new_comments?.push({
                                                                             ...item,
                                                                             username: "Not Found",
+                                                                            dp_link: "none",
                                                                             verified: false,
                                                                             is_c_owner: false
                                                                         });
@@ -2281,6 +2286,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             new_comments?.push({
                                                                 ...item,
                                                                 username: "Not Found",
+                                                                dp_link: "none",
                                                                 verified: false,
                                                                 is_c_owner: false
                                                             });
@@ -2291,6 +2297,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         new_comments?.push({
                                                             ...item,
                                                             username: "Not Found",
+                                                            dp_link: "none",
                                                             verified: false,
                                                             is_c_owner: false
                                                         });
@@ -2372,7 +2379,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     {
                                                                         $project: {
                                                                             username: 1,
-                                                                            verified: 1
+                                                                            verified: 1,
+                                                                            dp_link: 1
                                                                         }
                                                                     }
                                                                 ])
@@ -2381,6 +2389,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -2395,6 +2404,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: user?.[0]?.username,
+                                                                                        dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                         is_c_owner: false
                                                                                     });
@@ -2402,6 +2412,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: "Not Found",
+                                                                                        dp_link: "none",
                                                                                         verified: false,
                                                                                         is_c_owner: false
                                                                                     });
@@ -2412,6 +2423,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: "Not Found",
+                                                                                    dp_link: "none",
                                                                                     verified: false,
                                                                                     is_c_owner: false
                                                                                 });
@@ -2423,6 +2435,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -2433,6 +2446,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -2511,7 +2525,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     {
                                                                         $project: {
                                                                             username: 1,
-                                                                            verified: 1
+                                                                            verified: 1,
+                                                                            dp_link: 1
                                                                         }
                                                                     }
                                                                 ])
@@ -2520,6 +2535,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -2534,6 +2550,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: user?.[0]?.username,
+                                                                                        dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                         is_c_owner: false
                                                                                     });
@@ -2541,6 +2558,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: "Not Found",
+                                                                                        dp_link: "none",
                                                                                         verified: false,
                                                                                         is_c_owner: false
                                                                                     });
@@ -2551,6 +2569,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: "Not Found",
+                                                                                    dp_link: "none",
                                                                                     verified: false,
                                                                                     is_c_owner: false
                                                                                 });
@@ -2562,6 +2581,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -2572,6 +2592,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -2651,7 +2672,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 {
                                                                     $project: {
                                                                         username: 1,
-                                                                        verified: 1
+                                                                        verified: 1,
+                                                                        dp_link: 1
                                                                     }
                                                                 }
                                                             ])
@@ -2660,6 +2682,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         new_comments?.push({
                                                                             ...item,
                                                                             username: "Not Found",
+                                                                            dp_link: "none",
                                                                             verified: false,
                                                                             is_c_owner: false
                                                                         });
@@ -2674,6 +2697,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: user?.[0]?.username,
+                                                                                    dp_link: user?.[0]?.dp_link,
                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                     is_c_owner: false
                                                                                 });
@@ -2681,6 +2705,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: "Not Found",
+                                                                                    dp_link: "none",
                                                                                     verified: false,
                                                                                     is_c_owner: false
                                                                                 });
@@ -2691,6 +2716,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -2702,6 +2728,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -2712,6 +2739,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             new_comments?.push({
                                                                 ...item,
                                                                 username: "Not Found",
+                                                                dp_link: "none",
                                                                 verified: false,
                                                                 is_c_owner: false
                                                             });
@@ -2792,7 +2820,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     {
                                                         $project: {
                                                             username: 1,
-                                                            verified: 1
+                                                            verified: 1,
+                                                            dp_link: 1
                                                         }
                                                     }
                                                 ])
@@ -2801,6 +2830,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             new_comments?.push({
                                                                 ...item,
                                                                 username: "Not Found",
+                                                                dp_link: "none",
                                                                 verified: false,
                                                                 is_c_owner: false
                                                             });
@@ -2815,6 +2845,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: user?.[0]?.username,
+                                                                        dp_link: user?.[0]?.dp_link,
                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                         is_c_owner: false
                                                                     });
@@ -2822,6 +2853,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -2832,6 +2864,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -2843,6 +2876,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     new_comments?.push({
                                                         ...item,
                                                         username: "Not Found",
+                                                        dp_link: "none",
                                                         verified: false,
                                                         is_c_owner: false
                                                     });
@@ -2853,6 +2887,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 new_comments?.push({
                                                     ...item,
                                                     username: "Not Found",
+                                                    dp_link: "none",
                                                     verified: false,
                                                     is_c_owner: false
                                                 });
@@ -3004,7 +3039,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             {
                                                                 $project: {
                                                                     username: 1,
-                                                                    verified: 1
+                                                                    verified: 1,
+                                                                    dp_link: 1
                                                                 }
                                                             }
                                                         ])
@@ -3013,6 +3049,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -3027,6 +3064,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: user?.[0]?.username,
+                                                                                dp_link: user?.[0]?.dp_link,
                                                                                 verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                 is_c_owner: uid === item?.commenter?.toString()
                                                                             });
@@ -3034,6 +3072,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -3044,6 +3083,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         new_comments?.push({
                                                                             ...item,
                                                                             username: "Not Found",
+                                                                            dp_link: "none",
                                                                             verified: false,
                                                                             is_c_owner: false
                                                                         });
@@ -3055,6 +3095,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             new_comments?.push({
                                                                 ...item,
                                                                 username: "Not Found",
+                                                                dp_link: "none",
                                                                 verified: false,
                                                                 is_c_owner: false
                                                             });
@@ -3065,6 +3106,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         new_comments?.push({
                                                             ...item,
                                                             username: "Not Found",
+                                                            dp_link: "none",
                                                             verified: false,
                                                             is_c_owner: false
                                                         });
@@ -3146,7 +3188,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     {
                                                                         $project: {
                                                                             username: 1,
-                                                                            verified: 1
+                                                                            verified: 1,
+                                                                            dp_link: 1
                                                                         }
                                                                     }
                                                                 ])
@@ -3155,6 +3198,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -3169,6 +3213,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: user?.[0]?.username,
+                                                                                        dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                         is_c_owner: uid === item?.commenter?.toString()
                                                                                     });
@@ -3176,6 +3221,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: "Not Found",
+                                                                                        dp_link: "none",
                                                                                         verified: false,
                                                                                         is_c_owner: false
                                                                                     });
@@ -3186,6 +3232,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: "Not Found",
+                                                                                    dp_link: "none",
                                                                                     verified: false,
                                                                                     is_c_owner: false
                                                                                 });
@@ -3197,6 +3244,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -3207,6 +3255,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -3285,7 +3334,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     {
                                                                         $project: {
                                                                             username: 1,
-                                                                            verified: 1
+                                                                            verified: 1,
+                                                                            dp_link: 1
                                                                         }
                                                                     }
                                                                 ])
@@ -3294,6 +3344,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -3308,6 +3359,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: user?.[0]?.username,
+                                                                                        dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                         is_c_owner: uid === item?.commenter?.toString()
                                                                                     });
@@ -3315,6 +3367,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     new_comments?.push({
                                                                                         ...item,
                                                                                         username: "Not Found",
+                                                                                        dp_link: "none",
                                                                                         verified: false,
                                                                                         is_c_owner: false
                                                                                     });
@@ -3325,6 +3378,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: "Not Found",
+                                                                                    dp_link: "none",
                                                                                     verified: false,
                                                                                     is_c_owner: false
                                                                                 });
@@ -3336,6 +3390,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -3346,6 +3401,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -3425,7 +3481,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 {
                                                                     $project: {
                                                                         username: 1,
-                                                                        verified: 1
+                                                                        verified: 1,
+                                                                        dp_link: 1
                                                                     }
                                                                 }
                                                             ])
@@ -3434,6 +3491,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         new_comments?.push({
                                                                             ...item,
                                                                             username: "Not Found",
+                                                                            dp_link: "none",
                                                                             verified: false,
                                                                             is_c_owner: false
                                                                         });
@@ -3448,6 +3506,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: user?.[0]?.username,
+                                                                                    dp_link: user?.[0]?.dp_link,
                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                                     is_c_owner: uid === item?.commenter?.toString()
                                                                                 });
@@ -3455,6 +3514,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 new_comments?.push({
                                                                                     ...item,
                                                                                     username: "Not Found",
+                                                                                    dp_link: "none",
                                                                                     verified: false,
                                                                                     is_c_owner: false
                                                                                 });
@@ -3465,6 +3525,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             new_comments?.push({
                                                                                 ...item,
                                                                                 username: "Not Found",
+                                                                                dp_link: "none",
                                                                                 verified: false,
                                                                                 is_c_owner: false
                                                                             });
@@ -3476,6 +3537,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -3486,6 +3548,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             new_comments?.push({
                                                                 ...item,
                                                                 username: "Not Found",
+                                                                dp_link: "none",
                                                                 verified: false,
                                                                 is_c_owner: false
                                                             });
@@ -3566,7 +3629,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     {
                                                         $project: {
                                                             username: 1,
-                                                            verified: 1
+                                                            verified: 1,
+                                                            dp_link: 1
                                                         }
                                                     }
                                                 ])
@@ -3575,6 +3639,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             new_comments?.push({
                                                                 ...item,
                                                                 username: "Not Found",
+                                                                dp_link: "none",
                                                                 verified: false,
                                                                 is_c_owner: false
                                                             });
@@ -3589,6 +3654,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: user?.[0]?.username,
+                                                                        dp_link: user?.[0]?.dp_link,
                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
                                                                         is_c_owner: uid === item?.commenter?.toString()
                                                                     });
@@ -3596,6 +3662,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     new_comments?.push({
                                                                         ...item,
                                                                         username: "Not Found",
+                                                                        dp_link: "none",
                                                                         verified: false,
                                                                         is_c_owner: false
                                                                     });
@@ -3606,6 +3673,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 new_comments?.push({
                                                                     ...item,
                                                                     username: "Not Found",
+                                                                    dp_link: "none",
                                                                     verified: false,
                                                                     is_c_owner: false
                                                                 });
@@ -3617,6 +3685,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     new_comments?.push({
                                                         ...item,
                                                         username: "Not Found",
+                                                        dp_link: "none",
                                                         verified: false,
                                                         is_c_owner: false
                                                     });
@@ -3627,6 +3696,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 new_comments?.push({
                                                     ...item,
                                                     username: "Not Found",
+                                                    dp_link: "none",
                                                     verified: false,
                                                     is_c_owner: false
                                                 });
