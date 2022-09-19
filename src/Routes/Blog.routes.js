@@ -1072,15 +1072,633 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                     code: "ERR-BLGD-036"
                                                 });
                                             })
-                                            .then(response => {
+                                            .then(async response => {
                                                 if (response === null || response === undefined) {
                                                     res.json({
                                                         status: "error",
                                                         code: "ERR-BLGD-036"
                                                     });
                                                 } else {
+                                                    const new_comments = [];
+                                                    try {
+                                                        await Blog.aggregate([
+                                                            {
+                                                                $match: {
+                                                                    _id: ObjectId(bid)
+                                                                }
+                                                            },
+                                                            {
+                                                                $project: {
+                                                                    _id: 1,
+                                                                    comments: 1,
+                                                                }
+                                                            }
+                                                        ])
+                                                            .catch(async err => {
+                                                                const old_comments = response?.comments;
+                                                                const cmt_users = [];
+                                                                const processed_cmt_users = [];
+                                                                if (old_comments?.length > 0) {
+                                                                    old_comments?.map(item => {
+                                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                                            cmt_users?.push(item?.commenter?.toString());
+                                                                        }
+                                                                    });
+                                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                                    if (processed_cmt_users?.length > 0) {
+                                                                        try {
+                                                                            await User.aggregate([
+                                                                                {
+                                                                                    $match: {
+                                                                                        _id: { $in: processed_cmt_users }
+                                                                                    }
+                                                                                },
+                                                                                {
+                                                                                    $project: {
+                                                                                        username: 1,
+                                                                                        verified: 1,
+                                                                                        dp_link: 1
+                                                                                    }
+                                                                                }
+                                                                            ])
+                                                                                .catch(err => {
+                                                                                    old_comments?.map(item => {
+                                                                                        const old_comment_item = item;
+                                                                                        new_comments?.push({
+                                                                                            commenter: old_comment_item?.commenter,
+                                                                                            comment: old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                            username: "Not Found",
+                                                                                            dp_link: "none",
+                                                                                            verified: false,
+                                                                                            is_c_owner: false
+                                                                                        });
+                                                                                    });
+                                                                                })
+                                                                                .then(user_data => {
+                                                                                    if (user_data?.length > 0) {
+                                                                                        const cmt_usernames = user_data;
+                                                                                        old_comments?.map(item => {
+                                                                                            const old_comment_item = item;
+                                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
+                                                                                            if (user?.length > 0) {
+                                                                                                new_comments?.push({
+                                                                                                    commenter: old_comment_item?.commenter,
+                                                                                                    comment: old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                                    username: user?.[0]?.username,
+                                                                                                    dp_link: user?.[0]?.dp_link,
+                                                                                                    verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
+                                                                                                    is_c_owner: uid === item?.commenter?.toString()
+                                                                                                });
+                                                                                            } else {
+                                                                                                new_comments?.push({
+                                                                                                    commenter: old_comment_item?.commenter,
+                                                                                                    comment: old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                                    username: "Not Found",
+                                                                                                    dp_link: "none",
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false
+                                                                                                });
+                                                                                            }
+                                                                                        });
+                                                                                    } else {
+                                                                                        old_comments?.map(item => {
+                                                                                            const old_comment_item = item;
+                                                                                            new_comments?.push({
+                                                                                                commenter: old_comment_item?.commenter,
+                                                                                                comment: old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt: old_comment_item?.createdAt,
+                                                                                                username: "Not Found",
+                                                                                                dp_link: "none",
+                                                                                                verified: false,
+                                                                                                is_c_owner: false
+                                                                                            });
+                                                                                        });
+                                                                                    }
+                                                                                });
+                                                                        } catch (error) {
+                                                                            old_comments?.map(item => {
+                                                                                const old_comment_item = item;
+                                                                                new_comments?.push({
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                    username: "Not Found",
+                                                                                    dp_link: "none",
+                                                                                    verified: false,
+                                                                                    is_c_owner: false
+                                                                                });
+                                                                            });
+                                                                        }
+                                                                    } else {
+                                                                        old_comments?.map(item => {
+                                                                            const old_comment_item = item;
+                                                                            new_comments?.push({
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
+                                                                                username: "Not Found",
+                                                                                dp_link: "none",
+                                                                                verified: false,
+                                                                                is_c_owner: false
+                                                                            });
+                                                                        });
+                                                                    }
+                                                                }
+                                                            })
+                                                            .then(async blog_res => {
+                                                                if (blog_res !== null || blog_res !== undefined) {
+                                                                    if (blog_res?.length > 0) {
+                                                                        const old_comments = blog_res?.[0]?.comments;
+                                                                        const cmt_users = [];
+                                                                        const processed_cmt_users = [];
+                                                                        if (old_comments?.length > 0) {
+                                                                            old_comments?.map(item => {
+                                                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                                                    cmt_users?.push(item?.commenter?.toString());
+                                                                                }
+                                                                            });
+                                                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                                            if (processed_cmt_users?.length > 0) {
+                                                                                try {
+                                                                                    await User.aggregate([
+                                                                                        {
+                                                                                            $match: {
+                                                                                                _id: { $in: processed_cmt_users }
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            $project: {
+                                                                                                username: 1,
+                                                                                                verified: 1,
+                                                                                                dp_link: 1
+                                                                                            }
+                                                                                        }
+                                                                                    ])
+                                                                                        .catch(err => {
+                                                                                            old_comments?.map(item => {
+                                                                                                const old_comment_item = item;
+                                                                                                new_comments?.push({
+                                                                                                    commenter: old_comment_item?.commenter,
+                                                                                                    comment: old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                                    username: "Not Found",
+                                                                                                    dp_link: "none",
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false
+                                                                                                });
+                                                                                            });
+                                                                                        })
+                                                                                        .then(user_data => {
+                                                                                            if (user_data?.length > 0) {
+                                                                                                const cmt_usernames = user_data;
+                                                                                                old_comments?.map(item => {
+                                                                                                    const old_comment_item = item;
+                                                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
+                                                                                                    if (user?.length > 0) {
+                                                                                                        new_comments?.push({
+                                                                                                            commenter: old_comment_item?.commenter,
+                                                                                                            comment: old_comment_item?.comment,
+                                                                                                            _id: old_comment_item?._id,
+                                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                                            username: user?.[0]?.username,
+                                                                                                            dp_link: user?.[0]?.dp_link,
+                                                                                                            verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
+                                                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                                                        });
+                                                                                                    } else {
+                                                                                                        new_comments?.push({
+                                                                                                            commenter: old_comment_item?.commenter,
+                                                                                                            comment: old_comment_item?.comment,
+                                                                                                            _id: old_comment_item?._id,
+                                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                                            username: "Not Found",
+                                                                                                            dp_link: "none",
+                                                                                                            verified: false,
+                                                                                                            is_c_owner: false
+                                                                                                        });
+                                                                                                    }
+                                                                                                });
+                                                                                            } else {
+                                                                                                old_comments?.map(item => {
+                                                                                                    const old_comment_item = item;
+                                                                                                    new_comments?.push({
+                                                                                                        commenter: old_comment_item?.commenter,
+                                                                                                        comment: old_comment_item?.comment,
+                                                                                                        _id: old_comment_item?._id,
+                                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                                        username: "Not Found",
+                                                                                                        dp_link: "none",
+                                                                                                        verified: false,
+                                                                                                        is_c_owner: false
+                                                                                                    });
+                                                                                                });
+                                                                                            }
+                                                                                        });
+                                                                                } catch (error) {
+                                                                                    old_comments?.map(item => {
+                                                                                        const old_comment_item = item;
+                                                                                        new_comments?.push({
+                                                                                            commenter: old_comment_item?.commenter,
+                                                                                            comment: old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                            username: "Not Found",
+                                                                                            dp_link: "none",
+                                                                                            verified: false,
+                                                                                            is_c_owner: false
+                                                                                        });
+                                                                                    });
+                                                                                }
+                                                                            } else {
+                                                                                old_comments?.map(item => {
+                                                                                    const old_comment_item = item;
+                                                                                    new_comments?.push({
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                        username: "Not Found",
+                                                                                        dp_link: "none",
+                                                                                        verified: false,
+                                                                                        is_c_owner: false
+                                                                                    });
+                                                                                });
+                                                                            }
+                                                                        }
+                                                                    } else {
+                                                                        const old_comments = response?.comments;
+                                                                        const cmt_users = [];
+                                                                        const processed_cmt_users = [];
+                                                                        if (old_comments?.length > 0) {
+                                                                            old_comments?.map(item => {
+                                                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                                                    cmt_users?.push(item?.commenter?.toString());
+                                                                                }
+                                                                            });
+                                                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                                            if (processed_cmt_users?.length > 0) {
+                                                                                try {
+                                                                                    await User.aggregate([
+                                                                                        {
+                                                                                            $match: {
+                                                                                                _id: { $in: processed_cmt_users }
+                                                                                            }
+                                                                                        },
+                                                                                        {
+                                                                                            $project: {
+                                                                                                username: 1,
+                                                                                                verified: 1,
+                                                                                                dp_link: 1
+                                                                                            }
+                                                                                        }
+                                                                                    ])
+                                                                                        .catch(err => {
+                                                                                            old_comments?.map(item => {
+                                                                                                const old_comment_item = item;
+                                                                                                new_comments?.push({
+                                                                                                    commenter: old_comment_item?.commenter,
+                                                                                                    comment: old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                                    username: "Not Found",
+                                                                                                    dp_link: "none",
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false
+                                                                                                });
+                                                                                            });
+                                                                                        })
+                                                                                        .then(user_data => {
+                                                                                            if (user_data?.length > 0) {
+                                                                                                const cmt_usernames = user_data;
+                                                                                                old_comments?.map(item => {
+                                                                                                    const old_comment_item = item;
+                                                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
+                                                                                                    if (user?.length > 0) {
+                                                                                                        new_comments?.push({
+                                                                                                            commenter: old_comment_item?.commenter,
+                                                                                                            comment: old_comment_item?.comment,
+                                                                                                            _id: old_comment_item?._id,
+                                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                                            username: user?.[0]?.username,
+                                                                                                            dp_link: user?.[0]?.dp_link,
+                                                                                                            verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
+                                                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                                                        });
+                                                                                                    } else {
+                                                                                                        new_comments?.push({
+                                                                                                            commenter: old_comment_item?.commenter,
+                                                                                                            comment: old_comment_item?.comment,
+                                                                                                            _id: old_comment_item?._id,
+                                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                                            username: "Not Found",
+                                                                                                            dp_link: "none",
+                                                                                                            verified: false,
+                                                                                                            is_c_owner: false
+                                                                                                        });
+                                                                                                    }
+                                                                                                });
+                                                                                            } else {
+                                                                                                old_comments?.map(item => {
+                                                                                                    const old_comment_item = item;
+                                                                                                    new_comments?.push({
+                                                                                                        commenter: old_comment_item?.commenter,
+                                                                                                        comment: old_comment_item?.comment,
+                                                                                                        _id: old_comment_item?._id,
+                                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                                        username: "Not Found",
+                                                                                                        dp_link: "none",
+                                                                                                        verified: false,
+                                                                                                        is_c_owner: false
+                                                                                                    });
+                                                                                                });
+                                                                                            }
+                                                                                        });
+                                                                                } catch (error) {
+                                                                                    old_comments?.map(item => {
+                                                                                        const old_comment_item = item;
+                                                                                        new_comments?.push({
+                                                                                            commenter: old_comment_item?.commenter,
+                                                                                            comment: old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                            username: "Not Found",
+                                                                                            dp_link: "none",
+                                                                                            verified: false,
+                                                                                            is_c_owner: false
+                                                                                        });
+                                                                                    });
+                                                                                }
+                                                                            } else {
+                                                                                old_comments?.map(item => {
+                                                                                    const old_comment_item = item;
+                                                                                    new_comments?.push({
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                        username: "Not Found",
+                                                                                        dp_link: "none",
+                                                                                        verified: false,
+                                                                                        is_c_owner: false
+                                                                                    });
+                                                                                });
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    const old_comments = response?.comments;
+                                                                    const cmt_users = [];
+                                                                    const processed_cmt_users = [];
+                                                                    if (old_comments?.length > 0) {
+                                                                        old_comments?.map(item => {
+                                                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                                                cmt_users?.push(item?.commenter?.toString());
+                                                                            }
+                                                                        });
+                                                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                                        if (processed_cmt_users?.length > 0) {
+                                                                            try {
+                                                                                await User.aggregate([
+                                                                                    {
+                                                                                        $match: {
+                                                                                            _id: { $in: processed_cmt_users }
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        $project: {
+                                                                                            username: 1,
+                                                                                            verified: 1,
+                                                                                            dp_link: 1
+                                                                                        }
+                                                                                    }
+                                                                                ])
+                                                                                    .catch(err => {
+                                                                                        old_comments?.map(item => {
+                                                                                            const old_comment_item = item;
+                                                                                            new_comments?.push({
+                                                                                                commenter: old_comment_item?.commenter,
+                                                                                                comment: old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt: old_comment_item?.createdAt,
+                                                                                                username: "Not Found",
+                                                                                                dp_link: "none",
+                                                                                                verified: false,
+                                                                                                is_c_owner: false
+                                                                                            });
+                                                                                        });
+                                                                                    })
+                                                                                    .then(user_data => {
+                                                                                        if (user_data?.length > 0) {
+                                                                                            const cmt_usernames = user_data;
+                                                                                            old_comments?.map(item => {
+                                                                                                const old_comment_item = item;
+                                                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
+                                                                                                if (user?.length > 0) {
+                                                                                                    new_comments?.push({
+                                                                                                        commenter: old_comment_item?.commenter,
+                                                                                                        comment: old_comment_item?.comment,
+                                                                                                        _id: old_comment_item?._id,
+                                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                                        username: user?.[0]?.username,
+                                                                                                        dp_link: user?.[0]?.dp_link,
+                                                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
+                                                                                                        is_c_owner: uid === item?.commenter?.toString()
+                                                                                                    });
+                                                                                                } else {
+                                                                                                    new_comments?.push({
+                                                                                                        commenter: old_comment_item?.commenter,
+                                                                                                        comment: old_comment_item?.comment,
+                                                                                                        _id: old_comment_item?._id,
+                                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                                        username: "Not Found",
+                                                                                                        dp_link: "none",
+                                                                                                        verified: false,
+                                                                                                        is_c_owner: false
+                                                                                                    });
+                                                                                                }
+                                                                                            });
+                                                                                        } else {
+                                                                                            old_comments?.map(item => {
+                                                                                                const old_comment_item = item;
+                                                                                                new_comments?.push({
+                                                                                                    commenter: old_comment_item?.commenter,
+                                                                                                    comment: old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                                    username: "Not Found",
+                                                                                                    dp_link: "none",
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false
+                                                                                                });
+                                                                                            });
+                                                                                        }
+                                                                                    });
+                                                                            } catch (error) {
+                                                                                old_comments?.map(item => {
+                                                                                    const old_comment_item = item;
+                                                                                    new_comments?.push({
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                        username: "Not Found",
+                                                                                        dp_link: "none",
+                                                                                        verified: false,
+                                                                                        is_c_owner: false
+                                                                                    });
+                                                                                });
+                                                                            }
+                                                                        } else {
+                                                                            old_comments?.map(item => {
+                                                                                const old_comment_item = item;
+                                                                                new_comments?.push({
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                    username: "Not Found",
+                                                                                    dp_link: "none",
+                                                                                    verified: false,
+                                                                                    is_c_owner: false
+                                                                                });
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+                                                    } catch (error) {
+                                                        const old_comments = response?.comments;
+                                                        const cmt_users = [];
+                                                        const processed_cmt_users = [];
+                                                        if (old_comments?.length > 0) {
+                                                            old_comments?.map(item => {
+                                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
+                                                                    cmt_users?.push(item?.commenter?.toString());
+                                                                }
+                                                            });
+                                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                                            if (processed_cmt_users?.length > 0) {
+                                                                try {
+                                                                    await User.aggregate([
+                                                                        {
+                                                                            $match: {
+                                                                                _id: { $in: processed_cmt_users }
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            $project: {
+                                                                                username: 1,
+                                                                                verified: 1,
+                                                                                dp_link: 1
+                                                                            }
+                                                                        }
+                                                                    ])
+                                                                        .catch(err => {
+                                                                            old_comments?.map(item => {
+                                                                                const old_comment_item = item;
+                                                                                new_comments?.push({
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
+                                                                                    username: "Not Found",
+                                                                                    dp_link: "none",
+                                                                                    verified: false,
+                                                                                    is_c_owner: false
+                                                                                });
+                                                                            });
+                                                                        })
+                                                                        .then(user_data => {
+                                                                            if (user_data?.length > 0) {
+                                                                                const cmt_usernames = user_data;
+                                                                                old_comments?.map(item => {
+                                                                                    const old_comment_item = item;
+                                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
+                                                                                    if (user?.length > 0) {
+                                                                                        new_comments?.push({
+                                                                                            commenter: old_comment_item?.commenter,
+                                                                                            comment: old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                            username: user?.[0]?.username,
+                                                                                            dp_link: user?.[0]?.dp_link,
+                                                                                            verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
+                                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                                        });
+                                                                                    } else {
+                                                                                        new_comments?.push({
+                                                                                            commenter: old_comment_item?.commenter,
+                                                                                            comment: old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt: old_comment_item?.createdAt,
+                                                                                            username: "Not Found",
+                                                                                            dp_link: "none",
+                                                                                            verified: false,
+                                                                                            is_c_owner: false
+                                                                                        });
+                                                                                    }
+                                                                                });
+                                                                            } else {
+                                                                                old_comments?.map(item => {
+                                                                                    const old_comment_item = item;
+                                                                                    new_comments?.push({
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
+                                                                                        username: "Not Found",
+                                                                                        dp_link: "none",
+                                                                                        verified: false,
+                                                                                        is_c_owner: false
+                                                                                    });
+                                                                                });
+                                                                            }
+                                                                        });
+                                                                } catch (error) {
+                                                                    old_comments?.map(item => {
+                                                                        const old_comment_item = item;
+                                                                        new_comments?.push({
+                                                                            commenter: old_comment_item?.commenter,
+                                                                            comment: old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt: old_comment_item?.createdAt,
+                                                                            username: "Not Found",
+                                                                            dp_link: "none",
+                                                                            verified: false,
+                                                                            is_c_owner: false
+                                                                        });
+                                                                    });
+                                                                }
+                                                            } else {
+                                                                old_comments?.map(item => {
+                                                                    const old_comment_item = item;
+                                                                    new_comments?.push({
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
+                                                                        username: "Not Found",
+                                                                        dp_link: "none",
+                                                                        verified: false,
+                                                                        is_c_owner: false
+                                                                    });
+                                                                });
+                                                            }
+                                                        }
+                                                    }
                                                     res.json({
-                                                        status: "success"
+                                                        status: "success",
+                                                        response: new_comments
                                                     });
                                                 }
                                             });
@@ -2237,8 +2855,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         ])
                                                             .catch(err => {
                                                                 old_comments?.map(item => {
+                                                                    const old_comment_item = item;
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -2250,10 +2872,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 if (response?.length > 0) {
                                                                     const cmt_usernames = response;
                                                                     old_comments?.map(item => {
+                                                                        const old_comment_item = item;
                                                                         const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                         if (user?.length > 0) {
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: user?.[0]?.username,
                                                                                 dp_link: user?.[0]?.dp_link,
                                                                                 verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -2261,7 +2887,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             });
                                                                         } else {
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -2271,8 +2900,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                                 } else {
                                                                     old_comments?.map(item => {
+                                                                        const old_comment_item = item;
                                                                         new_comments?.push({
-                                                                            ...item,
+                                                                            commenter: old_comment_item?.commenter,
+                                                                            comment: old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt: old_comment_item?.createdAt,
                                                                             username: "Not Found",
                                                                             dp_link: "none",
                                                                             verified: false,
@@ -2283,8 +2916,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             });
                                                     } catch (error) {
                                                         old_comments?.map(item => {
+                                                            const old_comment_item = item;
                                                             new_comments?.push({
-                                                                ...item,
+                                                                commenter: old_comment_item?.commenter,
+                                                                comment: old_comment_item?.comment,
+                                                                _id: old_comment_item?._id,
+                                                                createdAt: old_comment_item?.createdAt,
                                                                 username: "Not Found",
                                                                 dp_link: "none",
                                                                 verified: false,
@@ -2294,8 +2931,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     }
                                                 } else {
                                                     old_comments?.map(item => {
+                                                        const old_comment_item = item;
                                                         new_comments?.push({
-                                                            ...item,
+                                                            commenter: old_comment_item?.commenter,
+                                                            comment: old_comment_item?.comment,
+                                                            _id: old_comment_item?._id,
+                                                            createdAt: old_comment_item?.createdAt,
                                                             username: "Not Found",
                                                             dp_link: "none",
                                                             verified: false,
@@ -2386,8 +3027,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -2399,10 +3044,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         if (response?.length > 0) {
                                                                             const cmt_usernames = response;
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                                 if (user?.length > 0) {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -2410,7 +3059,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: "Not Found",
                                                                                         dp_link: "none",
                                                                                         verified: false,
@@ -2420,8 +3072,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             });
                                                                         } else {
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: "Not Found",
                                                                                     dp_link: "none",
                                                                                     verified: false,
@@ -2432,8 +3088,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                             } catch (error) {
                                                                 old_comments?.map(item => {
+                                                                    const old_comment_item = item;
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -2443,8 +3103,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             }
                                                         } else {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -2532,8 +3196,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -2545,10 +3213,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         if (response?.length > 0) {
                                                                             const cmt_usernames = response;
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                                 if (user?.length > 0) {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -2556,7 +3228,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: "Not Found",
                                                                                         dp_link: "none",
                                                                                         verified: false,
@@ -2566,8 +3241,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             });
                                                                         } else {
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: "Not Found",
                                                                                     dp_link: "none",
                                                                                     verified: false,
@@ -2578,8 +3257,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                             } catch (error) {
                                                                 old_comments?.map(item => {
+                                                                    const old_comment_item = item;
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -2589,8 +3272,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             }
                                                         } else {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -2679,8 +3366,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
+                                                                        const old_comment_item = item;
                                                                         new_comments?.push({
-                                                                            ...item,
+                                                                            commenter: old_comment_item?.commenter,
+                                                                            comment: old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt: old_comment_item?.createdAt,
                                                                             username: "Not Found",
                                                                             dp_link: "none",
                                                                             verified: false,
@@ -2692,10 +3383,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     if (response?.length > 0) {
                                                                         const cmt_usernames = response;
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                             if (user?.length > 0) {
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: user?.[0]?.username,
                                                                                     dp_link: user?.[0]?.dp_link,
                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -2703,7 +3398,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 });
                                                                             } else {
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: "Not Found",
                                                                                     dp_link: "none",
                                                                                     verified: false,
@@ -2713,8 +3411,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         });
                                                                     } else {
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -2725,8 +3427,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 });
                                                         } catch (error) {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -2736,8 +3442,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         }
                                                     } else {
                                                         old_comments?.map(item => {
+                                                            const old_comment_item = item;
                                                             new_comments?.push({
-                                                                ...item,
+                                                                commenter: old_comment_item?.commenter,
+                                                                comment: old_comment_item?.comment,
+                                                                _id: old_comment_item?._id,
+                                                                createdAt: old_comment_item?.createdAt,
                                                                 username: "Not Found",
                                                                 dp_link: "none",
                                                                 verified: false,
@@ -2827,8 +3537,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 ])
                                                     .catch(err => {
                                                         old_comments?.map(item => {
+                                                            const old_comment_item = item;
                                                             new_comments?.push({
-                                                                ...item,
+                                                                commenter: old_comment_item?.commenter,
+                                                                comment: old_comment_item?.comment,
+                                                                _id: old_comment_item?._id,
+                                                                createdAt: old_comment_item?.createdAt,
                                                                 username: "Not Found",
                                                                 dp_link: "none",
                                                                 verified: false,
@@ -2840,10 +3554,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         if (response?.length > 0) {
                                                             const cmt_usernames = response;
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                 if (user?.length > 0) {
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: user?.[0]?.username,
                                                                         dp_link: user?.[0]?.dp_link,
                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -2851,7 +3569,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                                 } else {
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -2861,8 +3582,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             });
                                                         } else {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -2873,8 +3598,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     });
                                             } catch (error) {
                                                 old_comments?.map(item => {
+                                                    const old_comment_item = item;
                                                     new_comments?.push({
-                                                        ...item,
+                                                        commenter: old_comment_item?.commenter,
+                                                        comment: old_comment_item?.comment,
+                                                        _id: old_comment_item?._id,
+                                                        createdAt: old_comment_item?.createdAt,
                                                         username: "Not Found",
                                                         dp_link: "none",
                                                         verified: false,
@@ -2884,8 +3613,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             }
                                         } else {
                                             old_comments?.map(item => {
+                                                const old_comment_item = item;
                                                 new_comments?.push({
-                                                    ...item,
+                                                    commenter: old_comment_item?.commenter,
+                                                    comment: old_comment_item?.comment,
+                                                    _id: old_comment_item?._id,
+                                                    createdAt: old_comment_item?.createdAt,
                                                     username: "Not Found",
                                                     dp_link: "none",
                                                     verified: false,
@@ -3046,8 +3779,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         ])
                                                             .catch(err => {
                                                                 old_comments?.map(item => {
+                                                                    const old_comment_item = item;
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -3059,10 +3796,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 if (response?.length > 0) {
                                                                     const cmt_usernames = response;
                                                                     old_comments?.map(item => {
+                                                                        const old_comment_item = item;
                                                                         const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                         if (user?.length > 0) {
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: user?.[0]?.username,
                                                                                 dp_link: user?.[0]?.dp_link,
                                                                                 verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -3070,7 +3811,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             });
                                                                         } else {
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -3080,8 +3824,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                                 } else {
                                                                     old_comments?.map(item => {
+                                                                        const old_comment_item = item;
                                                                         new_comments?.push({
-                                                                            ...item,
+                                                                            commenter: old_comment_item?.commenter,
+                                                                            comment: old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt: old_comment_item?.createdAt,
                                                                             username: "Not Found",
                                                                             dp_link: "none",
                                                                             verified: false,
@@ -3092,8 +3840,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             });
                                                     } catch (error) {
                                                         old_comments?.map(item => {
+                                                            const old_comment_item = item;
                                                             new_comments?.push({
-                                                                ...item,
+                                                                commenter: old_comment_item?.commenter,
+                                                                comment: old_comment_item?.comment,
+                                                                _id: old_comment_item?._id,
+                                                                createdAt: old_comment_item?.createdAt,
                                                                 username: "Not Found",
                                                                 dp_link: "none",
                                                                 verified: false,
@@ -3103,8 +3855,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     }
                                                 } else {
                                                     old_comments?.map(item => {
+                                                        const old_comment_item = item;
                                                         new_comments?.push({
-                                                            ...item,
+                                                            commenter: old_comment_item?.commenter,
+                                                            comment: old_comment_item?.comment,
+                                                            _id: old_comment_item?._id,
+                                                            createdAt: old_comment_item?.createdAt,
                                                             username: "Not Found",
                                                             dp_link: "none",
                                                             verified: false,
@@ -3195,8 +3951,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -3208,10 +3968,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         if (response?.length > 0) {
                                                                             const cmt_usernames = response;
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                                 if (user?.length > 0) {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -3219,7 +3983,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: "Not Found",
                                                                                         dp_link: "none",
                                                                                         verified: false,
@@ -3229,8 +3996,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             });
                                                                         } else {
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: "Not Found",
                                                                                     dp_link: "none",
                                                                                     verified: false,
@@ -3241,8 +4012,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                             } catch (error) {
                                                                 old_comments?.map(item => {
+                                                                    const old_comment_item = item;
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -3252,8 +4027,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             }
                                                         } else {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -3341,8 +4120,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -3354,10 +4137,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         if (response?.length > 0) {
                                                                             const cmt_usernames = response;
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                                 if (user?.length > 0) {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -3365,7 +4152,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
-                                                                                        ...item,
+                                                                                        commenter: old_comment_item?.commenter,
+                                                                                        comment: old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt: old_comment_item?.createdAt,
                                                                                         username: "Not Found",
                                                                                         dp_link: "none",
                                                                                         verified: false,
@@ -3375,8 +4165,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             });
                                                                         } else {
                                                                             old_comments?.map(item => {
+                                                                                const old_comment_item = item;
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: "Not Found",
                                                                                     dp_link: "none",
                                                                                     verified: false,
@@ -3387,8 +4181,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                             } catch (error) {
                                                                 old_comments?.map(item => {
+                                                                    const old_comment_item = item;
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -3398,8 +4196,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             }
                                                         } else {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -3488,8 +4290,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
+                                                                        const old_comment_item = item;
                                                                         new_comments?.push({
-                                                                            ...item,
+                                                                            commenter: old_comment_item?.commenter,
+                                                                            comment: old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt: old_comment_item?.createdAt,
                                                                             username: "Not Found",
                                                                             dp_link: "none",
                                                                             verified: false,
@@ -3501,10 +4307,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     if (response?.length > 0) {
                                                                         const cmt_usernames = response;
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                             if (user?.length > 0) {
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: user?.[0]?.username,
                                                                                     dp_link: user?.[0]?.dp_link,
                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -3512,7 +4322,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 });
                                                                             } else {
                                                                                 new_comments?.push({
-                                                                                    ...item,
+                                                                                    commenter: old_comment_item?.commenter,
+                                                                                    comment: old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt: old_comment_item?.createdAt,
                                                                                     username: "Not Found",
                                                                                     dp_link: "none",
                                                                                     verified: false,
@@ -3522,8 +4335,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         });
                                                                     } else {
                                                                         old_comments?.map(item => {
+                                                                            const old_comment_item = item;
                                                                             new_comments?.push({
-                                                                                ...item,
+                                                                                commenter: old_comment_item?.commenter,
+                                                                                comment: old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt: old_comment_item?.createdAt,
                                                                                 username: "Not Found",
                                                                                 dp_link: "none",
                                                                                 verified: false,
@@ -3534,8 +4351,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 });
                                                         } catch (error) {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -3545,8 +4366,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         }
                                                     } else {
                                                         old_comments?.map(item => {
+                                                            const old_comment_item = item;
                                                             new_comments?.push({
-                                                                ...item,
+                                                                commenter: old_comment_item?.commenter,
+                                                                comment: old_comment_item?.comment,
+                                                                _id: old_comment_item?._id,
+                                                                createdAt: old_comment_item?.createdAt,
                                                                 username: "Not Found",
                                                                 dp_link: "none",
                                                                 verified: false,
@@ -3636,8 +4461,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 ])
                                                     .catch(err => {
                                                         old_comments?.map(item => {
+                                                            const old_comment_item = item;
                                                             new_comments?.push({
-                                                                ...item,
+                                                                commenter: old_comment_item?.commenter,
+                                                                comment: old_comment_item?.comment,
+                                                                _id: old_comment_item?._id,
+                                                                createdAt: old_comment_item?.createdAt,
                                                                 username: "Not Found",
                                                                 dp_link: "none",
                                                                 verified: false,
@@ -3649,10 +4478,14 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         if (response?.length > 0) {
                                                             const cmt_usernames = response;
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
                                                                 if (user?.length > 0) {
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: user?.[0]?.username,
                                                                         dp_link: user?.[0]?.dp_link,
                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
@@ -3660,7 +4493,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     });
                                                                 } else {
                                                                     new_comments?.push({
-                                                                        ...item,
+                                                                        commenter: old_comment_item?.commenter,
+                                                                        comment: old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt: old_comment_item?.createdAt,
                                                                         username: "Not Found",
                                                                         dp_link: "none",
                                                                         verified: false,
@@ -3670,8 +4506,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             });
                                                         } else {
                                                             old_comments?.map(item => {
+                                                                const old_comment_item = item;
                                                                 new_comments?.push({
-                                                                    ...item,
+                                                                    commenter: old_comment_item?.commenter,
+                                                                    comment: old_comment_item?.comment,
+                                                                    _id: old_comment_item?._id,
+                                                                    createdAt: old_comment_item?.createdAt,
                                                                     username: "Not Found",
                                                                     dp_link: "none",
                                                                     verified: false,
@@ -3682,8 +4522,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     });
                                             } catch (error) {
                                                 old_comments?.map(item => {
+                                                    const old_comment_item = item;
                                                     new_comments?.push({
-                                                        ...item,
+                                                        commenter: old_comment_item?.commenter,
+                                                        comment: old_comment_item?.comment,
+                                                        _id: old_comment_item?._id,
+                                                        createdAt: old_comment_item?.createdAt,
                                                         username: "Not Found",
                                                         dp_link: "none",
                                                         verified: false,
@@ -3693,8 +4537,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             }
                                         } else {
                                             old_comments?.map(item => {
+                                                const old_comment_item = item;
                                                 new_comments?.push({
-                                                    ...item,
+                                                    commenter: old_comment_item?.commenter,
+                                                    comment: old_comment_item?.comment,
+                                                    _id: old_comment_item?._id,
+                                                    createdAt: old_comment_item?.createdAt,
                                                     username: "Not Found",
                                                     dp_link: "none",
                                                     verified: false,
