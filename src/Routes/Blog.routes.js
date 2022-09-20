@@ -2093,8 +2093,8 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
     try {
         const uid = req.uid;
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         await User.aggregate([
             {
@@ -2265,8 +2265,8 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
     try {
         const uid = req.uid;
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         if (none_null(uid)) {
             try {
@@ -2515,8 +2515,8 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
         const uid = req.uid;
         const bid = req.params.bid;
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         if (none_null(uid)) {
             try {
@@ -4643,8 +4643,8 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
         const tags = none_null_arr(req.query.tags) ? "[]" : req.query.tags;
         const processed_tags = invalid_arr_tags_checker(tags);
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
         if (none_null(uid)) {
             if (processed_tags?.length > 0) {
                 try {

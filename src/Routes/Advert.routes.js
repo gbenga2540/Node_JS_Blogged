@@ -407,8 +407,8 @@ router.delete('/delete', (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         await Advert.find()
             .sort({ createdAt: -1 })

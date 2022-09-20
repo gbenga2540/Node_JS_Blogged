@@ -1716,8 +1716,8 @@ router.get('/:aid/followers', verifyJWTHeaderIA, async (req, res) => {
         const uid = req.uid;
         const aid = req.params.aid;
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         if (none_null(uid)) {
             try {
@@ -1959,8 +1959,8 @@ router.get('/:aid/following', verifyJWTHeaderIA, async (req, res) => {
         const uid = req.uid;
         const aid = req.params.aid;
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         if (none_null(uid)) {
             try {
@@ -2202,8 +2202,8 @@ router.get('/:aid/blogs', verifyJWTHeaderIA, async (req, res) => {
         const uid = req.uid;
         const aid = req.params.aid;
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         if (none_null(uid)) {
             try {
@@ -2613,8 +2613,8 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
         const new_search = none_null(search) ? "" : search;
         const processed_search = new_search?.toLowerCase()?.trim();
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 50)?.first_index;
-        const query_l_i = pagination_indexer(pagination_index, 50)?.last_index;
+        const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
+        const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
         if (none_null(uid)) {
             try {
