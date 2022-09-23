@@ -244,9 +244,18 @@ router.get('/', async (req, res) => {
             .then(result => {
                 if (result !== null || result !== undefined) {
                     if (result?.length > 0) {
+                        const final_res = [];
+                        result?.map(item => {
+                            const tag = {
+                                _id: item?._id?.toString(),
+                                tag_index: item?.tag_index,
+                                tag_name: item?.tag_name
+                            }
+                            final_res.push(tag);
+                        })
                         res.json({
                             status: "success",
-                            response: result
+                            response: final_res
                         });
                     } else {
                         res.json({
