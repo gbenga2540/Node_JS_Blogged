@@ -906,11 +906,11 @@ router.patch('/like', verifyJWTbody, async (req, res) => {
     }
 });
 
-// Unlike a Blog Post
+// Dislike a Blog Post
 // INFO REQUIRED:
 // token
 // Blog's ID
-router.patch('/unlike', verifyJWTbody, async (req, res) => {
+router.patch('/dislike', verifyJWTbody, async (req, res) => {
     try {
         const uid = req?.uid;
         const bid = req.body.bid;
