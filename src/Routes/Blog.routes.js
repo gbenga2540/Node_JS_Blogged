@@ -1698,7 +1698,7 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                     }
                                                     res.json({
                                                         status: "success",
-                                                        response: new_comments
+                                                        response: [...new_comments].reverse()
                                                     });
                                                 }
                                             });
