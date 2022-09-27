@@ -1921,11 +1921,11 @@ router.patch('/comment/edit', verifyJWTbody, async (req, res) => {
 // token -> commenter id
 // Blog's ID
 // Comment's ID
-router.delete('/comment/delete', verifyJWTHeader, async (req, res) => {
+router.patch('/comment/delete', verifyJWTbody, async (req, res) => {
     try {
         const uid = req?.uid;
-        const bid = req.headers.bid;
-        const cid = req.headers.cid;
+        const bid = req.body.bid;
+        const cid = req.body.cid;
 
         if (none_null(bid) === false && none_null(cid) === false) {
             try {
