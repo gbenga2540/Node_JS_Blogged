@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const Tag = require('../Models/Tag_Model');
-const none_null = require('../Utils/None_Null_Checker');
+const Tag = require('../../Models/Tag_Model');
+const none_null = require('../../Utils/None_Null_Checker');
 
 
 // Creates Tag

@@ -1,11 +1,11 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const none_null = require('../Utils/None_Null_Checker');
-const none_null_dp = require('../Utils/None_Null_Checker_DP');
-const pagination_indexer = require('../Utils/Pagination_Indexer');
-const { cloudinary } = require('../Config/Cloudinary');
-const Advert = require('../Models/Adverts_Model');
+const none_null = require('../../Utils/None_Null_Checker');
+const none_null_dp = require('../../Utils/None_Null_Checker_DP');
+const pagination_indexer = require('../../Utils/Pagination_Indexer');
+const { cloudinary } = require('../../Config/Cloudinary');
+const Advert = require('../../Models/Adverts_Model');
 
 
 // Creates Ad

@@ -1,13 +1,13 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const pagination_indexer = require('../Utils/Pagination_Indexer');
-const none_null = require('../Utils/None_Null_Checker');
-const none_null_bool = require('../Utils/None_Null_Bool_Checker');
+const pagination_indexer = require('../../Utils/Pagination_Indexer');
+const none_null = require('../../Utils/None_Null_Checker');
+const none_null_bool = require('../../Utils/None_Null_Bool_Checker');
 const ObjectId = require('mongodb').ObjectId;
-const BloggedConfig = require('../Models/BloggedConfig_Model');
-const Feedback = require('../Models/Feedback_Model');
-const SuggestTag = require('../Models/Suggest_Tag_Model');
+const BloggedConfig = require('../../Models/BloggedConfig_Model');
+const Feedback = require('../../Models/Feedback_Model');
+const SuggestTag = require('../../Models/Suggest_Tag_Model');
 
 
 // Creates Master Config

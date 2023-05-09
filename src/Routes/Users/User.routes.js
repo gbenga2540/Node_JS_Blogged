@@ -3,17 +3,17 @@ const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-const { cloudinary } = require('../Config/Cloudinary');
-const verifyJWTbody = require('../Utils/Verify_JWT_Body');
-const verifyJWTHeader = require('../Utils/Verify_JWT_Header');
-const verifyJWTHeaderIA = require('../Utils/Verify_JWT_Header_IA');
-const none_null = require('../Utils/None_Null_Checker');
-const none_null_bool = require('../Utils/None_Null_Bool_Checker');
-const none_null_dp = require('../Utils/None_Null_Checker_DP');
-const pagination_indexer = require('../Utils/Pagination_Indexer');
-const generate_random_number = require('../Utils/Generate_Random_Number');
-const User = require('../Models/User_Model');
-const Blog = require('../Models/Blog_Model');
+const { cloudinary } = require('../../Config/Cloudinary');
+const verifyJWTbody = require('../../Utils/Verify_JWT_Body');
+const verifyJWTHeader = require('../../Utils/Verify_JWT_Header');
+const verifyJWTHeaderIA = require('../../Utils/Verify_JWT_Header_IA');
+const none_null = require('../../Utils/None_Null_Checker');
+const none_null_bool = require('../../Utils/None_Null_Bool_Checker');
+const none_null_dp = require('../../Utils/None_Null_Checker_DP');
+const pagination_indexer = require('../../Utils/Pagination_Indexer');
+const generate_random_number = require('../../Utils/Generate_Random_Number');
+const User = require('../../Models/User_Model');
+const Blog = require('../../Models/Blog_Model');
 const ObjectId = require('mongodb').ObjectId;
 
 

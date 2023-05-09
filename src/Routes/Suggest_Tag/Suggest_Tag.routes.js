@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const SuggestTag = require('../Models/Suggest_Tag_Model');
-const none_null = require('../Utils/None_Null_Checker');
+const SuggestTag = require('../../Models/Suggest_Tag_Model');
+const none_null = require('../../Utils/None_Null_Checker');
 
 
 // Suggest Tag

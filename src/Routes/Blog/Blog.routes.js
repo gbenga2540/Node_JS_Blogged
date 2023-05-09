@@ -1,17 +1,17 @@
 const router = require('express').Router();
-const { cloudinary } = require('../Config/Cloudinary');
+const { cloudinary } = require('../../Config/Cloudinary');
 require('dotenv').config();
-const verifyJWTbody = require('../Utils/Verify_JWT_Body');
-const verifyJWTHeader = require('../Utils/Verify_JWT_Header');
-const verifyJWTHeaderIA = require('../Utils/Verify_JWT_Header_IA');
-const none_null = require('../Utils/None_Null_Checker');
-const none_null_arr = require('../Utils/None_Null_Arr_Checker');
-const none_null_bool = require('../Utils/None_Null_Bool_Checker');
-const none_null_dp = require('../Utils/None_Null_Checker_DP');
-const invalid_arr_tags_checker = require('../Utils/Invalid_Arr_Tags_Checker');
-const pagination_indexer = require('../Utils/Pagination_Indexer');
-const Blog = require('../Models/Blog_Model');
-const User = require('../Models/User_Model');
+const verifyJWTbody = require('../../Utils/Verify_JWT_Body');
+const verifyJWTHeader = require('../../Utils/Verify_JWT_Header');
+const verifyJWTHeaderIA = require('../../Utils/Verify_JWT_Header_IA');
+const none_null = require('../../Utils/None_Null_Checker');
+const none_null_arr = require('../../Utils/None_Null_Arr_Checker');
+const none_null_bool = require('../../Utils/None_Null_Bool_Checker');
+const none_null_dp = require('../../Utils/None_Null_Checker_DP');
+const invalid_arr_tags_checker = require('../../Utils/Invalid_Arr_Tags_Checker');
+const pagination_indexer = require('../../Utils/Pagination_Indexer');
+const Blog = require('../../Models/Blog_Model');
+const User = require('../../Models/User_Model');
 const ObjectId = require('mongodb').ObjectId;
 
 
@@ -2274,7 +2274,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 604800000)
+                                $gt: new Date(Date.now() - 6048000000)
                             }
                         }
                     },
@@ -2388,7 +2388,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 604800000)
+                                $gt: new Date(Date.now() - 6048000000)
                             }
                         }
                     },

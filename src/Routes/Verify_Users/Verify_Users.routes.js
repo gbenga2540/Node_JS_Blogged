@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const none_null = require('../Utils/None_Null_Checker');
-const User = require('../Models/User_Model');
-const invalid_arr_checker = require('../Utils/Invalid_Arr_Checker');
+const none_null = require('../../Utils/None_Null_Checker');
+const User = require('../../Models/User_Model');
+const invalid_arr_checker = require('../../Utils/Invalid_Arr_Checker');
 
 
 // Creates Master Config

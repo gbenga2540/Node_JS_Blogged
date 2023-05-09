@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const Feedback = require('../Models/Feedback_Model');
-const none_null = require('../Utils/None_Null_Checker');
+const Feedback = require('../../Models/Feedback_Model');
+const none_null = require('../../Utils/None_Null_Checker');
 
 
 // Sends Feedback

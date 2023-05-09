@@ -25,26 +25,26 @@ mongoose.connect(process.env.NODE_DATABASE_URL, {
         }
     });
 
-const blogRouter = require("./src/Routes/Blog.routes");
+const blogRouter = require("./src/Routes/Blog/Blog.routes");
 app.use(`${process.env.NODE_API_INIT}/blogs`, blogRouter);
 
-const userRouter = require("./src/Routes/User.routes");
+const userRouter = require("./src/Routes/Users/User.routes");
 app.use(`${process.env.NODE_API_INIT}/users`, userRouter);
 
-const feedbackRouter = require("./src/Routes/Feedback.routes");
+const feedbackRouter = require("./src/Routes/Feedback/Feedback.routes");
 app.use(`${process.env.NODE_API_INIT}/feedbacks`, feedbackRouter);
 
-const advertRouter = require("./src/Routes/Advert.routes");
+const advertRouter = require("./src/Routes/Advert/Advert.routes");
 app.use(`${process.env.NODE_API_INIT}/adverts`, advertRouter);
 
-const bloggedConfigRouter = require("./src/Routes/BloggedConfig.routes");
+const bloggedConfigRouter = require("./src/Routes/Blogged_Config/Blogged_Config.routes");
 app.use(`${process.env.NODE_API_INIT}/bloggedadmin`, bloggedConfigRouter);
 
-const TagRouter = require("./src/Routes/Tag.routes");
+const TagRouter = require("./src/Routes/Tag/Tag.routes");
 app.use(`${process.env.NODE_API_INIT}/tags`, TagRouter);
 
-const SuggestTagRouter = require("./src/Routes/SuggestTag.routes");
+const SuggestTagRouter = require("./src/Routes/Suggest_Tag/Suggest_Tag.routes");
 app.use(`${process.env.NODE_API_INIT}/suggesttags`, SuggestTagRouter);
 
-const VerifyUsersRouter = require("./src/Routes/VerifyUsers.routes");
+const VerifyUsersRouter = require("./src/Routes/Verify_Users/Verify_Users.routes");
 app.use(`${process.env.NODE_API_INIT}/verifyusers`, VerifyUsersRouter);
