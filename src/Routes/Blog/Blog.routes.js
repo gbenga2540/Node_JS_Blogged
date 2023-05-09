@@ -2274,7 +2274,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 6048000000)
+                                $gt: new Date(Date.now() - 604800000)
                             }
                         }
                     },
@@ -2388,7 +2388,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 6048000000)
+                                $gt: new Date(Date.now() - 604800000)
                             }
                         }
                     },
