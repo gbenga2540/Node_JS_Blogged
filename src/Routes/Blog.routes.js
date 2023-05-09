@@ -2438,7 +2438,8 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                         {
                                             $project: {
                                                 _id: 1,
-                                                username: 1
+                                                username: 1,
+                                                verified: 1
                                             }
                                         }
                                     ])
