@@ -12,6 +12,7 @@ const none_null_bool = require('../../Utils/None_Null_Bool_Checker');
 const none_null_dp = require('../../Utils/None_Null_Checker_DP');
 const pagination_indexer = require('../../Utils/Pagination_Indexer');
 const generate_random_number = require('../../Utils/Generate_Random_Number');
+const regex_email_checker = require('../../Utils/Email_Checker')
 const User = require('../../Models/User_Model');
 const Blog = require('../../Models/Blog_Model');
 const ObjectId = require('mongodb').ObjectId;
@@ -30,7 +31,7 @@ router.post('/auth/signup', async (req, res) => {
         const password = req.body.password;
         const dp = none_null_dp(req.body.dp);
 
-        if (none_null(email) === false && none_null(username) === false && none_null(password) === false) {
+        if (regex_email_checker({email: email}) && none_null(username) === false && none_null(password) === false) {
             try {
                 const salt = await bcrypt.genSalt(10);
                 const hashedPassword = await bcrypt.hash(password, salt);
@@ -230,7 +231,7 @@ router.post('/auth/signin', async (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
 
-        if (none_null(email) === false && none_null(password) === false) {
+        if (regex_email_checker({email: email}) && none_null(password) === false) {
             try {
                 await User.aggregate([
                     {
