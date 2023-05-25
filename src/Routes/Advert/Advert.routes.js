@@ -6,6 +6,7 @@ const none_null_dp = require('../../Utils/None_Null_Checker_DP');
 const pagination_indexer = require('../../Utils/Pagination_Indexer');
 const { cloudinary } = require('../../Config/Cloudinary');
 const Advert = require('../../Models/Adverts_Model');
+const BloggedConfig = require('../../Models/BloggedConfig_Model');
 
 
 // Creates Ad
@@ -410,23 +411,61 @@ router.get('/', async (req, res) => {
         const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
         const query_l_i = pagination_indexer(pagination_index, 20)?.last_index;
 
-        await Advert.find()
-            .sort({ createdAt: -1 })
-            .skip(query_f_i)
-            .limit(query_l_i)
+        await BloggedConfig
+            .find()
             .catch(err => {
                 res.json({
                     status: "error",
                     code: "ERR-BLGD-059"
                 });
             })
-            .then(result => {
-                if (result !== null || result !== undefined) {
-                    if (result?.length > 0) {
-                        res.json({
-                            status: "success",
-                            response: result
-                        });
+            .then(async config_res => {
+                if (config_res !== null || config_res !== undefined) {
+                    if (config_res?.length > 0) {
+                        if (config_res[0]?.enable_ads) {
+                            try {
+                                await Advert.find()
+                                    .sort({ createdAt: -1 })
+                                    .skip(query_f_i)
+                                    .limit(query_l_i)
+                                    .catch(err => {
+                                        res.json({
+                                            status: "error",
+                                            code: "ERR-BLGD-059"
+                                        });
+                                    })
+                                    .then(result => {
+                                        if (result !== null || result !== undefined) {
+                                            if (result?.length > 0) {
+                                                res.json({
+                                                    status: "success",
+                                                    response: result
+                                                });
+                                            } else {
+                                                res.json({
+                                                    status: "success",
+                                                    response: []
+                                                });
+                                            }
+                                        } else {
+                                            res.json({
+                                                status: "success",
+                                                response: []
+                                            });
+                                        }
+                                    });
+                            } catch (error) {
+                                res.json({
+                                    status: "error",
+                                    code: "ERR-BLGD-059"
+                                });
+                            }
+                        }else {
+                            res.json({
+                                status: "success",
+                                response: []
+                            });
+                        }
                     } else {
                         res.json({
                             status: "success",
