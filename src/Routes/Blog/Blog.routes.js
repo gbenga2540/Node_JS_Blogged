@@ -2258,7 +2258,7 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
     }
 });
 
-// Load Trending Blog Posts (A week)
+// Load Trending Blog Posts (2 weeks)
 // INFO REQUIRED
 // Pagination Index
 router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
@@ -2274,7 +2274,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 604800000)
+                                $gt: new Date(Date.now() - 1209600000)
                             }
                         }
                     },
@@ -2388,7 +2388,7 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 604800000)
+                                $gt: new Date(Date.now() - 1209600000)
                             }
                         }
                     },
