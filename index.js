@@ -8,7 +8,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors('*'));
 
-
+mongoose.set('strictQuery', true);
 mongoose.connect(process.env.NODE_DATABASE_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
