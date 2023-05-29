@@ -1,14 +1,14 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
     try {
-        const token = req.headers["x-access-token"];
+        const token = req.headers['x-access-token'];
         if (token) {
             jwt.verify(token, process.env.NODE_AUTH_SECRET_KEY, (err, decoded) => {
                 if (err) {
                     res.json({
-                        status: "error",
-                        code: "ERR-BLGD-013",
+                        status: 'error',
+                        code: 'ERR-BLGD-013',
                     });
                 } else {
                     req.uid = decoded.uid;
@@ -17,14 +17,14 @@ module.exports = (req, res, next) => {
             });
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-014",
+                status: 'error',
+                code: 'ERR-BLGD-014',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-014",
+            status: 'error',
+            code: 'ERR-BLGD-014',
         });
     }
-}
+};

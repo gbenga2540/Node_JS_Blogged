@@ -5,67 +5,67 @@ const UserSchema = new Schema(
     {
         username: {
             type: String,
-            required: true
+            required: true,
         },
         email: {
             type: String,
-            required: true
+            required: true,
         },
         password: {
             type: String,
-            required: true
+            required: true,
         },
         dp_link: {
             type: String,
             required: true,
-            default: "none"
+            default: 'none',
         },
         followers: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'User'
-            }
+                ref: 'User',
+            },
         ],
         following: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'User'
-            }
+                ref: 'User',
+            },
         ],
         email_v: {
             type: Boolean,
             required: true,
-            default: false
+            default: false,
         },
         likes: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'Blog'
-            }
+                ref: 'Blog',
+            },
         ],
         blogs: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'Blog'
-            }
+                ref: 'Blog',
+            },
         ],
         v_code: {
             type: String,
             required: true,
-            default: "nv"
+            default: 'nv',
         },
         verified: {
             type: Boolean,
             required: true,
-            default: false
-        }
+            default: false,
+        },
     },
     {
         timestamps: {
             createdAt: true,
-            updatedAt: false
-        }
-    }
+            updatedAt: false,
+        },
+    },
 );
 
 const User = mongoose.model('User', UserSchema);

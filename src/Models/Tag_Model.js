@@ -5,16 +5,16 @@ const TagSchema = new Schema(
     {
         tag_index: {
             type: Number,
-            required: true
+            required: true,
         },
         tag_name: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     {
-        timestamps: false
-    }
+        timestamps: false,
+    },
 );
 
 const Tag = mongoose.model('Tag', TagSchema);

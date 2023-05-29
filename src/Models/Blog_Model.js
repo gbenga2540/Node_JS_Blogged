@@ -6,43 +6,41 @@ const BlogSchema = new Schema(
     {
         author: {
             type: Schema.Types.ObjectId,
-            required: true
+            required: true,
         },
         title: {
             type: String,
-            required: true
+            required: true,
         },
         dp_link: {
             type: String,
             required: true,
-            default: "none"
+            default: 'none',
         },
         message: {
             type: String,
-            required: true
+            required: true,
         },
         likes: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'User'
-            }
+                ref: 'User',
+            },
         ],
         tags: [
             {
                 type: Number,
-                required: true
-            }
+                required: true,
+            },
         ],
-        comments: [
-            CommentSchema
-        ]
+        comments: [CommentSchema],
     },
     {
         timestamps: {
             createdAt: true,
-            updatedAt: true
-        }
-    }
+            updatedAt: true,
+        },
+    },
 );
 
 const Blog = mongoose.model('Blog', BlogSchema);

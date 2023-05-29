@@ -5,19 +5,19 @@ const CommentSchema = new Schema(
         commenter: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: 'User'
+            ref: 'User',
         },
         comment: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     {
         timestamps: {
             createdAt: true,
-            updatedAt: false
-        }
-    }
+            updatedAt: false,
+        },
+    },
 );
 
 module.exports = CommentSchema;

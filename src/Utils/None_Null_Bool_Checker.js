@@ -1,3 +1,3 @@
-module.exports = (check) => {
+module.exports = check => {
     return check === null || check === undefined;
-}
+};

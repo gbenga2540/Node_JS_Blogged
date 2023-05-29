@@ -14,7 +14,6 @@ const Blog = require('../../Models/Blog_Model');
 const User = require('../../Models/User_Model');
 const ObjectId = require('mongodb').ObjectId;
 
-
 // Creates a new Blog
 // INFO REQUIRED:
 // token
@@ -35,20 +34,20 @@ router.post('/create', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(author)
-                        }
+                            _id: ObjectId(author),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -58,17 +57,18 @@ router.post('/create', verifyJWTbody, async (req, res) => {
                                     const blog = new Blog({
                                         author: author,
                                         title: title,
-                                        dp_link: "none",
+                                        dp_link: 'none',
                                         message: message,
-                                        tags: processed_tags
+                                        tags: processed_tags,
                                     });
 
                                     try {
-                                        await blog.save()
+                                        await blog
+                                            .save()
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-024"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-024',
                                                 });
                                             })
                                             .then(async result => {
@@ -78,133 +78,136 @@ router.post('/create', verifyJWTbody, async (req, res) => {
                                                         await User.findByIdAndUpdate(author, { $addToSet: { blogs: ObjectId(bid) } })
                                                             .catch(err => {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-050"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-050',
                                                                 });
                                                             })
                                                             .then(async user_add_blog_res => {
                                                                 if (user_add_blog_res === null || user_add_blog_res === undefined) {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-050"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-050',
                                                                     });
                                                                 } else {
                                                                     if (none_null(dp)) {
                                                                         res.json({
-                                                                            status: "success"
+                                                                            status: 'success',
                                                                         });
                                                                     } else {
                                                                         try {
-                                                                            await cloudinary.uploader.upload(dp, {
-                                                                                folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
-                                                                                public_id: `${bid}`
-                                                                            }, async (error, response) => {
-                                                                                if (error) {
-                                                                                    res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-025"
-                                                                                    });
-                                                                                } else {
-                                                                                    if (response) {
-                                                                                        const imageurl = response?.url;
-                                                                                        try {
-                                                                                            await Blog.findByIdAndUpdate(bid, { dp_link: imageurl })
-                                                                                                .catch(err => {
-                                                                                                    res.json({
-                                                                                                        status: "error",
-                                                                                                        code: "ERR-BLGD-027"
+                                                                            await cloudinary.uploader.upload(
+                                                                                dp,
+                                                                                {
+                                                                                    folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
+                                                                                    public_id: `${bid}`,
+                                                                                },
+                                                                                async (error, response) => {
+                                                                                    if (error) {
+                                                                                        res.json({
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-025',
+                                                                                        });
+                                                                                    } else {
+                                                                                        if (response) {
+                                                                                            const imageurl = response?.url;
+                                                                                            try {
+                                                                                                await Blog.findByIdAndUpdate(bid, { dp_link: imageurl })
+                                                                                                    .catch(err => {
+                                                                                                        res.json({
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-027',
+                                                                                                        });
+                                                                                                    })
+                                                                                                    .then(data => {
+                                                                                                        if (data === null || data === undefined) {
+                                                                                                            res.json({
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-027',
+                                                                                                            });
+                                                                                                        } else {
+                                                                                                            res.json({
+                                                                                                                status: 'success',
+                                                                                                            });
+                                                                                                        }
                                                                                                     });
-                                                                                                })
-                                                                                                .then(data => {
-                                                                                                    if (data === null || data === undefined) {
-                                                                                                        res.json({
-                                                                                                            status: "error",
-                                                                                                            code: "ERR-BLGD-027"
-                                                                                                        });
-                                                                                                    } else {
-                                                                                                        res.json({
-                                                                                                            status: "success"
-                                                                                                        });
-                                                                                                    }
+                                                                                            } catch (err) {
+                                                                                                res.json({
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-027',
                                                                                                 });
-                                                                                        } catch (err) {
+                                                                                            }
+                                                                                        } else {
                                                                                             res.json({
-                                                                                                status: "error",
-                                                                                                code: "ERR-BLGD-027"
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-026',
                                                                                             });
                                                                                         }
-                                                                                    } else {
-                                                                                        res.json({
-                                                                                            status: "error",
-                                                                                            code: "ERR-BLGD-026"
-                                                                                        });
                                                                                     }
-                                                                                }
-                                                                            });
+                                                                                },
+                                                                            );
                                                                         } catch (err) {
                                                                             res.json({
-                                                                                status: "error",
-                                                                                code: "ERR-BLGD-025"
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-025',
                                                                             });
                                                                         }
                                                                     }
-
                                                                 }
                                                             });
                                                     } catch (error) {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-050"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-050',
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-024"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-024',
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-024"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-024',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (err) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-023"
+                    status: 'error',
+                    code: 'ERR-BLGD-023',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (err) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-023"
+            status: 'error',
+            code: 'ERR-BLGD-023',
         });
     }
 });
@@ -231,21 +234,21 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
                             email_v: 1,
-                            dp_link: 1
-                        }
-                    }
+                            dp_link: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -256,20 +259,20 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
                                         await Blog.aggregate([
                                             {
                                                 $match: {
-                                                    _id: ObjectId(bid)
-                                                }
+                                                    _id: ObjectId(bid),
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
-                                                    author: 1
-                                                }
-                                            }
+                                                    author: 1,
+                                                },
+                                            },
                                         ])
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-038"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-038',
                                                 });
                                             })
                                             .then(async blog_response => {
@@ -277,24 +280,22 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
                                                     if (blog_response?.length > 0) {
                                                         if (blog_response[0]?.author?.toString() === uid) {
                                                             try {
-                                                                await Blog.findByIdAndUpdate(bid,
-                                                                    {
-                                                                        title: title,
-                                                                        message: message,
-                                                                        tags: processed_tags
-                                                                    }
-                                                                )
+                                                                await Blog.findByIdAndUpdate(bid, {
+                                                                    title: title,
+                                                                    message: message,
+                                                                    tags: processed_tags,
+                                                                })
                                                                     .catch(err => {
                                                                         res.json({
-                                                                            status: "error",
-                                                                            code: "ERR-BLGD-044"
+                                                                            status: 'error',
+                                                                            code: 'ERR-BLGD-044',
                                                                         });
                                                                     })
                                                                     .then(async response => {
                                                                         if (response === null || response === undefined) {
                                                                             res.json({
-                                                                                status: "error",
-                                                                                code: "ERR-BLGD-044"
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-044',
                                                                             });
                                                                         } else {
                                                                             if (none_null(dp)) {
@@ -303,131 +304,135 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
                                                                                         await cloudinary.uploader.destroy(`${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}${bid}`, async (error, data) => {
                                                                                             if (error) {
                                                                                                 res.json({
-                                                                                                    status: "error",
-                                                                                                    code: "ERR-BLGD-045"
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-045',
                                                                                                 });
                                                                                             } else {
-                                                                                                if (data?.result === "not found" || data?.result === "ok") {
+                                                                                                if (data?.result === 'not found' || data?.result === 'ok') {
                                                                                                     try {
-                                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: "none" })
+                                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: 'none' })
                                                                                                             .catch(err => {
                                                                                                                 res.json({
-                                                                                                                    status: "error",
-                                                                                                                    code: "ERR-BLGD-027"
+                                                                                                                    status: 'error',
+                                                                                                                    code: 'ERR-BLGD-027',
                                                                                                                 });
                                                                                                             })
                                                                                                             .then(response => {
                                                                                                                 if (response === null || response === undefined) {
                                                                                                                     res.json({
-                                                                                                                        status: "error",
-                                                                                                                        code: "ERR-BLGD-027"
+                                                                                                                        status: 'error',
+                                                                                                                        code: 'ERR-BLGD-027',
                                                                                                                     });
                                                                                                                 } else {
                                                                                                                     res.json({
-                                                                                                                        status: "success"
+                                                                                                                        status: 'success',
                                                                                                                     });
                                                                                                                 }
                                                                                                             });
                                                                                                     } catch (err) {
                                                                                                         res.json({
-                                                                                                            status: "error",
-                                                                                                            code: "ERR-BLGD-027"
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-027',
                                                                                                         });
                                                                                                     }
                                                                                                 } else {
                                                                                                     res.json({
-                                                                                                        status: "error",
-                                                                                                        code: "ERR-BLGD-045"
+                                                                                                        status: 'error',
+                                                                                                        code: 'ERR-BLGD-045',
                                                                                                     });
                                                                                                 }
                                                                                             }
                                                                                         });
                                                                                     } catch (err) {
                                                                                         res.json({
-                                                                                            status: "error",
-                                                                                            code: "ERR-BLGD-045"
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-045',
                                                                                         });
                                                                                     }
                                                                                 } else {
                                                                                     try {
-                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: "none" })
+                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: 'none' })
                                                                                             .catch(err => {
                                                                                                 res.json({
-                                                                                                    status: "error",
-                                                                                                    code: "ERR-BLGD-027"
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-027',
                                                                                                 });
                                                                                             })
                                                                                             .then(response => {
                                                                                                 if (response === null || response === undefined) {
                                                                                                     res.json({
-                                                                                                        status: "error",
-                                                                                                        code: "ERR-BLGD-027"
+                                                                                                        status: 'error',
+                                                                                                        code: 'ERR-BLGD-027',
                                                                                                     });
                                                                                                 } else {
                                                                                                     res.json({
-                                                                                                        status: "success"
+                                                                                                        status: 'success',
                                                                                                     });
                                                                                                 }
                                                                                             });
                                                                                     } catch (err) {
                                                                                         res.json({
-                                                                                            status: "error",
-                                                                                            code: "ERR-BLGD-027"
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-027',
                                                                                         });
                                                                                     }
                                                                                 }
                                                                             } else {
                                                                                 try {
-                                                                                    await cloudinary.uploader.upload(dp, {
-                                                                                        folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
-                                                                                        public_id: `${bid}`
-                                                                                    }, async (error, response) => {
-                                                                                        if (error) {
-                                                                                            res.json({
-                                                                                                status: "error",
-                                                                                                code: "ERR-BLGD-025"
-                                                                                            });
-                                                                                        } else {
-                                                                                            if (response) {
-                                                                                                const imageurl = response?.url;
-                                                                                                try {
-                                                                                                    await Blog.findByIdAndUpdate(bid, { dp_link: imageurl })
-                                                                                                        .catch(err => {
-                                                                                                            res.json({
-                                                                                                                status: "error",
-                                                                                                                code: "ERR-BLGD-027"
+                                                                                    await cloudinary.uploader.upload(
+                                                                                        dp,
+                                                                                        {
+                                                                                            folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
+                                                                                            public_id: `${bid}`,
+                                                                                        },
+                                                                                        async (error, response) => {
+                                                                                            if (error) {
+                                                                                                res.json({
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-025',
+                                                                                                });
+                                                                                            } else {
+                                                                                                if (response) {
+                                                                                                    const imageurl = response?.url;
+                                                                                                    try {
+                                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: imageurl })
+                                                                                                            .catch(err => {
+                                                                                                                res.json({
+                                                                                                                    status: 'error',
+                                                                                                                    code: 'ERR-BLGD-027',
+                                                                                                                });
+                                                                                                            })
+                                                                                                            .then(data => {
+                                                                                                                if (data === null || data === undefined) {
+                                                                                                                    res.json({
+                                                                                                                        status: 'error',
+                                                                                                                        code: 'ERR-BLGD-027',
+                                                                                                                    });
+                                                                                                                } else {
+                                                                                                                    res.json({
+                                                                                                                        status: 'success',
+                                                                                                                    });
+                                                                                                                }
                                                                                                             });
-                                                                                                        })
-                                                                                                        .then(data => {
-                                                                                                            if (data === null || data === undefined) {
-                                                                                                                res.json({
-                                                                                                                    status: "error",
-                                                                                                                    code: "ERR-BLGD-027"
-                                                                                                                });
-                                                                                                            } else {
-                                                                                                                res.json({
-                                                                                                                    status: "success"
-                                                                                                                });
-                                                                                                            }
+                                                                                                    } catch (err) {
+                                                                                                        res.json({
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-027',
                                                                                                         });
-                                                                                                } catch (err) {
+                                                                                                    }
+                                                                                                } else {
                                                                                                     res.json({
-                                                                                                        status: "error",
-                                                                                                        code: "ERR-BLGD-027"
+                                                                                                        status: 'error',
+                                                                                                        code: 'ERR-BLGD-026',
                                                                                                     });
                                                                                                 }
-                                                                                            } else {
-                                                                                                res.json({
-                                                                                                    status: "error",
-                                                                                                    code: "ERR-BLGD-026"
-                                                                                                });
                                                                                             }
-                                                                                        }
-                                                                                    });
+                                                                                        },
+                                                                                    );
                                                                                 } catch (err) {
                                                                                     res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-025"
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-025',
                                                                                     });
                                                                                 }
                                                                             }
@@ -435,70 +440,70 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
                                                                     });
                                                             } catch (error) {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-044"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-044',
                                                                 });
                                                             }
                                                         } else {
                                                             res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-048"
+                                                                status: 'error',
+                                                                code: 'ERR-BLGD-048',
                                                             });
                                                         }
                                                     } else {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-038"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-038',
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-038"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-038',
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-038"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-038',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (err) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-044"
+                    status: 'error',
+                    code: 'ERR-BLGD-044',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (err) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-044"
+            status: 'error',
+            code: 'ERR-BLGD-044',
         });
     }
 });
@@ -517,20 +522,20 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -541,22 +546,22 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                         await Blog.aggregate([
                                             {
                                                 $match: {
-                                                    _id: ObjectId(bid)
-                                                }
+                                                    _id: ObjectId(bid),
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
                                                     author: 1,
                                                     dp_link: 1,
-                                                    likes: 1
-                                                }
-                                            }
+                                                    likes: 1,
+                                                },
+                                            },
                                         ])
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-038"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-038',
                                                 });
                                             })
                                             .then(async blog_response => {
@@ -564,22 +569,22 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                     if (blog_response?.length > 0) {
                                                         const author = blog_response[0]?.author?.toString();
                                                         if (author === uid) {
-                                                            if (none_null_dp(blog_response[0]?.dp_link) !== "none") {
+                                                            if (none_null_dp(blog_response[0]?.dp_link) !== 'none') {
                                                                 try {
                                                                     await cloudinary.uploader.destroy(`${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}${bid}`, async (error, data) => {
                                                                         if (error) {
                                                                             res.json({
-                                                                                status: "error",
-                                                                                code: "ERR-BLGD-045"
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-045',
                                                                             });
                                                                         } else {
-                                                                            if (data?.result === "not found" || data?.result === "ok") {
+                                                                            if (data?.result === 'not found' || data?.result === 'ok') {
                                                                                 try {
                                                                                     await User.updateMany({ _id: { $in: blog_response[0]?.likes } }, { $pull: { likes: ObjectId(bid) } })
                                                                                         .catch(err => {
                                                                                             res.json({
-                                                                                                status: "error",
-                                                                                                code: "ERR-BLGD-047"
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-047',
                                                                                             });
                                                                                         })
                                                                                         .then(async del_likes_res => {
@@ -588,8 +593,8 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                                                                     await User.findByIdAndUpdate(author, { $pull: { blogs: ObjectId(bid) } })
                                                                                                         .catch(err => {
                                                                                                             res.json({
-                                                                                                                status: "error",
-                                                                                                                code: "ERR-BLGD-050"
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-050',
                                                                                                             });
                                                                                                         })
                                                                                                         .then(async user_del_blog_res => {
@@ -597,60 +602,60 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                                                                                 await Blog.findByIdAndDelete(bid)
                                                                                                                     .catch(err => {
                                                                                                                         res.json({
-                                                                                                                            status: "error",
-                                                                                                                            code: "ERR-BLGD-047"
+                                                                                                                            status: 'error',
+                                                                                                                            code: 'ERR-BLGD-047',
                                                                                                                         });
                                                                                                                     })
                                                                                                                     .then(del_blog_res => {
                                                                                                                         if (del_blog_res !== null || del_blog_res !== undefined) {
                                                                                                                             res.json({
-                                                                                                                                status: "success"
+                                                                                                                                status: 'success',
                                                                                                                             });
                                                                                                                         } else {
                                                                                                                             res.json({
-                                                                                                                                status: "error",
-                                                                                                                                code: "ERR-BLGD-047"
+                                                                                                                                status: 'error',
+                                                                                                                                code: 'ERR-BLGD-047',
                                                                                                                             });
                                                                                                                         }
                                                                                                                     });
                                                                                                             } catch (error) {
                                                                                                                 res.json({
-                                                                                                                    status: "error",
-                                                                                                                    code: "ERR-BLGD-047"
+                                                                                                                    status: 'error',
+                                                                                                                    code: 'ERR-BLGD-047',
                                                                                                                 });
                                                                                                             }
                                                                                                         });
                                                                                                 } catch (error) {
                                                                                                     res.json({
-                                                                                                        status: "error",
-                                                                                                        code: "ERR-BLGD-050"
+                                                                                                        status: 'error',
+                                                                                                        code: 'ERR-BLGD-050',
                                                                                                     });
                                                                                                 }
                                                                                             } else {
                                                                                                 res.json({
-                                                                                                    status: "error",
-                                                                                                    code: "ERR-BLGD-047"
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-047',
                                                                                                 });
                                                                                             }
                                                                                         });
                                                                                 } catch (error) {
                                                                                     res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-047"
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-047',
                                                                                     });
                                                                                 }
                                                                             } else {
                                                                                 res.json({
-                                                                                    status: "error",
-                                                                                    code: "ERR-BLGD-045"
+                                                                                    status: 'error',
+                                                                                    code: 'ERR-BLGD-045',
                                                                                 });
                                                                             }
                                                                         }
                                                                     });
                                                                 } catch (error) {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-045"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-045',
                                                                     });
                                                                 }
                                                             } else {
@@ -658,8 +663,8 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                                     await User.updateMany({ _id: { $in: blog_response[0]?.likes } }, { $pull: { likes: ObjectId(bid) } })
                                                                         .catch(err => {
                                                                             res.json({
-                                                                                status: "error",
-                                                                                code: "ERR-BLGD-047"
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-047',
                                                                             });
                                                                         })
                                                                         .then(async del_likes_res => {
@@ -668,8 +673,8 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                                                     await User.findByIdAndUpdate(author, { $pull: { blogs: ObjectId(bid) } })
                                                                                         .catch(err => {
                                                                                             res.json({
-                                                                                                status: "error",
-                                                                                                code: "ERR-BLGD-050"
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-050',
                                                                                             });
                                                                                         })
                                                                                         .then(async user_del_blog_res => {
@@ -677,109 +682,109 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                                                                 await Blog.findByIdAndDelete(bid)
                                                                                                     .catch(err => {
                                                                                                         res.json({
-                                                                                                            status: "error",
-                                                                                                            code: "ERR-BLGD-047"
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-047',
                                                                                                         });
                                                                                                     })
                                                                                                     .then(del_blog_res => {
                                                                                                         if (del_blog_res !== null || del_blog_res !== undefined) {
                                                                                                             res.json({
-                                                                                                                status: "success"
+                                                                                                                status: 'success',
                                                                                                             });
                                                                                                         } else {
                                                                                                             res.json({
-                                                                                                                status: "error",
-                                                                                                                code: "ERR-BLGD-047"
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-047',
                                                                                                             });
                                                                                                         }
                                                                                                     });
                                                                                             } catch (error) {
                                                                                                 res.json({
-                                                                                                    status: "error",
-                                                                                                    code: "ERR-BLGD-047"
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-047',
                                                                                                 });
                                                                                             }
                                                                                         });
                                                                                 } catch (error) {
                                                                                     res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-050"
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-050',
                                                                                     });
                                                                                 }
                                                                             } else {
                                                                                 res.json({
-                                                                                    status: "error",
-                                                                                    code: "ERR-BLGD-047"
+                                                                                    status: 'error',
+                                                                                    code: 'ERR-BLGD-047',
                                                                                 });
                                                                             }
                                                                         });
                                                                 } catch (error) {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-047"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-047',
                                                                     });
                                                                 }
                                                             }
                                                         } else {
                                                             res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-049"
+                                                                status: 'error',
+                                                                code: 'ERR-BLGD-049',
                                                             });
                                                         }
                                                     } else {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-038"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-038',
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-038"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-038',
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-038"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-038',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-047"
+                    status: 'error',
+                    code: 'ERR-BLGD-047',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-047"
+            status: 'error',
+            code: 'ERR-BLGD-047',
         });
     }
 });
@@ -798,20 +803,20 @@ router.patch('/like', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -822,86 +827,86 @@ router.patch('/like', verifyJWTbody, async (req, res) => {
                                         await Blog.findByIdAndUpdate(bid, { $addToSet: { likes: ObjectId(uid) } })
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-028"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-028',
                                                 });
                                             })
                                             .then(async response => {
                                                 if (response === null || response === undefined) {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-030"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-030',
                                                     });
                                                 } else {
                                                     try {
                                                         await User.findByIdAndUpdate(uid, { $addToSet: { likes: ObjectId(bid) } })
                                                             .catch(err => {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-028"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-028',
                                                                 });
                                                             })
                                                             .then(data => {
                                                                 if (data === null || data === undefined) {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-016"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-016',
                                                                     });
                                                                 } else {
                                                                     res.json({
-                                                                        status: "success"
+                                                                        status: 'success',
                                                                     });
                                                                 }
                                                             });
                                                     } catch (error) {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-028"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-028',
                                                         });
                                                     }
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-028"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-028',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-028"
+                    status: 'error',
+                    code: 'ERR-BLGD-028',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-028"
+            status: 'error',
+            code: 'ERR-BLGD-028',
         });
     }
 });
@@ -920,20 +925,20 @@ router.patch('/dislike', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -944,86 +949,86 @@ router.patch('/dislike', verifyJWTbody, async (req, res) => {
                                         await Blog.findByIdAndUpdate(bid, { $pull: { likes: ObjectId(uid) } })
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-029"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-029',
                                                 });
                                             })
                                             .then(async response => {
                                                 if (response === null || response === undefined) {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-031"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-031',
                                                     });
                                                 } else {
                                                     try {
                                                         await User.findByIdAndUpdate(uid, { $pull: { likes: ObjectId(bid) } })
                                                             .catch(err => {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-029"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-029',
                                                                 });
                                                             })
                                                             .then(data => {
                                                                 if (data === null || data === undefined) {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-016"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-016',
                                                                     });
                                                                 } else {
                                                                     res.json({
-                                                                        status: "success"
+                                                                        status: 'success',
                                                                     });
                                                                 }
                                                             });
                                                     } catch (error) {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-029"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-029',
                                                         });
                                                     }
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-029"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-029',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-029"
+                    status: 'error',
+                    code: 'ERR-BLGD-029',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-029"
+            status: 'error',
+            code: 'ERR-BLGD-029',
         });
     }
 });
@@ -1044,20 +1049,20 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -1068,15 +1073,15 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                         await Blog.findByIdAndUpdate(bid, { $push: { comments: { commenter: ObjectId(uid), comment: comment } } })
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-036"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-036',
                                                 });
                                             })
                                             .then(async response => {
                                                 if (response === null || response === undefined) {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-036"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-036',
                                                     });
                                                 } else {
                                                     const new_comments = [];
@@ -1084,15 +1089,15 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                         await Blog.aggregate([
                                                             {
                                                                 $match: {
-                                                                    _id: ObjectId(bid)
-                                                                }
+                                                                    _id: ObjectId(bid),
+                                                                },
                                                             },
                                                             {
                                                                 $project: {
                                                                     _id: 1,
                                                                     comments: 1,
-                                                                }
-                                                            }
+                                                                },
+                                                            },
                                                         ])
                                                             .catch(async err => {
                                                                 const old_comments = response?.comments;
@@ -1110,16 +1115,16 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                             await User.aggregate([
                                                                                 {
                                                                                     $match: {
-                                                                                        _id: { $in: processed_cmt_users }
-                                                                                    }
+                                                                                        _id: { $in: processed_cmt_users },
+                                                                                    },
                                                                                 },
                                                                                 {
                                                                                     $project: {
                                                                                         username: 1,
                                                                                         verified: 1,
-                                                                                        dp_link: 1
-                                                                                    }
-                                                                                }
+                                                                                        dp_link: 1,
+                                                                                    },
+                                                                                },
                                                                             ])
                                                                                 .catch(err => {
                                                                                     old_comments?.map(item => {
@@ -1129,10 +1134,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                             comment: old_comment_item?.comment,
                                                                                             _id: old_comment_item?._id,
                                                                                             createdAt: old_comment_item?.createdAt,
-                                                                                            username: "Not Found",
-                                                                                            dp_link: "none",
+                                                                                            username: 'Not Found',
+                                                                                            dp_link: 'none',
                                                                                             verified: false,
-                                                                                            is_c_owner: false
+                                                                                            is_c_owner: false,
                                                                                         });
                                                                                     });
                                                                                 })
@@ -1151,7 +1156,7 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                     username: user?.[0]?.username,
                                                                                                     dp_link: user?.[0]?.dp_link,
                                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                    is_c_owner: uid === item?.commenter?.toString()
+                                                                                                    is_c_owner: uid === item?.commenter?.toString(),
                                                                                                 });
                                                                                             } else {
                                                                                                 new_comments?.push({
@@ -1159,10 +1164,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                     comment: old_comment_item?.comment,
                                                                                                     _id: old_comment_item?._id,
                                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                                    username: "Not Found",
-                                                                                                    dp_link: "none",
+                                                                                                    username: 'Not Found',
+                                                                                                    dp_link: 'none',
                                                                                                     verified: false,
-                                                                                                    is_c_owner: false
+                                                                                                    is_c_owner: false,
                                                                                                 });
                                                                                             }
                                                                                         });
@@ -1174,10 +1179,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                 comment: old_comment_item?.comment,
                                                                                                 _id: old_comment_item?._id,
                                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                                username: "Not Found",
-                                                                                                dp_link: "none",
+                                                                                                username: 'Not Found',
+                                                                                                dp_link: 'none',
                                                                                                 verified: false,
-                                                                                                is_c_owner: false
+                                                                                                is_c_owner: false,
                                                                                             });
                                                                                         });
                                                                                     }
@@ -1190,10 +1195,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         }
@@ -1205,10 +1210,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     }
@@ -1232,16 +1237,16 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                     await User.aggregate([
                                                                                         {
                                                                                             $match: {
-                                                                                                _id: { $in: processed_cmt_users }
-                                                                                            }
+                                                                                                _id: { $in: processed_cmt_users },
+                                                                                            },
                                                                                         },
                                                                                         {
                                                                                             $project: {
                                                                                                 username: 1,
                                                                                                 verified: 1,
-                                                                                                dp_link: 1
-                                                                                            }
-                                                                                        }
+                                                                                                dp_link: 1,
+                                                                                            },
+                                                                                        },
                                                                                     ])
                                                                                         .catch(err => {
                                                                                             old_comments?.map(item => {
@@ -1251,10 +1256,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                     comment: old_comment_item?.comment,
                                                                                                     _id: old_comment_item?._id,
                                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                                    username: "Not Found",
-                                                                                                    dp_link: "none",
+                                                                                                    username: 'Not Found',
+                                                                                                    dp_link: 'none',
                                                                                                     verified: false,
-                                                                                                    is_c_owner: false
+                                                                                                    is_c_owner: false,
                                                                                                 });
                                                                                             });
                                                                                         })
@@ -1273,7 +1278,7 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                             username: user?.[0]?.username,
                                                                                                             dp_link: user?.[0]?.dp_link,
                                                                                                             verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                                                            is_c_owner: uid === item?.commenter?.toString(),
                                                                                                         });
                                                                                                     } else {
                                                                                                         new_comments?.push({
@@ -1281,10 +1286,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                             comment: old_comment_item?.comment,
                                                                                                             _id: old_comment_item?._id,
                                                                                                             createdAt: old_comment_item?.createdAt,
-                                                                                                            username: "Not Found",
-                                                                                                            dp_link: "none",
+                                                                                                            username: 'Not Found',
+                                                                                                            dp_link: 'none',
                                                                                                             verified: false,
-                                                                                                            is_c_owner: false
+                                                                                                            is_c_owner: false,
                                                                                                         });
                                                                                                     }
                                                                                                 });
@@ -1296,10 +1301,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                         comment: old_comment_item?.comment,
                                                                                                         _id: old_comment_item?._id,
                                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                                        username: "Not Found",
-                                                                                                        dp_link: "none",
+                                                                                                        username: 'Not Found',
+                                                                                                        dp_link: 'none',
                                                                                                         verified: false,
-                                                                                                        is_c_owner: false
+                                                                                                        is_c_owner: false,
                                                                                                     });
                                                                                                 });
                                                                                             }
@@ -1312,10 +1317,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                             comment: old_comment_item?.comment,
                                                                                             _id: old_comment_item?._id,
                                                                                             createdAt: old_comment_item?.createdAt,
-                                                                                            username: "Not Found",
-                                                                                            dp_link: "none",
+                                                                                            username: 'Not Found',
+                                                                                            dp_link: 'none',
                                                                                             verified: false,
-                                                                                            is_c_owner: false
+                                                                                            is_c_owner: false,
                                                                                         });
                                                                                     });
                                                                                 }
@@ -1327,10 +1332,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 });
                                                                             }
@@ -1351,16 +1356,16 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                     await User.aggregate([
                                                                                         {
                                                                                             $match: {
-                                                                                                _id: { $in: processed_cmt_users }
-                                                                                            }
+                                                                                                _id: { $in: processed_cmt_users },
+                                                                                            },
                                                                                         },
                                                                                         {
                                                                                             $project: {
                                                                                                 username: 1,
                                                                                                 verified: 1,
-                                                                                                dp_link: 1
-                                                                                            }
-                                                                                        }
+                                                                                                dp_link: 1,
+                                                                                            },
+                                                                                        },
                                                                                     ])
                                                                                         .catch(err => {
                                                                                             old_comments?.map(item => {
@@ -1370,10 +1375,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                     comment: old_comment_item?.comment,
                                                                                                     _id: old_comment_item?._id,
                                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                                    username: "Not Found",
-                                                                                                    dp_link: "none",
+                                                                                                    username: 'Not Found',
+                                                                                                    dp_link: 'none',
                                                                                                     verified: false,
-                                                                                                    is_c_owner: false
+                                                                                                    is_c_owner: false,
                                                                                                 });
                                                                                             });
                                                                                         })
@@ -1392,7 +1397,7 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                             username: user?.[0]?.username,
                                                                                                             dp_link: user?.[0]?.dp_link,
                                                                                                             verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                                                            is_c_owner: uid === item?.commenter?.toString(),
                                                                                                         });
                                                                                                     } else {
                                                                                                         new_comments?.push({
@@ -1400,10 +1405,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                             comment: old_comment_item?.comment,
                                                                                                             _id: old_comment_item?._id,
                                                                                                             createdAt: old_comment_item?.createdAt,
-                                                                                                            username: "Not Found",
-                                                                                                            dp_link: "none",
+                                                                                                            username: 'Not Found',
+                                                                                                            dp_link: 'none',
                                                                                                             verified: false,
-                                                                                                            is_c_owner: false
+                                                                                                            is_c_owner: false,
                                                                                                         });
                                                                                                     }
                                                                                                 });
@@ -1415,10 +1420,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                         comment: old_comment_item?.comment,
                                                                                                         _id: old_comment_item?._id,
                                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                                        username: "Not Found",
-                                                                                                        dp_link: "none",
+                                                                                                        username: 'Not Found',
+                                                                                                        dp_link: 'none',
                                                                                                         verified: false,
-                                                                                                        is_c_owner: false
+                                                                                                        is_c_owner: false,
                                                                                                     });
                                                                                                 });
                                                                                             }
@@ -1431,10 +1436,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                             comment: old_comment_item?.comment,
                                                                                             _id: old_comment_item?._id,
                                                                                             createdAt: old_comment_item?.createdAt,
-                                                                                            username: "Not Found",
-                                                                                            dp_link: "none",
+                                                                                            username: 'Not Found',
+                                                                                            dp_link: 'none',
                                                                                             verified: false,
-                                                                                            is_c_owner: false
+                                                                                            is_c_owner: false,
                                                                                         });
                                                                                     });
                                                                                 }
@@ -1446,10 +1451,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 });
                                                                             }
@@ -1471,16 +1476,16 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                 await User.aggregate([
                                                                                     {
                                                                                         $match: {
-                                                                                            _id: { $in: processed_cmt_users }
-                                                                                        }
+                                                                                            _id: { $in: processed_cmt_users },
+                                                                                        },
                                                                                     },
                                                                                     {
                                                                                         $project: {
                                                                                             username: 1,
                                                                                             verified: 1,
-                                                                                            dp_link: 1
-                                                                                        }
-                                                                                    }
+                                                                                            dp_link: 1,
+                                                                                        },
+                                                                                    },
                                                                                 ])
                                                                                     .catch(err => {
                                                                                         old_comments?.map(item => {
@@ -1490,10 +1495,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                 comment: old_comment_item?.comment,
                                                                                                 _id: old_comment_item?._id,
                                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                                username: "Not Found",
-                                                                                                dp_link: "none",
+                                                                                                username: 'Not Found',
+                                                                                                dp_link: 'none',
                                                                                                 verified: false,
-                                                                                                is_c_owner: false
+                                                                                                is_c_owner: false,
                                                                                             });
                                                                                         });
                                                                                     })
@@ -1512,7 +1517,7 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                         username: user?.[0]?.username,
                                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                        is_c_owner: uid === item?.commenter?.toString()
+                                                                                                        is_c_owner: uid === item?.commenter?.toString(),
                                                                                                     });
                                                                                                 } else {
                                                                                                     new_comments?.push({
@@ -1520,10 +1525,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                         comment: old_comment_item?.comment,
                                                                                                         _id: old_comment_item?._id,
                                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                                        username: "Not Found",
-                                                                                                        dp_link: "none",
+                                                                                                        username: 'Not Found',
+                                                                                                        dp_link: 'none',
                                                                                                         verified: false,
-                                                                                                        is_c_owner: false
+                                                                                                        is_c_owner: false,
                                                                                                     });
                                                                                                 }
                                                                                             });
@@ -1535,10 +1540,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                                     comment: old_comment_item?.comment,
                                                                                                     _id: old_comment_item?._id,
                                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                                    username: "Not Found",
-                                                                                                    dp_link: "none",
+                                                                                                    username: 'Not Found',
+                                                                                                    dp_link: 'none',
                                                                                                     verified: false,
-                                                                                                    is_c_owner: false
+                                                                                                    is_c_owner: false,
                                                                                                 });
                                                                                             });
                                                                                         }
@@ -1551,10 +1556,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 });
                                                                             }
@@ -1566,10 +1571,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         }
@@ -1592,16 +1597,16 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                     await User.aggregate([
                                                                         {
                                                                             $match: {
-                                                                                _id: { $in: processed_cmt_users }
-                                                                            }
+                                                                                _id: { $in: processed_cmt_users },
+                                                                            },
                                                                         },
                                                                         {
                                                                             $project: {
                                                                                 username: 1,
                                                                                 verified: 1,
-                                                                                dp_link: 1
-                                                                            }
-                                                                        }
+                                                                                dp_link: 1,
+                                                                            },
+                                                                        },
                                                                     ])
                                                                         .catch(err => {
                                                                             old_comments?.map(item => {
@@ -1611,10 +1616,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         })
@@ -1633,7 +1638,7 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                             username: user?.[0]?.username,
                                                                                             dp_link: user?.[0]?.dp_link,
                                                                                             verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                            is_c_owner: uid === item?.commenter?.toString()
+                                                                                            is_c_owner: uid === item?.commenter?.toString(),
                                                                                         });
                                                                                     } else {
                                                                                         new_comments?.push({
@@ -1641,10 +1646,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                             comment: old_comment_item?.comment,
                                                                                             _id: old_comment_item?._id,
                                                                                             createdAt: old_comment_item?.createdAt,
-                                                                                            username: "Not Found",
-                                                                                            dp_link: "none",
+                                                                                            username: 'Not Found',
+                                                                                            dp_link: 'none',
                                                                                             verified: false,
-                                                                                            is_c_owner: false
+                                                                                            is_c_owner: false,
                                                                                         });
                                                                                     }
                                                                                 });
@@ -1656,10 +1661,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 });
                                                                             }
@@ -1672,10 +1677,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                             comment: old_comment_item?.comment,
                                                                             _id: old_comment_item?._id,
                                                                             createdAt: old_comment_item?.createdAt,
-                                                                            username: "Not Found",
-                                                                            dp_link: "none",
+                                                                            username: 'Not Found',
+                                                                            dp_link: 'none',
                                                                             verified: false,
-                                                                            is_c_owner: false
+                                                                            is_c_owner: false,
                                                                         });
                                                                     });
                                                                 }
@@ -1687,62 +1692,62 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             }
                                                         }
                                                     }
                                                     res.json({
-                                                        status: "success",
-                                                        response: [...new_comments].reverse()
+                                                        status: 'success',
+                                                        response: [...new_comments].reverse(),
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-036"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-036',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-036"
+                    status: 'error',
+                    code: 'ERR-BLGD-036',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-036"
+            status: 'error',
+            code: 'ERR-BLGD-036',
         });
     }
 });
@@ -1765,20 +1770,20 @@ router.patch('/comment/edit', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -1789,20 +1794,20 @@ router.patch('/comment/edit', verifyJWTbody, async (req, res) => {
                                         await Blog.aggregate([
                                             {
                                                 $match: {
-                                                    _id: ObjectId(bid)
-                                                }
+                                                    _id: ObjectId(bid),
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
-                                                    comments: 1
-                                                }
-                                            }
+                                                    comments: 1,
+                                                },
+                                            },
                                         ])
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-038"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-038',
                                                 });
                                             })
                                             .then(async blog_res => {
@@ -1813,105 +1818,104 @@ router.patch('/comment/edit', verifyJWTbody, async (req, res) => {
 
                                                             if (cmtr_id === undefined || cmtr_id === null) {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-040"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-040',
                                                                 });
                                                             } else {
                                                                 if (uid === cmtr_id) {
                                                                     try {
-                                                                        await Blog.updateOne({ _id: ObjectId(bid), "comments._id": ObjectId(cid) }, { $set: { "comments.$.comment": comment } })
+                                                                        await Blog.updateOne({ _id: ObjectId(bid), 'comments._id': ObjectId(cid) }, { $set: { 'comments.$.comment': comment } })
                                                                             .catch(err => {
                                                                                 res.json({
-                                                                                    status: "error",
-                                                                                    code: "ERR-BLGD-042"
+                                                                                    status: 'error',
+                                                                                    code: 'ERR-BLGD-042',
                                                                                 });
                                                                             })
                                                                             .then(response => {
                                                                                 if (response === null || response === undefined) {
                                                                                     res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-042"
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-042',
                                                                                     });
                                                                                 } else {
                                                                                     res.json({
-                                                                                        status: "success"
+                                                                                        status: 'success',
                                                                                     });
                                                                                 }
                                                                             });
                                                                     } catch (error) {
                                                                         res.json({
-                                                                            status: "error",
-                                                                            code: "ERR-BLGD-042"
+                                                                            status: 'error',
+                                                                            code: 'ERR-BLGD-042',
                                                                         });
                                                                     }
                                                                 } else {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-043"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-043',
                                                                     });
                                                                 }
                                                             }
-
                                                         } else {
                                                             res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-039"
+                                                                status: 'error',
+                                                                code: 'ERR-BLGD-039',
                                                             });
                                                         }
                                                     } else {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-038"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-038',
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-038"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-038',
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-038"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-038',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-042"
+                    status: 'error',
+                    code: 'ERR-BLGD-042',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-042"
+            status: 'error',
+            code: 'ERR-BLGD-042',
         });
     }
 });
@@ -1932,20 +1936,20 @@ router.patch('/comment/delete', verifyJWTbody, async (req, res) => {
                 await User.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(uid)
-                        }
+                            _id: ObjectId(uid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            email_v: 1
-                        }
-                    }
+                            email_v: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     })
                     .then(async result => {
@@ -1956,21 +1960,21 @@ router.patch('/comment/delete', verifyJWTbody, async (req, res) => {
                                         await Blog.aggregate([
                                             {
                                                 $match: {
-                                                    _id: ObjectId(bid)
-                                                }
+                                                    _id: ObjectId(bid),
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
                                                     author: 1,
-                                                    comments: 1
-                                                }
-                                            }
+                                                    comments: 1,
+                                                },
+                                            },
                                         ])
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-038"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-038',
                                                 });
                                             })
                                             .then(async blog_res => {
@@ -1983,8 +1987,8 @@ router.patch('/comment/delete', verifyJWTbody, async (req, res) => {
 
                                                             if (cmtr_id === undefined || cmtr_id === null) {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-040"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-040',
                                                                 });
                                                             } else {
                                                                 if (uid === aid || uid === cmtr_id) {
@@ -1992,95 +1996,95 @@ router.patch('/comment/delete', verifyJWTbody, async (req, res) => {
                                                                         await Blog.findByIdAndUpdate(bid, { $pull: { comments: { _id: ObjectId(cid) } } })
                                                                             .catch(err => {
                                                                                 res.json({
-                                                                                    status: "error",
-                                                                                    code: "ERR-BLGD-037"
+                                                                                    status: 'error',
+                                                                                    code: 'ERR-BLGD-037',
                                                                                 });
                                                                             })
                                                                             .then(response => {
                                                                                 if (response === null || response === undefined) {
                                                                                     res.json({
-                                                                                        status: "error",
-                                                                                        code: "ERR-BLGD-037"
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-037',
                                                                                     });
                                                                                 } else {
                                                                                     res.json({
-                                                                                        status: "success"
+                                                                                        status: 'success',
                                                                                     });
                                                                                 }
-                                                                            })
+                                                                            });
                                                                     } catch (error) {
                                                                         res.json({
-                                                                            status: "error",
-                                                                            code: "ERR-BLGD-037"
+                                                                            status: 'error',
+                                                                            code: 'ERR-BLGD-037',
                                                                         });
                                                                     }
                                                                 } else {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-BLGD-041"
+                                                                        status: 'error',
+                                                                        code: 'ERR-BLGD-041',
                                                                     });
                                                                 }
                                                             }
                                                         } else {
                                                             res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-039"
+                                                                status: 'error',
+                                                                code: 'ERR-BLGD-039',
                                                             });
                                                         }
                                                     } else {
                                                         res.json({
-                                                            status: "error",
-                                                            code: "ERR-BLGD-038"
+                                                            status: 'error',
+                                                            code: 'ERR-BLGD-038',
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-038"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-038',
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-038"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-038',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-BLGD-022"
+                                        status: 'error',
+                                        code: 'ERR-BLGD-022',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-016"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-016',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-016"
+                                status: 'error',
+                                code: 'ERR-BLGD-016',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-037"
+                    status: 'error',
+                    code: 'ERR-BLGD-037',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-BLGD-071"
+                status: 'error',
+                code: 'ERR-BLGD-071',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-037"
+            status: 'error',
+            code: 'ERR-BLGD-037',
         });
     }
 });
@@ -2099,19 +2103,19 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
         await User.aggregate([
             {
                 $match: {
-                    _id: ObjectId(uid)
-                }
+                    _id: ObjectId(uid),
+                },
             },
             {
                 $project: {
-                    following: 1
-                }
-            }
+                    following: 1,
+                },
+            },
         ])
             .catch(err => {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-016"
+                    status: 'error',
+                    code: 'ERR-BLGD-016',
                 });
             })
             .then(async user_res => {
@@ -2122,36 +2126,34 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                             try {
                                 await Blog.aggregate([
                                     {
-                                        $match:
-                                        {
+                                        $match: {
                                             author: {
-                                                $in: users_following
-                                            }
-                                        }
+                                                $in: users_following,
+                                            },
+                                        },
                                     },
                                     {
-                                        $project:
-                                        {
+                                        $project: {
                                             _id: 1,
                                             title: 1,
                                             author: 1,
                                             dp_link: 1,
-                                            likes_length: { $size: "$likes" },
-                                            comments_length: { $size: "$comments" },
+                                            likes_length: { $size: '$likes' },
+                                            comments_length: { $size: '$comments' },
                                             tags: 1,
-                                            liked: { $in: [ObjectId(uid), "$likes"] },
+                                            liked: { $in: [ObjectId(uid), '$likes'] },
                                             createdAt: 1,
                                             updatedAt: 1,
-                                        }
-                                    }
+                                        },
+                                    },
                                 ])
                                     .sort({ createdAt: -1 })
                                     .skip(query_f_i)
                                     .limit(query_l_i)
                                     .catch(err => {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-067"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-067',
                                         });
                                     })
                                     .then(async blog_res => {
@@ -2165,25 +2167,24 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                                         {
                                                             $match: {
                                                                 _id: {
-                                                                    $in: authors
-                                                                }
-                                                            }
+                                                                    $in: authors,
+                                                                },
+                                                            },
                                                         },
                                                         {
                                                             $project: {
                                                                 _id: 1,
                                                                 username: 1,
-                                                                verified: 1
+                                                                verified: 1,
+                                                            },
+                                                        },
+                                                    ]).then(res_author_name => {
+                                                        if (res_author_name !== null || res_author_name !== undefined) {
+                                                            if (res_author_name?.length > 0) {
+                                                                res_author_name?.map(item => authors_info.push(item));
                                                             }
                                                         }
-                                                    ])
-                                                        .then(res_author_name => {
-                                                            if (res_author_name !== null || res_author_name !== undefined) {
-                                                                if (res_author_name?.length > 0) {
-                                                                    res_author_name?.map(item => authors_info.push(item));
-                                                                }
-                                                            }
-                                                        });
+                                                    });
                                                 } catch (error) {
                                                     authors_info.push();
                                                 }
@@ -2193,67 +2194,67 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                                     const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                                     const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                                     const blog_item = {};
-                                                    blog_item["bid"] = item?._id?.toString();
-                                                    blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                                    blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                                    blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                                    blog_item["isowner"] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
-                                                    blog_item["title"] = item?.title;
-                                                    blog_item["b_dp_link"] = item?.dp_link;
-                                                    blog_item["likes_l"] = item?.likes_length;
-                                                    blog_item["comments_l"] = item?.comments_length;
-                                                    blog_item["tags"] = item?.tags;
-                                                    blog_item["liked"] = item?.liked;
-                                                    blog_item["createdAt"] = item?.createdAt;
-                                                    blog_item["updatedAt"] = item?.updatedAt;
+                                                    blog_item['bid'] = item?._id?.toString();
+                                                    blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                                    blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                                    blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                                    blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                                    blog_item['title'] = item?.title;
+                                                    blog_item['b_dp_link'] = item?.dp_link;
+                                                    blog_item['likes_l'] = item?.likes_length;
+                                                    blog_item['comments_l'] = item?.comments_length;
+                                                    blog_item['tags'] = item?.tags;
+                                                    blog_item['liked'] = item?.liked;
+                                                    blog_item['createdAt'] = item?.createdAt;
+                                                    blog_item['updatedAt'] = item?.updatedAt;
                                                     blogs_arr.push(blog_item);
                                                 });
                                                 res.json({
-                                                    status: "success",
-                                                    response: blogs_arr
+                                                    status: 'success',
+                                                    response: blogs_arr,
                                                 });
                                             } else {
                                                 res.json({
-                                                    status: "success",
-                                                    response: []
+                                                    status: 'success',
+                                                    response: [],
                                                 });
                                             }
                                         } else {
                                             res.json({
-                                                status: "success",
-                                                response: []
+                                                status: 'success',
+                                                response: [],
                                             });
                                         }
-                                    })
+                                    });
                             } catch (error) {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-067"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-067',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "success",
-                                response: []
+                                status: 'success',
+                                response: [],
                             });
                         }
                     } else {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-016"
+                            status: 'error',
+                            code: 'ERR-BLGD-016',
                         });
                     }
                 } else {
                     res.json({
-                        status: "error",
-                        code: "ERR-BLGD-016"
+                        status: 'error',
+                        code: 'ERR-BLGD-016',
                     });
                 }
             });
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-067"
+            status: 'error',
+            code: 'ERR-BLGD-067',
         });
     }
 });
@@ -2274,9 +2275,9 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 1209600000)
-                            }
-                        }
+                                $gt: new Date(Date.now() - 1209600000),
+                            },
+                        },
                     },
                     {
                         $project: {
@@ -2284,25 +2285,25 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                             title: 1,
                             author: 1,
                             dp_link: 1,
-                            likes_length: { $size: "$likes" },
-                            comments_length: { $size: "$comments" },
+                            likes_length: { $size: '$likes' },
+                            comments_length: { $size: '$comments' },
                             tags: 1,
                             createdAt: 1,
                             updatedAt: 1,
-                        }
+                        },
                     },
                     {
                         $sort: {
-                            likes_length: -1
-                        }
-                    }
+                            likes_length: -1,
+                        },
+                    },
                 ])
                     .skip(query_f_i)
                     .limit(query_l_i)
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-066"
+                            status: 'error',
+                            code: 'ERR-BLGD-066',
                         });
                     })
                     .then(async result => {
@@ -2316,25 +2317,24 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                         {
                                             $match: {
                                                 _id: {
-                                                    $in: authors
-                                                }
-                                            }
+                                                    $in: authors,
+                                                },
+                                            },
                                         },
                                         {
                                             $project: {
                                                 _id: 1,
                                                 username: 1,
-                                                verified: 1
+                                                verified: 1,
+                                            },
+                                        },
+                                    ]).then(res_author_name => {
+                                        if (res_author_name !== null || res_author_name !== undefined) {
+                                            if (res_author_name?.length > 0) {
+                                                res_author_name?.map(item => authors_info.push(item));
                                             }
                                         }
-                                    ])
-                                        .then(res_author_name => {
-                                            if (res_author_name !== null || res_author_name !== undefined) {
-                                                if (res_author_name?.length > 0) {
-                                                    res_author_name?.map(item => authors_info.push(item));
-                                                }
-                                            }
-                                        })
+                                    });
                                 } catch (error) {
                                     authors_info.push();
                                 }
@@ -2344,42 +2344,42 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                     const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                     const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                     const blog_item = {};
-                                    blog_item["bid"] = item?._id?.toString();
-                                    blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                    blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                    blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                    blog_item["isowner"] = false;
-                                    blog_item["title"] = item?.title;
-                                    blog_item["b_dp_link"] = item?.dp_link;
-                                    blog_item["likes_l"] = item?.likes_length;
-                                    blog_item["comments_l"] = item?.comments_length;
-                                    blog_item["tags"] = item?.tags;
-                                    blog_item["liked"] = false;
-                                    blog_item["createdAt"] = item?.createdAt;
-                                    blog_item["updatedAt"] = item?.updatedAt;
+                                    blog_item['bid'] = item?._id?.toString();
+                                    blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                    blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                    blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                    blog_item['isowner'] = false;
+                                    blog_item['title'] = item?.title;
+                                    blog_item['b_dp_link'] = item?.dp_link;
+                                    blog_item['likes_l'] = item?.likes_length;
+                                    blog_item['comments_l'] = item?.comments_length;
+                                    blog_item['tags'] = item?.tags;
+                                    blog_item['liked'] = false;
+                                    blog_item['createdAt'] = item?.createdAt;
+                                    blog_item['updatedAt'] = item?.updatedAt;
                                     blogs_arr.push(blog_item);
                                 });
                                 res.json({
-                                    status: "success",
-                                    response: blogs_arr
+                                    status: 'success',
+                                    response: blogs_arr,
                                 });
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         } else {
                             res.json({
-                                status: "success",
-                                response: []
+                                status: 'success',
+                                response: [],
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-066"
+                    status: 'error',
+                    code: 'ERR-BLGD-066',
                 });
             }
         } else {
@@ -2388,9 +2388,9 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                     {
                         $match: {
                             createdAt: {
-                                $gt: new Date(Date.now() - 1209600000)
-                            }
-                        }
+                                $gt: new Date(Date.now() - 1209600000),
+                            },
+                        },
                     },
                     {
                         $project: {
@@ -2398,26 +2398,26 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                             title: 1,
                             author: 1,
                             dp_link: 1,
-                            likes_length: { $size: "$likes" },
-                            comments_length: { $size: "$comments" },
+                            likes_length: { $size: '$likes' },
+                            comments_length: { $size: '$comments' },
                             tags: 1,
-                            liked: { $in: [ObjectId(uid), "$likes"] },
+                            liked: { $in: [ObjectId(uid), '$likes'] },
                             createdAt: 1,
                             updatedAt: 1,
-                        }
+                        },
                     },
                     {
                         $sort: {
-                            likes_length: -1
-                        }
-                    }
+                            likes_length: -1,
+                        },
+                    },
                 ])
                     .skip(query_f_i)
                     .limit(query_l_i)
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-066"
+                            status: 'error',
+                            code: 'ERR-BLGD-066',
                         });
                     })
                     .then(async result => {
@@ -2431,25 +2431,24 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                         {
                                             $match: {
                                                 _id: {
-                                                    $in: authors
-                                                }
-                                            }
+                                                    $in: authors,
+                                                },
+                                            },
                                         },
                                         {
                                             $project: {
                                                 _id: 1,
                                                 username: 1,
-                                                verified: 1
+                                                verified: 1,
+                                            },
+                                        },
+                                    ]).then(res_author_name => {
+                                        if (res_author_name !== null || res_author_name !== undefined) {
+                                            if (res_author_name?.length > 0) {
+                                                res_author_name?.map(item => authors_info.push(item));
                                             }
                                         }
-                                    ])
-                                        .then(res_author_name => {
-                                            if (res_author_name !== null || res_author_name !== undefined) {
-                                                if (res_author_name?.length > 0) {
-                                                    res_author_name?.map(item => authors_info.push(item));
-                                                }
-                                            }
-                                        });
+                                    });
                                 } catch (error) {
                                     authors_info.push();
                                 }
@@ -2459,49 +2458,49 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                     const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                     const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                     const blog_item = {};
-                                    blog_item["bid"] = item?._id?.toString();
-                                    blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                    blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                    blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                    blog_item["isowner"] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
-                                    blog_item["title"] = item?.title;
-                                    blog_item["b_dp_link"] = item?.dp_link;
-                                    blog_item["likes_l"] = item?.likes_length;
-                                    blog_item["comments_l"] = item?.comments_length;
-                                    blog_item["tags"] = item?.tags;
-                                    blog_item["liked"] = item?.liked;
-                                    blog_item["createdAt"] = item?.createdAt;
-                                    blog_item["updatedAt"] = item?.updatedAt;
+                                    blog_item['bid'] = item?._id?.toString();
+                                    blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                    blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                    blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                    blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                    blog_item['title'] = item?.title;
+                                    blog_item['b_dp_link'] = item?.dp_link;
+                                    blog_item['likes_l'] = item?.likes_length;
+                                    blog_item['comments_l'] = item?.comments_length;
+                                    blog_item['tags'] = item?.tags;
+                                    blog_item['liked'] = item?.liked;
+                                    blog_item['createdAt'] = item?.createdAt;
+                                    blog_item['updatedAt'] = item?.updatedAt;
                                     blogs_arr.push(blog_item);
                                 });
                                 res.json({
-                                    status: "success",
-                                    response: blogs_arr
+                                    status: 'success',
+                                    response: blogs_arr,
                                 });
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         } else {
                             res.json({
-                                status: "success",
-                                response: []
+                                status: 'success',
+                                response: [],
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-066"
+                    status: 'error',
+                    code: 'ERR-BLGD-066',
                 });
             }
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-066"
+            status: 'error',
+            code: 'ERR-BLGD-066',
         });
     }
 });
@@ -2524,20 +2523,20 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                 await Blog.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(bid)
-                        }
+                            _id: ObjectId(bid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            likes: 1
-                        }
-                    }
+                            likes: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-038"
+                            status: 'error',
+                            code: 'ERR-BLGD-038',
                         });
                     })
                     .then(async result => {
@@ -2549,9 +2548,9 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                             {
                                                 $match: {
                                                     _id: {
-                                                        $in: result[0]?.likes
-                                                    }
-                                                }
+                                                        $in: result[0]?.likes,
+                                                    },
+                                                },
                                             },
                                             {
                                                 $project: {
@@ -2559,18 +2558,18 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                     username: 1,
                                                     dp_link: 1,
                                                     verified: 1,
-                                                    followers_l: { $size: "$followers" },
-                                                    createdAt: 1
-                                                }
-                                            }
+                                                    followers_l: { $size: '$followers' },
+                                                    createdAt: 1,
+                                                },
+                                            },
                                         ])
                                             .sort({ createdAt: -1 })
                                             .skip(query_f_i)
                                             .limit(query_l_i)
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-052"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-052',
                                                 });
                                             })
                                             .then(response => {
@@ -2580,62 +2579,62 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                         if (response?.length > 0) {
                                                             response?.map(item => {
                                                                 const user_info = {};
-                                                                user_info["uid"] = item?._id?.toString();
-                                                                user_info["isowner"] = false;
-                                                                user_info["username"] = item?.username;
-                                                                user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
-                                                                user_info["dp_link"] = item?.dp_link;
-                                                                user_info["followers"] = item?.followers_l;
-                                                                user_info["followed"] = false;
+                                                                user_info['uid'] = item?._id?.toString();
+                                                                user_info['isowner'] = false;
+                                                                user_info['username'] = item?.username;
+                                                                user_info['verified'] = none_null_bool(item?.verified) ? false : item?.verified;
+                                                                user_info['dp_link'] = item?.dp_link;
+                                                                user_info['followers'] = item?.followers_l;
+                                                                user_info['followed'] = false;
                                                                 new_likes_info.push(user_info);
                                                             });
                                                         }
                                                         res.json({
-                                                            status: "success",
-                                                            response: new_likes_info
+                                                            status: 'success',
+                                                            response: new_likes_info,
                                                         });
                                                     } else {
                                                         res.json({
-                                                            status: "success",
-                                                            response: []
+                                                            status: 'success',
+                                                            response: [],
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "success",
-                                                        response: []
+                                                        status: 'success',
+                                                        response: [],
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-052"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-052',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "success",
-                                        response: []
+                                        status: 'success',
+                                        response: [],
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         } else {
                             res.json({
-                                status: "success",
-                                response: []
+                                status: 'success',
+                                response: [],
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-052"
+                    status: 'error',
+                    code: 'ERR-BLGD-052',
                 });
             }
         } else {
@@ -2643,20 +2642,20 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                 await Blog.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(bid)
-                        }
+                            _id: ObjectId(bid),
+                        },
                     },
                     {
                         $project: {
                             _id: 1,
-                            likes: 1
-                        }
-                    }
+                            likes: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-038"
+                            status: 'error',
+                            code: 'ERR-BLGD-038',
                         });
                     })
                     .then(async result => {
@@ -2668,9 +2667,9 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                             {
                                                 $match: {
                                                     _id: {
-                                                        $in: result[0]?.likes
-                                                    }
-                                                }
+                                                        $in: result[0]?.likes,
+                                                    },
+                                                },
                                             },
                                             {
                                                 $project: {
@@ -2678,19 +2677,19 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                     username: 1,
                                                     verified: 1,
                                                     dp_link: 1,
-                                                    followers_l: { $size: "$followers" },
-                                                    followed: { $in: [ObjectId(uid), "$followers"] },
-                                                    createdAt: 1
-                                                }
-                                            }
+                                                    followers_l: { $size: '$followers' },
+                                                    followed: { $in: [ObjectId(uid), '$followers'] },
+                                                    createdAt: 1,
+                                                },
+                                            },
                                         ])
                                             .sort({ createdAt: -1 })
                                             .skip(query_f_i)
                                             .limit(query_l_i)
                                             .catch(err => {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-BLGD-052"
+                                                    status: 'error',
+                                                    code: 'ERR-BLGD-052',
                                                 });
                                             })
                                             .then(response => {
@@ -2700,69 +2699,69 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                         if (response?.length > 0) {
                                                             response?.map(item => {
                                                                 const user_info = {};
-                                                                user_info["uid"] = item?._id?.toString();
-                                                                user_info["isowner"] = item?._id?.toString() === uid;
-                                                                user_info["username"] = item?.username;
-                                                                user_info["verified"] = none_null_bool(item?.verified) ? false : item?.verified;
-                                                                user_info["dp_link"] = item?.dp_link;
-                                                                user_info["followers"] = item?.followers_l;
-                                                                user_info["followed"] = item?.followed;
+                                                                user_info['uid'] = item?._id?.toString();
+                                                                user_info['isowner'] = item?._id?.toString() === uid;
+                                                                user_info['username'] = item?.username;
+                                                                user_info['verified'] = none_null_bool(item?.verified) ? false : item?.verified;
+                                                                user_info['dp_link'] = item?.dp_link;
+                                                                user_info['followers'] = item?.followers_l;
+                                                                user_info['followed'] = item?.followed;
                                                                 new_likes_info.push(user_info);
                                                             });
                                                         }
                                                         res.json({
-                                                            status: "success",
-                                                            response: new_likes_info
+                                                            status: 'success',
+                                                            response: new_likes_info,
                                                         });
                                                     } else {
                                                         res.json({
-                                                            status: "success",
-                                                            response: []
+                                                            status: 'success',
+                                                            response: [],
                                                         });
                                                     }
                                                 } else {
                                                     res.json({
-                                                        status: "success",
-                                                        response: []
+                                                        status: 'success',
+                                                        response: [],
                                                     });
                                                 }
                                             });
                                     } catch (error) {
                                         res.json({
-                                            status: "error",
-                                            code: "ERR-BLGD-052"
+                                            status: 'error',
+                                            code: 'ERR-BLGD-052',
                                         });
                                     }
                                 } else {
                                     res.json({
-                                        status: "success",
-                                        response: []
+                                        status: 'success',
+                                        response: [],
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         } else {
                             res.json({
-                                status: "success",
-                                response: []
+                                status: 'success',
+                                response: [],
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-052"
+                    status: 'error',
+                    code: 'ERR-BLGD-052',
                 });
             }
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-052"
+            status: 'error',
+            code: 'ERR-BLGD-052',
         });
     }
 });
@@ -2780,8 +2779,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                 await Blog.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(bid)
-                        }
+                            _id: ObjectId(bid),
+                        },
                     },
                     {
                         $project: {
@@ -2790,19 +2789,19 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                             author: 1,
                             dp_link: 1,
                             message: 1,
-                            likes_l: { $size: "$likes" },
+                            likes_l: { $size: '$likes' },
                             comments: 1,
-                            comments_l: { $size: "$comments" },
+                            comments_l: { $size: '$comments' },
                             tags: 1,
                             createdAt: 1,
-                            updatedAt: 1
-                        }
-                    }
+                            updatedAt: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-038"
+                            status: 'error',
+                            code: 'ERR-BLGD-038',
                         });
                     })
                     .then(async result => {
@@ -2812,8 +2811,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                     await User.aggregate([
                                         {
                                             $match: {
-                                                _id: ObjectId(result[0]?.author)
-                                            }
+                                                _id: ObjectId(result[0]?.author),
+                                            },
                                         },
                                         {
                                             $project: {
@@ -2821,10 +2820,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 username: 1,
                                                 verified: 1,
                                                 dp_link: 1,
-                                                followers_l: { $size: "$followers" },
-                                                createdAt: 1
-                                            }
-                                        }
+                                                followers_l: { $size: '$followers' },
+                                                createdAt: 1,
+                                            },
+                                        },
                                     ])
                                         .catch(async err => {
                                             const old_comments = result[0]?.comments;
@@ -2843,16 +2842,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         await User.aggregate([
                                                             {
                                                                 $match: {
-                                                                    _id: { $in: processed_cmt_users }
-                                                                }
+                                                                    _id: { $in: processed_cmt_users },
+                                                                },
                                                             },
                                                             {
                                                                 $project: {
                                                                     username: 1,
                                                                     verified: 1,
-                                                                    dp_link: 1
-                                                                }
-                                                            }
+                                                                    dp_link: 1,
+                                                                },
+                                                            },
                                                         ])
                                                             .catch(err => {
                                                                 old_comments?.map(item => {
@@ -2862,10 +2861,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             })
@@ -2884,7 +2883,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 username: user?.[0]?.username,
                                                                                 dp_link: user?.[0]?.dp_link,
                                                                                 verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         } else {
                                                                             new_comments?.push({
@@ -2892,10 +2891,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         }
                                                                     });
@@ -2907,10 +2906,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             comment: old_comment_item?.comment,
                                                                             _id: old_comment_item?._id,
                                                                             createdAt: old_comment_item?.createdAt,
-                                                                            username: "Not Found",
-                                                                            dp_link: "none",
+                                                                            username: 'Not Found',
+                                                                            dp_link: 'none',
                                                                             verified: false,
-                                                                            is_c_owner: false
+                                                                            is_c_owner: false,
                                                                         });
                                                                     });
                                                                 }
@@ -2923,10 +2922,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 comment: old_comment_item?.comment,
                                                                 _id: old_comment_item?._id,
                                                                 createdAt: old_comment_item?.createdAt,
-                                                                username: "Not Found",
-                                                                dp_link: "none",
+                                                                username: 'Not Found',
+                                                                dp_link: 'none',
                                                                 verified: false,
-                                                                is_c_owner: false
+                                                                is_c_owner: false,
                                                             });
                                                         });
                                                     }
@@ -2938,26 +2937,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             comment: old_comment_item?.comment,
                                                             _id: old_comment_item?._id,
                                                             createdAt: old_comment_item?.createdAt,
-                                                            username: "Not Found",
-                                                            dp_link: "none",
+                                                            username: 'Not Found',
+                                                            dp_link: 'none',
                                                             verified: false,
-                                                            is_c_owner: false
+                                                            is_c_owner: false,
                                                         });
                                                     });
                                                 }
                                                 res.json({
-                                                    status: "success",
+                                                    status: 'success',
                                                     response: {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
-                                                        author: "Not Found",
+                                                        author: 'Not Found',
                                                         averified: false,
                                                         isowner: false,
-                                                        a_id: "Not Found",
+                                                        a_id: 'Not Found',
                                                         a_followed: false,
-                                                        a_dp_link: "none",
-                                                        a_followers: "Not Found",
-                                                        a_createdAt: "Not Found",
+                                                        a_dp_link: 'none',
+                                                        a_followers: 'Not Found',
+                                                        a_createdAt: 'Not Found',
                                                         b_dp_link: result[0]?.dp_link,
                                                         message: result[0]?.message,
                                                         likes_l: result[0]?.likes_l,
@@ -2966,23 +2965,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         tags: result[0]?.tags,
                                                         liked: false,
                                                         createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt
-                                                    }
+                                                        updatedAt: result[0]?.updatedAt,
+                                                    },
                                                 });
                                             } else {
                                                 res.json({
-                                                    status: "success",
+                                                    status: 'success',
                                                     response: {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
-                                                        author: "Not Found",
+                                                        author: 'Not Found',
                                                         averified: false,
                                                         isowner: false,
-                                                        a_id: "Not Found",
+                                                        a_id: 'Not Found',
                                                         a_followed: false,
-                                                        a_dp_link: "none",
-                                                        a_followers: "Not Found",
-                                                        a_createdAt: "Not Found",
+                                                        a_dp_link: 'none',
+                                                        a_followers: 'Not Found',
+                                                        a_createdAt: 'Not Found',
                                                         b_dp_link: result[0]?.dp_link,
                                                         message: result[0]?.message,
                                                         likes_l: result[0]?.likes_l,
@@ -2991,8 +2990,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         tags: result[0]?.tags,
                                                         liked: false,
                                                         createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt
-                                                    }
+                                                        updatedAt: result[0]?.updatedAt,
+                                                    },
                                                 });
                                             }
                                         })
@@ -3015,16 +3014,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 await User.aggregate([
                                                                     {
                                                                         $match: {
-                                                                            _id: { $in: processed_cmt_users }
-                                                                        }
+                                                                            _id: { $in: processed_cmt_users },
+                                                                        },
                                                                     },
                                                                     {
                                                                         $project: {
                                                                             username: 1,
                                                                             verified: 1,
-                                                                            dp_link: 1
-                                                                        }
-                                                                    }
+                                                                            dp_link: 1,
+                                                                        },
+                                                                    },
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
@@ -3034,10 +3033,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     })
@@ -3056,7 +3055,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
@@ -3064,10 +3063,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 }
                                                                             });
@@ -3079,10 +3078,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         }
@@ -3095,10 +3094,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             }
@@ -3110,15 +3109,15 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
@@ -3138,12 +3137,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: false,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     } else {
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
@@ -3163,8 +3162,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: false,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     }
                                                 } else {
@@ -3184,16 +3183,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 await User.aggregate([
                                                                     {
                                                                         $match: {
-                                                                            _id: { $in: processed_cmt_users }
-                                                                        }
+                                                                            _id: { $in: processed_cmt_users },
+                                                                        },
                                                                     },
                                                                     {
                                                                         $project: {
                                                                             username: 1,
                                                                             verified: 1,
-                                                                            dp_link: 1
-                                                                        }
-                                                                    }
+                                                                            dp_link: 1,
+                                                                        },
+                                                                    },
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
@@ -3203,10 +3202,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     })
@@ -3225,7 +3224,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
@@ -3233,10 +3232,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 }
                                                                             });
@@ -3248,10 +3247,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         }
@@ -3264,10 +3263,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             }
@@ -3279,26 +3278,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
-                                                                author: "Not Found",
+                                                                author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
-                                                                a_id: "Not Found",
+                                                                a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: "none",
-                                                                a_followers: "Not Found",
-                                                                a_createdAt: "Not Found",
+                                                                a_dp_link: 'none',
+                                                                a_followers: 'Not Found',
+                                                                a_createdAt: 'Not Found',
                                                                 b_dp_link: result[0]?.dp_link,
                                                                 message: result[0]?.message,
                                                                 likes_l: result[0]?.likes_l,
@@ -3307,23 +3306,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: false,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     } else {
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
-                                                                author: "Not Found",
+                                                                author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
-                                                                a_id: "Not Found",
+                                                                a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: "none",
-                                                                a_followers: "Not Found",
-                                                                a_createdAt: "Not Found",
+                                                                a_dp_link: 'none',
+                                                                a_followers: 'Not Found',
+                                                                a_createdAt: 'Not Found',
                                                                 b_dp_link: result[0]?.dp_link,
                                                                 message: result[0]?.message,
                                                                 likes_l: result[0]?.likes_l,
@@ -3332,8 +3331,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: false,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     }
                                                 }
@@ -3354,16 +3353,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             await User.aggregate([
                                                                 {
                                                                     $match: {
-                                                                        _id: { $in: processed_cmt_users }
-                                                                    }
+                                                                        _id: { $in: processed_cmt_users },
+                                                                    },
                                                                 },
                                                                 {
                                                                     $project: {
                                                                         username: 1,
                                                                         verified: 1,
-                                                                        dp_link: 1
-                                                                    }
-                                                                }
+                                                                        dp_link: 1,
+                                                                    },
+                                                                },
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
@@ -3373,10 +3372,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             comment: old_comment_item?.comment,
                                                                             _id: old_comment_item?._id,
                                                                             createdAt: old_comment_item?.createdAt,
-                                                                            username: "Not Found",
-                                                                            dp_link: "none",
+                                                                            username: 'Not Found',
+                                                                            dp_link: 'none',
                                                                             verified: false,
-                                                                            is_c_owner: false
+                                                                            is_c_owner: false,
                                                                         });
                                                                     });
                                                                 })
@@ -3395,7 +3394,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     username: user?.[0]?.username,
                                                                                     dp_link: user?.[0]?.dp_link,
                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             } else {
                                                                                 new_comments?.push({
@@ -3403,10 +3402,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             }
                                                                         });
@@ -3418,10 +3417,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     }
@@ -3434,10 +3433,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
@@ -3449,26 +3448,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 comment: old_comment_item?.comment,
                                                                 _id: old_comment_item?._id,
                                                                 createdAt: old_comment_item?.createdAt,
-                                                                username: "Not Found",
-                                                                dp_link: "none",
+                                                                username: 'Not Found',
+                                                                dp_link: 'none',
                                                                 verified: false,
-                                                                is_c_owner: false
+                                                                is_c_owner: false,
                                                             });
                                                         });
                                                     }
                                                     res.json({
-                                                        status: "success",
+                                                        status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
-                                                            author: "Not Found",
+                                                            author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
-                                                            a_id: "Not Found",
+                                                            a_id: 'Not Found',
                                                             a_followed: false,
-                                                            a_dp_link: "none",
-                                                            a_followers: "Not Found",
-                                                            a_createdAt: "Not Found",
+                                                            a_dp_link: 'none',
+                                                            a_followers: 'Not Found',
+                                                            a_createdAt: 'Not Found',
                                                             b_dp_link: result[0]?.dp_link,
                                                             message: result[0]?.message,
                                                             likes_l: result[0]?.likes_l,
@@ -3477,23 +3476,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             tags: result[0]?.tags,
                                                             liked: false,
                                                             createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt
-                                                        }
+                                                            updatedAt: result[0]?.updatedAt,
+                                                        },
                                                     });
                                                 } else {
                                                     res.json({
-                                                        status: "success",
+                                                        status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
-                                                            author: "Not Found",
+                                                            author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
-                                                            a_id: "Not Found",
+                                                            a_id: 'Not Found',
                                                             a_followed: false,
-                                                            a_dp_link: "none",
-                                                            a_followers: "Not Found",
-                                                            a_createdAt: "Not Found",
+                                                            a_dp_link: 'none',
+                                                            a_followers: 'Not Found',
+                                                            a_createdAt: 'Not Found',
                                                             b_dp_link: result[0]?.dp_link,
                                                             message: result[0]?.message,
                                                             likes_l: result[0]?.likes_l,
@@ -3502,8 +3501,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             tags: result[0]?.tags,
                                                             liked: false,
                                                             createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt
-                                                        }
+                                                            updatedAt: result[0]?.updatedAt,
+                                                        },
                                                     });
                                                 }
                                             }
@@ -3525,16 +3524,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 await User.aggregate([
                                                     {
                                                         $match: {
-                                                            _id: { $in: processed_cmt_users }
-                                                        }
+                                                            _id: { $in: processed_cmt_users },
+                                                        },
                                                     },
                                                     {
                                                         $project: {
                                                             username: 1,
                                                             verified: 1,
-                                                            dp_link: 1
-                                                        }
-                                                    }
+                                                            dp_link: 1,
+                                                        },
+                                                    },
                                                 ])
                                                     .catch(err => {
                                                         old_comments?.map(item => {
@@ -3544,10 +3543,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 comment: old_comment_item?.comment,
                                                                 _id: old_comment_item?._id,
                                                                 createdAt: old_comment_item?.createdAt,
-                                                                username: "Not Found",
-                                                                dp_link: "none",
+                                                                username: 'Not Found',
+                                                                dp_link: 'none',
                                                                 verified: false,
-                                                                is_c_owner: false
+                                                                is_c_owner: false,
                                                             });
                                                         });
                                                     })
@@ -3566,7 +3565,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         username: user?.[0]?.username,
                                                                         dp_link: user?.[0]?.dp_link,
                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 } else {
                                                                     new_comments?.push({
@@ -3574,10 +3573,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 }
                                                             });
@@ -3589,10 +3588,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
@@ -3605,10 +3604,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         comment: old_comment_item?.comment,
                                                         _id: old_comment_item?._id,
                                                         createdAt: old_comment_item?.createdAt,
-                                                        username: "Not Found",
-                                                        dp_link: "none",
+                                                        username: 'Not Found',
+                                                        dp_link: 'none',
                                                         verified: false,
-                                                        is_c_owner: false
+                                                        is_c_owner: false,
                                                     });
                                                 });
                                             }
@@ -3620,26 +3619,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     comment: old_comment_item?.comment,
                                                     _id: old_comment_item?._id,
                                                     createdAt: old_comment_item?.createdAt,
-                                                    username: "Not Found",
-                                                    dp_link: "none",
+                                                    username: 'Not Found',
+                                                    dp_link: 'none',
                                                     verified: false,
-                                                    is_c_owner: false
+                                                    is_c_owner: false,
                                                 });
                                             });
                                         }
                                         res.json({
-                                            status: "success",
+                                            status: 'success',
                                             response: {
                                                 bid: result[0]?._id?.toString(),
                                                 title: result[0]?.title,
-                                                author: "Not Found",
+                                                author: 'Not Found',
                                                 averified: false,
                                                 isowner: false,
-                                                a_id: "Not Found",
+                                                a_id: 'Not Found',
                                                 a_followed: false,
-                                                a_dp_link: "none",
-                                                a_followers: "Not Found",
-                                                a_createdAt: "Not Found",
+                                                a_dp_link: 'none',
+                                                a_followers: 'Not Found',
+                                                a_createdAt: 'Not Found',
                                                 b_dp_link: result[0]?.dp_link,
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
@@ -3648,23 +3647,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
-                                                updatedAt: result[0]?.updatedAt
-                                            }
+                                                updatedAt: result[0]?.updatedAt,
+                                            },
                                         });
                                     } else {
                                         res.json({
-                                            status: "success",
+                                            status: 'success',
                                             response: {
                                                 bid: result[0]?._id?.toString(),
                                                 title: result[0]?.title,
-                                                author: "Not Found",
+                                                author: 'Not Found',
                                                 averified: false,
                                                 isowner: false,
-                                                a_id: "Not Found",
+                                                a_id: 'Not Found',
                                                 a_followed: false,
-                                                a_dp_link: "none",
-                                                a_followers: "Not Found",
-                                                a_createdAt: "Not Found",
+                                                a_dp_link: 'none',
+                                                a_followers: 'Not Found',
+                                                a_createdAt: 'Not Found',
                                                 b_dp_link: result[0]?.dp_link,
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
@@ -3673,28 +3672,28 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
-                                                updatedAt: result[0]?.updatedAt
-                                            }
+                                                updatedAt: result[0]?.updatedAt,
+                                            },
                                         });
                                     }
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-038"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-038',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-038"
+                                status: 'error',
+                                code: 'ERR-BLGD-038',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-051"
+                    status: 'error',
+                    code: 'ERR-BLGD-051',
                 });
             }
         } else {
@@ -3702,8 +3701,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                 await Blog.aggregate([
                     {
                         $match: {
-                            _id: ObjectId(bid)
-                        }
+                            _id: ObjectId(bid),
+                        },
                     },
                     {
                         $project: {
@@ -3712,20 +3711,20 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                             author: 1,
                             dp_link: 1,
                             message: 1,
-                            likes_l: { $size: "$likes" },
+                            likes_l: { $size: '$likes' },
                             comments: 1,
-                            comments_l: { $size: "$comments" },
+                            comments_l: { $size: '$comments' },
                             tags: 1,
-                            liked: { $in: [ObjectId(uid), "$likes"] },
+                            liked: { $in: [ObjectId(uid), '$likes'] },
                             createdAt: 1,
-                            updatedAt: 1
-                        }
-                    }
+                            updatedAt: 1,
+                        },
+                    },
                 ])
                     .catch(err => {
                         res.json({
-                            status: "error",
-                            code: "ERR-BLGD-038"
+                            status: 'error',
+                            code: 'ERR-BLGD-038',
                         });
                     })
                     .then(async result => {
@@ -3735,8 +3734,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                     await User.aggregate([
                                         {
                                             $match: {
-                                                _id: ObjectId(result[0]?.author)
-                                            }
+                                                _id: ObjectId(result[0]?.author),
+                                            },
                                         },
                                         {
                                             $project: {
@@ -3744,11 +3743,11 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 username: 1,
                                                 verified: 1,
                                                 dp_link: 1,
-                                                followers_l: { $size: "$followers" },
-                                                a_followed: { $in: [ObjectId(uid), "$followers"] },
-                                                createdAt: 1
-                                            }
-                                        }
+                                                followers_l: { $size: '$followers' },
+                                                a_followed: { $in: [ObjectId(uid), '$followers'] },
+                                                createdAt: 1,
+                                            },
+                                        },
                                     ])
                                         .catch(async err => {
                                             const old_comments = result[0]?.comments;
@@ -3767,16 +3766,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         await User.aggregate([
                                                             {
                                                                 $match: {
-                                                                    _id: { $in: processed_cmt_users }
-                                                                }
+                                                                    _id: { $in: processed_cmt_users },
+                                                                },
                                                             },
                                                             {
                                                                 $project: {
                                                                     username: 1,
                                                                     verified: 1,
-                                                                    dp_link: 1
-                                                                }
-                                                            }
+                                                                    dp_link: 1,
+                                                                },
+                                                            },
                                                         ])
                                                             .catch(err => {
                                                                 old_comments?.map(item => {
@@ -3786,10 +3785,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             })
@@ -3808,7 +3807,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 username: user?.[0]?.username,
                                                                                 dp_link: user?.[0]?.dp_link,
                                                                                 verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                is_c_owner: uid === item?.commenter?.toString()
+                                                                                is_c_owner: uid === item?.commenter?.toString(),
                                                                             });
                                                                         } else {
                                                                             new_comments?.push({
@@ -3816,10 +3815,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         }
                                                                     });
@@ -3831,10 +3830,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             comment: old_comment_item?.comment,
                                                                             _id: old_comment_item?._id,
                                                                             createdAt: old_comment_item?.createdAt,
-                                                                            username: "Not Found",
-                                                                            dp_link: "none",
+                                                                            username: 'Not Found',
+                                                                            dp_link: 'none',
                                                                             verified: false,
-                                                                            is_c_owner: false
+                                                                            is_c_owner: false,
                                                                         });
                                                                     });
                                                                 }
@@ -3847,10 +3846,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 comment: old_comment_item?.comment,
                                                                 _id: old_comment_item?._id,
                                                                 createdAt: old_comment_item?.createdAt,
-                                                                username: "Not Found",
-                                                                dp_link: "none",
+                                                                username: 'Not Found',
+                                                                dp_link: 'none',
                                                                 verified: false,
-                                                                is_c_owner: false
+                                                                is_c_owner: false,
                                                             });
                                                         });
                                                     }
@@ -3862,26 +3861,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             comment: old_comment_item?.comment,
                                                             _id: old_comment_item?._id,
                                                             createdAt: old_comment_item?.createdAt,
-                                                            username: "Not Found",
-                                                            dp_link: "none",
+                                                            username: 'Not Found',
+                                                            dp_link: 'none',
                                                             verified: false,
-                                                            is_c_owner: false
+                                                            is_c_owner: false,
                                                         });
                                                     });
                                                 }
                                                 res.json({
-                                                    status: "success",
+                                                    status: 'success',
                                                     response: {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
-                                                        author: "Not Found",
+                                                        author: 'Not Found',
                                                         averified: false,
                                                         isowner: false,
-                                                        a_id: "Not Found",
+                                                        a_id: 'Not Found',
                                                         a_followed: false,
-                                                        a_dp_link: "none",
-                                                        a_followers: "Not Found",
-                                                        a_createdAt: "Not Found",
+                                                        a_dp_link: 'none',
+                                                        a_followers: 'Not Found',
+                                                        a_createdAt: 'Not Found',
                                                         b_dp_link: result[0]?.dp_link,
                                                         message: result[0]?.message,
                                                         likes_l: result[0]?.likes_l,
@@ -3890,23 +3889,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         tags: result[0]?.tags,
                                                         liked: false,
                                                         createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt
-                                                    }
+                                                        updatedAt: result[0]?.updatedAt,
+                                                    },
                                                 });
                                             } else {
                                                 res.json({
-                                                    status: "success",
+                                                    status: 'success',
                                                     response: {
                                                         bid: result[0]?._id?.toString(),
                                                         title: result[0]?.title,
-                                                        author: "Not Found",
+                                                        author: 'Not Found',
                                                         averified: false,
                                                         isowner: false,
-                                                        a_id: "Not Found",
+                                                        a_id: 'Not Found',
                                                         a_followed: false,
-                                                        a_dp_link: "none",
-                                                        a_followers: "Not Found",
-                                                        a_createdAt: "Not Found",
+                                                        a_dp_link: 'none',
+                                                        a_followers: 'Not Found',
+                                                        a_createdAt: 'Not Found',
                                                         b_dp_link: result[0]?.dp_link,
                                                         message: result[0]?.message,
                                                         likes_l: result[0]?.likes_l,
@@ -3915,8 +3914,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         tags: result[0]?.tags,
                                                         liked: false,
                                                         createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt
-                                                    }
+                                                        updatedAt: result[0]?.updatedAt,
+                                                    },
                                                 });
                                             }
                                         })
@@ -3939,16 +3938,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 await User.aggregate([
                                                                     {
                                                                         $match: {
-                                                                            _id: { $in: processed_cmt_users }
-                                                                        }
+                                                                            _id: { $in: processed_cmt_users },
+                                                                        },
                                                                     },
                                                                     {
                                                                         $project: {
                                                                             username: 1,
                                                                             verified: 1,
-                                                                            dp_link: 1
-                                                                        }
-                                                                    }
+                                                                            dp_link: 1,
+                                                                        },
+                                                                    },
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
@@ -3958,10 +3957,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     })
@@ -3980,7 +3979,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: uid === item?.commenter?.toString()
+                                                                                        is_c_owner: uid === item?.commenter?.toString(),
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
@@ -3988,10 +3987,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 }
                                                                             });
@@ -4003,10 +4002,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         }
@@ -4019,10 +4018,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             }
@@ -4034,15 +4033,15 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
@@ -4062,12 +4061,12 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: result[0]?.liked,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     } else {
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
@@ -4087,8 +4086,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: result[0]?.liked,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     }
                                                 } else {
@@ -4108,16 +4107,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 await User.aggregate([
                                                                     {
                                                                         $match: {
-                                                                            _id: { $in: processed_cmt_users }
-                                                                        }
+                                                                            _id: { $in: processed_cmt_users },
+                                                                        },
                                                                     },
                                                                     {
                                                                         $project: {
                                                                             username: 1,
                                                                             verified: 1,
-                                                                            dp_link: 1
-                                                                        }
-                                                                    }
+                                                                            dp_link: 1,
+                                                                        },
+                                                                    },
                                                                 ])
                                                                     .catch(err => {
                                                                         old_comments?.map(item => {
@@ -4127,10 +4126,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     })
@@ -4149,7 +4148,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         username: user?.[0]?.username,
                                                                                         dp_link: user?.[0]?.dp_link,
                                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: uid === item?.commenter?.toString()
+                                                                                        is_c_owner: uid === item?.commenter?.toString(),
                                                                                     });
                                                                                 } else {
                                                                                     new_comments?.push({
@@ -4157,10 +4156,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                         comment: old_comment_item?.comment,
                                                                                         _id: old_comment_item?._id,
                                                                                         createdAt: old_comment_item?.createdAt,
-                                                                                        username: "Not Found",
-                                                                                        dp_link: "none",
+                                                                                        username: 'Not Found',
+                                                                                        dp_link: 'none',
                                                                                         verified: false,
-                                                                                        is_c_owner: false
+                                                                                        is_c_owner: false,
                                                                                     });
                                                                                 }
                                                                             });
@@ -4172,10 +4171,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             });
                                                                         }
@@ -4188,10 +4187,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 });
                                                             }
@@ -4203,26 +4202,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
-                                                                author: "Not Found",
+                                                                author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
-                                                                a_id: "Not Found",
+                                                                a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: "none",
-                                                                a_followers: "Not Found",
-                                                                a_createdAt: "Not Found",
+                                                                a_dp_link: 'none',
+                                                                a_followers: 'Not Found',
+                                                                a_createdAt: 'Not Found',
                                                                 b_dp_link: result[0]?.dp_link,
                                                                 message: result[0]?.message,
                                                                 likes_l: result[0]?.likes_l,
@@ -4231,23 +4230,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: false,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     } else {
                                                         res.json({
-                                                            status: "success",
+                                                            status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
                                                                 title: result[0]?.title,
-                                                                author: "Not Found",
+                                                                author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
-                                                                a_id: "Not Found",
+                                                                a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: "none",
-                                                                a_followers: "Not Found",
-                                                                a_createdAt: "Not Found",
+                                                                a_dp_link: 'none',
+                                                                a_followers: 'Not Found',
+                                                                a_createdAt: 'Not Found',
                                                                 b_dp_link: result[0]?.dp_link,
                                                                 message: result[0]?.message,
                                                                 likes_l: result[0]?.likes_l,
@@ -4256,8 +4255,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 tags: result[0]?.tags,
                                                                 liked: false,
                                                                 createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt
-                                                            }
+                                                                updatedAt: result[0]?.updatedAt,
+                                                            },
                                                         });
                                                     }
                                                 }
@@ -4278,16 +4277,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             await User.aggregate([
                                                                 {
                                                                     $match: {
-                                                                        _id: { $in: processed_cmt_users }
-                                                                    }
+                                                                        _id: { $in: processed_cmt_users },
+                                                                    },
                                                                 },
                                                                 {
                                                                     $project: {
                                                                         username: 1,
                                                                         verified: 1,
-                                                                        dp_link: 1
-                                                                    }
-                                                                }
+                                                                        dp_link: 1,
+                                                                    },
+                                                                },
                                                             ])
                                                                 .catch(err => {
                                                                     old_comments?.map(item => {
@@ -4297,10 +4296,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                             comment: old_comment_item?.comment,
                                                                             _id: old_comment_item?._id,
                                                                             createdAt: old_comment_item?.createdAt,
-                                                                            username: "Not Found",
-                                                                            dp_link: "none",
+                                                                            username: 'Not Found',
+                                                                            dp_link: 'none',
                                                                             verified: false,
-                                                                            is_c_owner: false
+                                                                            is_c_owner: false,
                                                                         });
                                                                     });
                                                                 })
@@ -4319,7 +4318,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     username: user?.[0]?.username,
                                                                                     dp_link: user?.[0]?.dp_link,
                                                                                     verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                    is_c_owner: uid === item?.commenter?.toString()
+                                                                                    is_c_owner: uid === item?.commenter?.toString(),
                                                                                 });
                                                                             } else {
                                                                                 new_comments?.push({
@@ -4327,10 +4326,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                     comment: old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
                                                                                     createdAt: old_comment_item?.createdAt,
-                                                                                    username: "Not Found",
-                                                                                    dp_link: "none",
+                                                                                    username: 'Not Found',
+                                                                                    dp_link: 'none',
                                                                                     verified: false,
-                                                                                    is_c_owner: false
+                                                                                    is_c_owner: false,
                                                                                 });
                                                                             }
                                                                         });
@@ -4342,10 +4341,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                                 comment: old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
                                                                                 createdAt: old_comment_item?.createdAt,
-                                                                                username: "Not Found",
-                                                                                dp_link: "none",
+                                                                                username: 'Not Found',
+                                                                                dp_link: 'none',
                                                                                 verified: false,
-                                                                                is_c_owner: false
+                                                                                is_c_owner: false,
                                                                             });
                                                                         });
                                                                     }
@@ -4358,10 +4357,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
@@ -4373,26 +4372,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 comment: old_comment_item?.comment,
                                                                 _id: old_comment_item?._id,
                                                                 createdAt: old_comment_item?.createdAt,
-                                                                username: "Not Found",
-                                                                dp_link: "none",
+                                                                username: 'Not Found',
+                                                                dp_link: 'none',
                                                                 verified: false,
-                                                                is_c_owner: false
+                                                                is_c_owner: false,
                                                             });
                                                         });
                                                     }
                                                     res.json({
-                                                        status: "success",
+                                                        status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
-                                                            author: "Not Found",
+                                                            author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
-                                                            a_id: "Not Found",
+                                                            a_id: 'Not Found',
                                                             a_followed: false,
-                                                            a_dp_link: "none",
-                                                            a_followers: "Not Found",
-                                                            a_createdAt: "Not Found",
+                                                            a_dp_link: 'none',
+                                                            a_followers: 'Not Found',
+                                                            a_createdAt: 'Not Found',
                                                             b_dp_link: result[0]?.dp_link,
                                                             message: result[0]?.message,
                                                             likes_l: result[0]?.likes_l,
@@ -4401,23 +4400,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             tags: result[0]?.tags,
                                                             liked: false,
                                                             createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt
-                                                        }
+                                                            updatedAt: result[0]?.updatedAt,
+                                                        },
                                                     });
                                                 } else {
                                                     res.json({
-                                                        status: "success",
+                                                        status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
                                                             title: result[0]?.title,
-                                                            author: "Not Found",
+                                                            author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
-                                                            a_id: "Not Found",
+                                                            a_id: 'Not Found',
                                                             a_followed: false,
-                                                            a_dp_link: "none",
-                                                            a_followers: "Not Found",
-                                                            a_createdAt: "Not Found",
+                                                            a_dp_link: 'none',
+                                                            a_followers: 'Not Found',
+                                                            a_createdAt: 'Not Found',
                                                             b_dp_link: result[0]?.dp_link,
                                                             message: result[0]?.message,
                                                             likes_l: result[0]?.likes_l,
@@ -4426,8 +4425,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             tags: result[0]?.tags,
                                                             liked: false,
                                                             createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt
-                                                        }
+                                                            updatedAt: result[0]?.updatedAt,
+                                                        },
                                                     });
                                                 }
                                             }
@@ -4449,16 +4448,16 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 await User.aggregate([
                                                     {
                                                         $match: {
-                                                            _id: { $in: processed_cmt_users }
-                                                        }
+                                                            _id: { $in: processed_cmt_users },
+                                                        },
                                                     },
                                                     {
                                                         $project: {
                                                             username: 1,
                                                             verified: 1,
-                                                            dp_link: 1
-                                                        }
-                                                    }
+                                                            dp_link: 1,
+                                                        },
+                                                    },
                                                 ])
                                                     .catch(err => {
                                                         old_comments?.map(item => {
@@ -4468,10 +4467,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                 comment: old_comment_item?.comment,
                                                                 _id: old_comment_item?._id,
                                                                 createdAt: old_comment_item?.createdAt,
-                                                                username: "Not Found",
-                                                                dp_link: "none",
+                                                                username: 'Not Found',
+                                                                dp_link: 'none',
                                                                 verified: false,
-                                                                is_c_owner: false
+                                                                is_c_owner: false,
                                                             });
                                                         });
                                                     })
@@ -4490,7 +4489,7 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         username: user?.[0]?.username,
                                                                         dp_link: user?.[0]?.dp_link,
                                                                         verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                        is_c_owner: uid === item?.commenter?.toString()
+                                                                        is_c_owner: uid === item?.commenter?.toString(),
                                                                     });
                                                                 } else {
                                                                     new_comments?.push({
@@ -4498,10 +4497,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                         comment: old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
                                                                         createdAt: old_comment_item?.createdAt,
-                                                                        username: "Not Found",
-                                                                        dp_link: "none",
+                                                                        username: 'Not Found',
+                                                                        dp_link: 'none',
                                                                         verified: false,
-                                                                        is_c_owner: false
+                                                                        is_c_owner: false,
                                                                     });
                                                                 }
                                                             });
@@ -4513,10 +4512,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                                     comment: old_comment_item?.comment,
                                                                     _id: old_comment_item?._id,
                                                                     createdAt: old_comment_item?.createdAt,
-                                                                    username: "Not Found",
-                                                                    dp_link: "none",
+                                                                    username: 'Not Found',
+                                                                    dp_link: 'none',
                                                                     verified: false,
-                                                                    is_c_owner: false
+                                                                    is_c_owner: false,
                                                                 });
                                                             });
                                                         }
@@ -4529,10 +4528,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         comment: old_comment_item?.comment,
                                                         _id: old_comment_item?._id,
                                                         createdAt: old_comment_item?.createdAt,
-                                                        username: "Not Found",
-                                                        dp_link: "none",
+                                                        username: 'Not Found',
+                                                        dp_link: 'none',
                                                         verified: false,
-                                                        is_c_owner: false
+                                                        is_c_owner: false,
                                                     });
                                                 });
                                             }
@@ -4544,26 +4543,26 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     comment: old_comment_item?.comment,
                                                     _id: old_comment_item?._id,
                                                     createdAt: old_comment_item?.createdAt,
-                                                    username: "Not Found",
-                                                    dp_link: "none",
+                                                    username: 'Not Found',
+                                                    dp_link: 'none',
                                                     verified: false,
-                                                    is_c_owner: false
+                                                    is_c_owner: false,
                                                 });
                                             });
                                         }
                                         res.json({
-                                            status: "success",
+                                            status: 'success',
                                             response: {
                                                 bid: result[0]?._id?.toString(),
                                                 title: result[0]?.title,
-                                                author: "Not Found",
+                                                author: 'Not Found',
                                                 averified: false,
                                                 isowner: false,
-                                                a_id: "Not Found",
+                                                a_id: 'Not Found',
                                                 a_followed: false,
-                                                a_dp_link: "none",
-                                                a_followers: "Not Found",
-                                                a_createdAt: "Not Found",
+                                                a_dp_link: 'none',
+                                                a_followers: 'Not Found',
+                                                a_createdAt: 'Not Found',
                                                 b_dp_link: result[0]?.dp_link,
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
@@ -4572,23 +4571,23 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
-                                                updatedAt: result[0]?.updatedAt
-                                            }
+                                                updatedAt: result[0]?.updatedAt,
+                                            },
                                         });
                                     } else {
                                         res.json({
-                                            status: "success",
+                                            status: 'success',
                                             response: {
                                                 bid: result[0]?._id?.toString(),
                                                 title: result[0]?.title,
-                                                author: "Not Found",
+                                                author: 'Not Found',
                                                 averified: false,
                                                 isowner: false,
-                                                a_id: "Not Found",
+                                                a_id: 'Not Found',
                                                 a_followed: false,
-                                                a_dp_link: "none",
-                                                a_followers: "Not Found",
-                                                a_createdAt: "Not Found",
+                                                a_dp_link: 'none',
+                                                a_followers: 'Not Found',
+                                                a_createdAt: 'Not Found',
                                                 b_dp_link: result[0]?.dp_link,
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
@@ -4597,35 +4596,35 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
-                                                updatedAt: result[0]?.updatedAt
-                                            }
+                                                updatedAt: result[0]?.updatedAt,
+                                            },
                                         });
                                     }
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-BLGD-038"
+                                    status: 'error',
+                                    code: 'ERR-BLGD-038',
                                 });
                             }
                         } else {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-038"
+                                status: 'error',
+                                code: 'ERR-BLGD-038',
                             });
                         }
                     });
             } catch (error) {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-051"
+                    status: 'error',
+                    code: 'ERR-BLGD-051',
                 });
             }
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-051"
+            status: 'error',
+            code: 'ERR-BLGD-051',
         });
     }
 });
@@ -4639,9 +4638,9 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
     try {
         const uid = req.uid;
         const search = req.query.search;
-        const new_search = none_null(search) ? "" : search;
+        const new_search = none_null(search) ? '' : search;
         const processed_search = new_search?.toLowerCase()?.trim();
-        const tags = none_null_arr(req.query.tags) ? "[]" : req.query.tags;
+        const tags = none_null_arr(req.query.tags) ? '[]' : req.query.tags;
         const processed_tags = invalid_arr_tags_checker(tags);
         const pagination_index = req.query.pagination_index;
         const query_f_i = pagination_indexer(pagination_index, 20)?.first_index;
@@ -4653,12 +4652,13 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                         {
                             $match: {
                                 title: {
-                                    $regex: processed_search, $options: 'i'
+                                    $regex: processed_search,
+                                    $options: 'i',
                                 },
                                 tags: {
-                                    $in: processed_tags
-                                }
-                            }
+                                    $in: processed_tags,
+                                },
+                            },
                         },
                         {
                             $project: {
@@ -4666,21 +4666,21 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                 title: 1,
                                 author: 1,
                                 dp_link: 1,
-                                likes_l: { $size: "$likes" },
-                                comments_l: { $size: "$comments" },
+                                likes_l: { $size: '$likes' },
+                                comments_l: { $size: '$comments' },
                                 tags: 1,
                                 createdAt: 1,
-                                updatedAt: 1
-                            }
-                        }
+                                updatedAt: 1,
+                            },
+                        },
                     ])
                         .sort({ createdAt: -1 })
                         .skip(query_f_i)
                         .limit(query_l_i)
                         .catch(err => {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-053"
+                                status: 'error',
+                                code: 'ERR-BLGD-053',
                             });
                         })
                         .then(async result => {
@@ -4694,25 +4694,24 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                             {
                                                 $match: {
                                                     _id: {
-                                                        $in: authors
-                                                    }
-                                                }
+                                                        $in: authors,
+                                                    },
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
                                                     username: 1,
-                                                    verified: 1
+                                                    verified: 1,
+                                                },
+                                            },
+                                        ]).then(res_author_name => {
+                                            if (res_author_name !== undefined || res_author_name !== null) {
+                                                if (res_author_name?.length > 0) {
+                                                    res_author_name?.map(item => authors_info.push(item));
                                                 }
                                             }
-                                        ])
-                                            .then(res_author_name => {
-                                                if (res_author_name !== undefined || res_author_name !== null) {
-                                                    if (res_author_name?.length > 0) {
-                                                        res_author_name?.map(item => authors_info.push(item));
-                                                    }
-                                                }
-                                            });
+                                        });
                                     } catch (error) {
                                         authors_info.push();
                                     }
@@ -4722,42 +4721,42 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                         const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                         const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                         const blog_item = {};
-                                        blog_item["bid"] = item?._id?.toString();
-                                        blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                        blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                        blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                        blog_item["isowner"] = false;
-                                        blog_item["title"] = item?.title;
-                                        blog_item["b_dp_link"] = item?.dp_link;
-                                        blog_item["likes_l"] = item?.likes_l;
-                                        blog_item["comments_l"] = item?.comments_l;
-                                        blog_item["tags"] = item?.tags ? item?.tags : [];
-                                        blog_item["liked"] = false;
-                                        blog_item["createdAt"] = item?.createdAt;
-                                        blog_item["updatedAt"] = item?.updatedAt;
+                                        blog_item['bid'] = item?._id?.toString();
+                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                        blog_item['isowner'] = false;
+                                        blog_item['title'] = item?.title;
+                                        blog_item['b_dp_link'] = item?.dp_link;
+                                        blog_item['likes_l'] = item?.likes_l;
+                                        blog_item['comments_l'] = item?.comments_l;
+                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['liked'] = false;
+                                        blog_item['createdAt'] = item?.createdAt;
+                                        blog_item['updatedAt'] = item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
-                                        status: "success",
-                                        response: blogs_arr
+                                        status: 'success',
+                                        response: blogs_arr,
                                     });
                                 } else {
                                     res.json({
-                                        status: "success",
-                                        response: []
+                                        status: 'success',
+                                        response: [],
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         });
                 } catch (error) {
                     res.json({
-                        status: "error",
-                        code: "ERR-BLGD-053"
+                        status: 'error',
+                        code: 'ERR-BLGD-053',
                     });
                 }
             } else {
@@ -4766,9 +4765,10 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                         {
                             $match: {
                                 title: {
-                                    $regex: processed_search, $options: 'i'
-                                }
-                            }
+                                    $regex: processed_search,
+                                    $options: 'i',
+                                },
+                            },
                         },
                         {
                             $project: {
@@ -4776,21 +4776,21 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                 title: 1,
                                 author: 1,
                                 dp_link: 1,
-                                likes_l: { $size: "$likes" },
-                                comments_l: { $size: "$comments" },
+                                likes_l: { $size: '$likes' },
+                                comments_l: { $size: '$comments' },
                                 tags: 1,
                                 createdAt: 1,
-                                updatedAt: 1
-                            }
-                        }
+                                updatedAt: 1,
+                            },
+                        },
                     ])
                         .sort({ createdAt: -1 })
                         .skip(query_f_i)
                         .limit(query_l_i)
                         .catch(err => {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-053"
+                                status: 'error',
+                                code: 'ERR-BLGD-053',
                             });
                         })
                         .then(async result => {
@@ -4804,25 +4804,24 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                             {
                                                 $match: {
                                                     _id: {
-                                                        $in: authors
-                                                    }
-                                                }
+                                                        $in: authors,
+                                                    },
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
                                                     username: 1,
-                                                    verified: 1
+                                                    verified: 1,
+                                                },
+                                            },
+                                        ]).then(res_author_name => {
+                                            if (res_author_name !== null || res_author_name !== undefined) {
+                                                if (res_author_name?.length > 0) {
+                                                    res_author_name?.map(item => authors_info.push(item));
                                                 }
                                             }
-                                        ])
-                                            .then(res_author_name => {
-                                                if (res_author_name !== null || res_author_name !== undefined) {
-                                                    if (res_author_name?.length > 0) {
-                                                        res_author_name?.map(item => authors_info.push(item));
-                                                    }
-                                                }
-                                            });
+                                        });
                                     } catch (error) {
                                         authors_info.push();
                                     }
@@ -4832,42 +4831,42 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                         const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                         const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                         const blog_item = {};
-                                        blog_item["bid"] = item?._id?.toString();
-                                        blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                        blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                        blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                        blog_item["isowner"] = false;
-                                        blog_item["title"] = item?.title;
-                                        blog_item["b_dp_link"] = item?.dp_link;
-                                        blog_item["likes_l"] = item?.likes_l;
-                                        blog_item["comments_l"] = item?.comments_l;
-                                        blog_item["tags"] = item?.tags ? item?.tags : [];
-                                        blog_item["liked"] = false;
-                                        blog_item["createdAt"] = item?.createdAt;
-                                        blog_item["updatedAt"] = item?.updatedAt;
+                                        blog_item['bid'] = item?._id?.toString();
+                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                        blog_item['isowner'] = false;
+                                        blog_item['title'] = item?.title;
+                                        blog_item['b_dp_link'] = item?.dp_link;
+                                        blog_item['likes_l'] = item?.likes_l;
+                                        blog_item['comments_l'] = item?.comments_l;
+                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['liked'] = false;
+                                        blog_item['createdAt'] = item?.createdAt;
+                                        blog_item['updatedAt'] = item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
-                                        status: "success",
-                                        response: blogs_arr
+                                        status: 'success',
+                                        response: blogs_arr,
                                     });
                                 } else {
                                     res.json({
-                                        status: "success",
-                                        response: []
+                                        status: 'success',
+                                        response: [],
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         });
                 } catch (error) {
                     res.json({
-                        status: "error",
-                        code: "ERR-BLGD-053"
+                        status: 'error',
+                        code: 'ERR-BLGD-053',
                     });
                 }
             }
@@ -4878,12 +4877,13 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                         {
                             $match: {
                                 title: {
-                                    $regex: processed_search, $options: 'i'
+                                    $regex: processed_search,
+                                    $options: 'i',
                                 },
                                 tags: {
-                                    $in: processed_tags
-                                }
-                            }
+                                    $in: processed_tags,
+                                },
+                            },
                         },
                         {
                             $project: {
@@ -4891,22 +4891,22 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                 title: 1,
                                 author: 1,
                                 dp_link: 1,
-                                likes_l: { $size: "$likes" },
-                                comments_l: { $size: "$comments" },
+                                likes_l: { $size: '$likes' },
+                                comments_l: { $size: '$comments' },
                                 tags: 1,
-                                liked: { $in: [ObjectId(uid), "$likes"] },
+                                liked: { $in: [ObjectId(uid), '$likes'] },
                                 createdAt: 1,
-                                updatedAt: 1
-                            }
-                        }
+                                updatedAt: 1,
+                            },
+                        },
                     ])
                         .sort({ createdAt: -1 })
                         .skip(query_f_i)
                         .limit(query_l_i)
                         .catch(err => {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-053"
+                                status: 'error',
+                                code: 'ERR-BLGD-053',
                             });
                         })
                         .then(async result => {
@@ -4920,25 +4920,24 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                             {
                                                 $match: {
                                                     _id: {
-                                                        $in: authors
-                                                    }
-                                                }
+                                                        $in: authors,
+                                                    },
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
                                                     username: 1,
-                                                    verified: 1
+                                                    verified: 1,
+                                                },
+                                            },
+                                        ]).then(res_author_name => {
+                                            if (res_author_name !== null || res_author_name !== undefined) {
+                                                if (res_author_name?.length > 0) {
+                                                    res_author_name?.map(item => authors_info.push(item));
                                                 }
                                             }
-                                        ])
-                                            .then(res_author_name => {
-                                                if (res_author_name !== null || res_author_name !== undefined) {
-                                                    if (res_author_name?.length > 0) {
-                                                        res_author_name?.map(item => authors_info.push(item));
-                                                    }
-                                                }
-                                            });
+                                        });
                                     } catch (error) {
                                         authors_info.push();
                                     }
@@ -4948,42 +4947,42 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                         const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                         const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                         const blog_item = {};
-                                        blog_item["bid"] = item?._id?.toString();
-                                        blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                        blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                        blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                        blog_item["isowner"] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
-                                        blog_item["title"] = item?.title;
-                                        blog_item["b_dp_link"] = item?.dp_link;
-                                        blog_item["likes_l"] = item?.likes_l;
-                                        blog_item["comments_l"] = item?.comments_l;
-                                        blog_item["tags"] = item?.tags ? item?.tags : [];
-                                        blog_item["liked"] = item?.liked;
-                                        blog_item["createdAt"] = item?.createdAt;
-                                        blog_item["updatedAt"] = item?.updatedAt;
+                                        blog_item['bid'] = item?._id?.toString();
+                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                        blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                        blog_item['title'] = item?.title;
+                                        blog_item['b_dp_link'] = item?.dp_link;
+                                        blog_item['likes_l'] = item?.likes_l;
+                                        blog_item['comments_l'] = item?.comments_l;
+                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['liked'] = item?.liked;
+                                        blog_item['createdAt'] = item?.createdAt;
+                                        blog_item['updatedAt'] = item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
-                                        status: "success",
-                                        response: blogs_arr
+                                        status: 'success',
+                                        response: blogs_arr,
                                     });
                                 } else {
                                     res.json({
-                                        status: "success",
-                                        response: []
+                                        status: 'success',
+                                        response: [],
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         });
                 } catch (error) {
                     res.json({
-                        status: "error",
-                        code: "ERR-BLGD-053"
+                        status: 'error',
+                        code: 'ERR-BLGD-053',
                     });
                 }
             } else {
@@ -4992,9 +4991,10 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                         {
                             $match: {
                                 title: {
-                                    $regex: processed_search, $options: 'i'
-                                }
-                            }
+                                    $regex: processed_search,
+                                    $options: 'i',
+                                },
+                            },
                         },
                         {
                             $project: {
@@ -5002,22 +5002,22 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                 title: 1,
                                 author: 1,
                                 dp_link: 1,
-                                likes_l: { $size: "$likes" },
-                                comments_l: { $size: "$comments" },
+                                likes_l: { $size: '$likes' },
+                                comments_l: { $size: '$comments' },
                                 tags: 1,
-                                liked: { $in: [ObjectId(uid), "$likes"] },
+                                liked: { $in: [ObjectId(uid), '$likes'] },
                                 createdAt: 1,
-                                updatedAt: 1
-                            }
-                        }
+                                updatedAt: 1,
+                            },
+                        },
                     ])
                         .sort({ createdAt: -1 })
                         .skip(query_f_i)
                         .limit(query_l_i)
                         .catch(err => {
                             res.json({
-                                status: "error",
-                                code: "ERR-BLGD-053"
+                                status: 'error',
+                                code: 'ERR-BLGD-053',
                             });
                         })
                         .then(async result => {
@@ -5031,25 +5031,24 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                             {
                                                 $match: {
                                                     _id: {
-                                                        $in: authors
-                                                    }
-                                                }
+                                                        $in: authors,
+                                                    },
+                                                },
                                             },
                                             {
                                                 $project: {
                                                     _id: 1,
                                                     username: 1,
-                                                    verified: 1
+                                                    verified: 1,
+                                                },
+                                            },
+                                        ]).then(res_author_name => {
+                                            if (res_author_name !== null || res_author_name !== undefined) {
+                                                if (res_author_name?.length > 0) {
+                                                    res_author_name?.map(item => authors_info.push(item));
                                                 }
                                             }
-                                        ])
-                                            .then(res_author_name => {
-                                                if (res_author_name !== null || res_author_name !== undefined) {
-                                                    if (res_author_name?.length > 0) {
-                                                        res_author_name?.map(item => authors_info.push(item));
-                                                    }
-                                                }
-                                            });
+                                        });
                                     } catch (error) {
                                         authors_info.push();
                                     }
@@ -5059,55 +5058,52 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                         const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
                                         const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
                                         const blog_item = {};
-                                        blog_item["bid"] = item?._id?.toString();
-                                        blog_item["aid"] = none_null(p_author_username) ? "Not Found" : item?.author?.toString();
-                                        blog_item["author"] = none_null(p_author_username) ? "Not Found" : p_author_username;
-                                        blog_item["averified"] = none_null(p_author_username) ? false : p_p_author_verified;
-                                        blog_item["isowner"] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
-                                        blog_item["title"] = item?.title;
-                                        blog_item["b_dp_link"] = item?.dp_link;
-                                        blog_item["likes_l"] = item?.likes_l;
-                                        blog_item["comments_l"] = item?.comments_l;
-                                        blog_item["tags"] = item?.tags ? item?.tags : [];
-                                        blog_item["liked"] = item?.liked;
-                                        blog_item["createdAt"] = item?.createdAt;
-                                        blog_item["updatedAt"] = item?.updatedAt;
+                                        blog_item['bid'] = item?._id?.toString();
+                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
+                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
+                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                        blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                        blog_item['title'] = item?.title;
+                                        blog_item['b_dp_link'] = item?.dp_link;
+                                        blog_item['likes_l'] = item?.likes_l;
+                                        blog_item['comments_l'] = item?.comments_l;
+                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['liked'] = item?.liked;
+                                        blog_item['createdAt'] = item?.createdAt;
+                                        blog_item['updatedAt'] = item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
-                                        status: "success",
-                                        response: blogs_arr
+                                        status: 'success',
+                                        response: blogs_arr,
                                     });
                                 } else {
                                     res.json({
-                                        status: "success",
-                                        response: []
+                                        status: 'success',
+                                        response: [],
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "success",
-                                    response: []
+                                    status: 'success',
+                                    response: [],
                                 });
                             }
                         });
                 } catch (error) {
                     res.json({
-                        status: "error",
-                        code: "ERR-BLGD-053"
+                        status: 'error',
+                        code: 'ERR-BLGD-053',
                     });
                 }
             }
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-053"
+            status: 'error',
+            code: 'ERR-BLGD-053',
         });
     }
 });
-
-
-
 
 module.exports = router;

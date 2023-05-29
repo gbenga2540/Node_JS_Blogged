@@ -5,24 +5,24 @@ const AdvertSchema = new Schema(
     {
         ad_owner: {
             type: String,
-            required: true
+            required: true,
         },
         ad_dp_link: {
             type: String,
             required: true,
-            default: "none"
+            default: 'none',
         },
         ad_url: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     {
         timestamps: {
             createdAt: true,
-            updatedAt: true
-        }
-    }
+            updatedAt: true,
+        },
+    },
 );
 
 const Advert = mongoose.model('Advert', AdvertSchema);

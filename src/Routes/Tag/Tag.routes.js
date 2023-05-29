@@ -4,7 +4,6 @@ require('dotenv').config();
 const Tag = require('../../Models/Tag_Model');
 const none_null = require('../../Utils/None_Null_Checker');
 
-
 // Creates Tag
 // INFO REQUIRED:
 // master_password
@@ -20,8 +19,8 @@ router.post('/create', (req, res) => {
                     bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
                         if (error) {
                             res.json({
-                                status: "error",
-                                code: "ERR-M-BLGD-001"
+                                status: 'error',
+                                code: 'ERR-M-BLGD-001',
                             });
                         } else {
                             if (response) {
@@ -29,19 +28,19 @@ router.post('/create', (req, res) => {
                                     await Tag.aggregate([
                                         {
                                             $match: {
-                                                tag_name: tag_name
-                                            }
+                                                tag_name: tag_name,
+                                            },
                                         },
                                         {
                                             $project: {
-                                                tag_name: 1
-                                            }
-                                        }
+                                                tag_name: 1,
+                                            },
+                                        },
                                     ])
                                         .catch(err => {
                                             res.json({
-                                                status: "error",
-                                                code: "ERR-M-BLGD-019"
+                                                status: 'error',
+                                                code: 'ERR-M-BLGD-019',
                                             });
                                         })
                                         .then(async find_one_tag_res => {
@@ -50,8 +49,8 @@ router.post('/create', (req, res) => {
                                                     await Tag.find()
                                                         .catch(err => {
                                                             res.json({
-                                                                status: "error",
-                                                                code: "ERR-BLGD-061"
+                                                                status: 'error',
+                                                                code: 'ERR-BLGD-061',
                                                             });
                                                         })
                                                         .then(async result => {
@@ -61,90 +60,91 @@ router.post('/create', (req, res) => {
 
                                                                 const tag = new Tag({
                                                                     tag_index: processed_tag_index,
-                                                                    tag_name: tag_name
+                                                                    tag_name: tag_name,
                                                                 });
 
                                                                 try {
-                                                                    await tag.save()
+                                                                    await tag
+                                                                        .save()
                                                                         .catch(err => {
                                                                             res.json({
-                                                                                status: "error",
-                                                                                code: "ERR-M-BLGD-016"
+                                                                                status: 'error',
+                                                                                code: 'ERR-M-BLGD-016',
                                                                             });
                                                                         })
                                                                         .then(tag_save_result => {
                                                                             if (tag_save_result) {
                                                                                 res.json({
-                                                                                    status: "success"
+                                                                                    status: 'success',
                                                                                 });
                                                                             } else {
                                                                                 res.json({
-                                                                                    status: "error",
-                                                                                    code: "ERR-M-BLGD-016"
+                                                                                    status: 'error',
+                                                                                    code: 'ERR-M-BLGD-016',
                                                                                 });
                                                                             }
                                                                         });
                                                                 } catch (error) {
                                                                     res.json({
-                                                                        status: "error",
-                                                                        code: "ERR-M-BLGD-016"
+                                                                        status: 'error',
+                                                                        code: 'ERR-M-BLGD-016',
                                                                     });
                                                                 }
                                                             } else {
                                                                 res.json({
-                                                                    status: "error",
-                                                                    code: "ERR-BLGD-061"
+                                                                    status: 'error',
+                                                                    code: 'ERR-BLGD-061',
                                                                 });
                                                             }
                                                         });
                                                 } catch (error) {
                                                     res.json({
-                                                        status: "error",
-                                                        code: "ERR-BLGD-061"
+                                                        status: 'error',
+                                                        code: 'ERR-BLGD-061',
                                                     });
                                                 }
                                             } else {
                                                 res.json({
-                                                    status: "success"
+                                                    status: 'success',
                                                 });
                                             }
                                         });
                                 } catch (error) {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-M-BLGD-019"
+                                        status: 'error',
+                                        code: 'ERR-M-BLGD-019',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-M-BLGD-002"
+                                    status: 'error',
+                                    code: 'ERR-M-BLGD-002',
                                 });
                             }
                         }
                     });
                 } catch (error) {
                     res.json({
-                        status: "error",
-                        code: "ERR-M-BLGD-001"
+                        status: 'error',
+                        code: 'ERR-M-BLGD-001',
                     });
                 }
             } else {
                 res.json({
-                    status: "error",
-                    code: "ERR-M-BLGD-015"
+                    status: 'error',
+                    code: 'ERR-M-BLGD-015',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-M-BLGD-020"
+                status: 'error',
+                code: 'ERR-M-BLGD-020',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-M-BLGD-016"
+            status: 'error',
+            code: 'ERR-M-BLGD-016',
         });
     }
 });
@@ -166,8 +166,8 @@ router.patch('/update', (req, res) => {
                     bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
                         if (error) {
                             res.json({
-                                status: "error",
-                                code: "ERR-M-BLGD-001"
+                                status: 'error',
+                                code: 'ERR-M-BLGD-001',
                             });
                         } else {
                             if (response) {
@@ -175,58 +175,58 @@ router.patch('/update', (req, res) => {
                                     await Tag.updateOne({ tag_name: old_tag_name }, { tag_name: new_tag_name })
                                         .catch(err => {
                                             res.json({
-                                                status: "error",
-                                                code: "ERR-M-BLGD-017"
+                                                status: 'error',
+                                                code: 'ERR-M-BLGD-017',
                                             });
                                         })
                                         .then(tag_update_res => {
                                             if (tag_update_res === null || tag_update_res === undefined) {
                                                 res.json({
-                                                    status: "error",
-                                                    code: "ERR-M-BLGD-017"
+                                                    status: 'error',
+                                                    code: 'ERR-M-BLGD-017',
                                                 });
                                             } else {
                                                 res.json({
-                                                    status: "success"
+                                                    status: 'success',
                                                 });
                                             }
-                                        })
+                                        });
                                 } catch (error) {
                                     res.json({
-                                        status: "error",
-                                        code: "ERR-M-BLGD-017"
+                                        status: 'error',
+                                        code: 'ERR-M-BLGD-017',
                                     });
                                 }
                             } else {
                                 res.json({
-                                    status: "error",
-                                    code: "ERR-M-BLGD-002"
+                                    status: 'error',
+                                    code: 'ERR-M-BLGD-002',
                                 });
                             }
                         }
                     });
                 } catch (error) {
                     res.json({
-                        status: "error",
-                        code: "ERR-M-BLGD-001"
+                        status: 'error',
+                        code: 'ERR-M-BLGD-001',
                     });
                 }
             } else {
                 res.json({
-                    status: "error",
-                    code: "ERR-M-BLGD-015"
+                    status: 'error',
+                    code: 'ERR-M-BLGD-015',
                 });
             }
         } else {
             res.json({
-                status: "error",
-                code: "ERR-M-BLGD-020"
+                status: 'error',
+                code: 'ERR-M-BLGD-020',
             });
         }
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-M-BLGD-017"
+            status: 'error',
+            code: 'ERR-M-BLGD-017',
         });
     }
 });
@@ -237,8 +237,8 @@ router.get('/', async (req, res) => {
         await Tag.find()
             .catch(err => {
                 res.json({
-                    status: "error",
-                    code: "ERR-BLGD-061"
+                    status: 'error',
+                    code: 'ERR-BLGD-061',
                 });
             })
             .then(result => {
@@ -249,34 +249,33 @@ router.get('/', async (req, res) => {
                             const tag = {
                                 _id: item?._id?.toString(),
                                 tag_index: item?.tag_index,
-                                tag_name: item?.tag_name
-                            }
+                                tag_name: item?.tag_name,
+                            };
                             final_res.push(tag);
-                        })
+                        });
                         res.json({
-                            status: "success",
-                            response: final_res
+                            status: 'success',
+                            response: final_res,
                         });
                     } else {
                         res.json({
-                            status: "success",
-                            response: []
+                            status: 'success',
+                            response: [],
                         });
                     }
                 } else {
                     res.json({
-                        status: "success",
-                        response: []
+                        status: 'success',
+                        response: [],
                     });
                 }
             });
     } catch (error) {
         res.json({
-            status: "error",
-            code: "ERR-BLGD-061"
+            status: 'error',
+            code: 'ERR-BLGD-061',
         });
     }
 });
-
 
 module.exports = router;

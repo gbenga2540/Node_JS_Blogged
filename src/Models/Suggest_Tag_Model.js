@@ -5,15 +5,15 @@ const SuggestTagSchema = new Schema(
     {
         tag_name: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     {
         timestamps: {
             createdAt: true,
-            updatedAt: false
-        }
-    }
+            updatedAt: false,
+        },
+    },
 );
 
 const SuggestTag = mongoose.model('SuggestTag', SuggestTagSchema);

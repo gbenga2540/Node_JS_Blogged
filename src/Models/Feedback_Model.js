@@ -5,15 +5,15 @@ const FeedbackSchema = new Schema(
     {
         message: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     {
         timestamps: {
             createdAt: true,
-            updatedAt: false
-        }
-    }
+            updatedAt: false,
+        },
+    },
 );
 
 const Feedback = mongoose.model('Feedback', FeedbackSchema);
