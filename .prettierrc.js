@@ -8,5 +8,4 @@ module.exports = {
     eslintIntegration: true,
     singleQuote: true,
     endOfLine: 'auto',
-    printWidth: 300,
 };

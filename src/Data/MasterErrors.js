@@ -37,7 +37,8 @@ const blogged_master_errors = [
     },
     {
         code: 'ERR-M-BLGD-010',
-        message: "No response received from the server after uploading Advert's Image",
+        message:
+            "No response received from the server after uploading Advert's Image",
     },
     {
         code: 'ERR-M-BLGD-011',
@@ -45,7 +46,8 @@ const blogged_master_errors = [
     },
     {
         code: 'ERR-M-BLGD-012',
-        message: "An error occured while trying to delete Advert's Image from server",
+        message:
+            "An error occured while trying to delete Advert's Image from server",
     },
     {
         code: 'ERR-M-BLGD-013',

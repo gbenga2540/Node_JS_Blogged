@@ -75,85 +75,146 @@ router.post('/create', verifyJWTbody, async (req, res) => {
                                                 if (result) {
                                                     const bid = result?.id;
                                                     try {
-                                                        await User.findByIdAndUpdate(author, { $addToSet: { blogs: ObjectId(bid) } })
+                                                        await User.findByIdAndUpdate(
+                                                            author,
+                                                            {
+                                                                $addToSet: {
+                                                                    blogs: ObjectId(
+                                                                        bid,
+                                                                    ),
+                                                                },
+                                                            },
+                                                        )
                                                             .catch(err => {
                                                                 res.json({
                                                                     status: 'error',
                                                                     code: 'ERR-BLGD-050',
                                                                 });
                                                             })
-                                                            .then(async user_add_blog_res => {
-                                                                if (user_add_blog_res === null || user_add_blog_res === undefined) {
-                                                                    res.json({
-                                                                        status: 'error',
-                                                                        code: 'ERR-BLGD-050',
-                                                                    });
-                                                                } else {
-                                                                    if (none_null(dp)) {
-                                                                        res.json({
-                                                                            status: 'success',
-                                                                        });
+                                                            .then(
+                                                                async user_add_blog_res => {
+                                                                    if (
+                                                                        user_add_blog_res ===
+                                                                            null ||
+                                                                        user_add_blog_res ===
+                                                                            undefined
+                                                                    ) {
+                                                                        res.json(
+                                                                            {
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-050',
+                                                                            },
+                                                                        );
                                                                     } else {
-                                                                        try {
-                                                                            await cloudinary.uploader.upload(
+                                                                        if (
+                                                                            none_null(
                                                                                 dp,
+                                                                            )
+                                                                        ) {
+                                                                            res.json(
                                                                                 {
-                                                                                    folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
-                                                                                    public_id: `${bid}`,
-                                                                                },
-                                                                                async (error, response) => {
-                                                                                    if (error) {
-                                                                                        res.json({
-                                                                                            status: 'error',
-                                                                                            code: 'ERR-BLGD-025',
-                                                                                        });
-                                                                                    } else {
-                                                                                        if (response) {
-                                                                                            const imageurl = response?.url;
-                                                                                            try {
-                                                                                                await Blog.findByIdAndUpdate(bid, { dp_link: imageurl })
-                                                                                                    .catch(err => {
-                                                                                                        res.json({
-                                                                                                            status: 'error',
-                                                                                                            code: 'ERR-BLGD-027',
-                                                                                                        });
-                                                                                                    })
-                                                                                                    .then(data => {
-                                                                                                        if (data === null || data === undefined) {
-                                                                                                            res.json({
-                                                                                                                status: 'error',
-                                                                                                                code: 'ERR-BLGD-027',
-                                                                                                            });
-                                                                                                        } else {
-                                                                                                            res.json({
-                                                                                                                status: 'success',
-                                                                                                            });
-                                                                                                        }
-                                                                                                    });
-                                                                                            } catch (err) {
-                                                                                                res.json({
-                                                                                                    status: 'error',
-                                                                                                    code: 'ERR-BLGD-027',
-                                                                                                });
-                                                                                            }
-                                                                                        } else {
-                                                                                            res.json({
-                                                                                                status: 'error',
-                                                                                                code: 'ERR-BLGD-026',
-                                                                                            });
-                                                                                        }
-                                                                                    }
+                                                                                    status: 'success',
                                                                                 },
                                                                             );
-                                                                        } catch (err) {
-                                                                            res.json({
-                                                                                status: 'error',
-                                                                                code: 'ERR-BLGD-025',
-                                                                            });
+                                                                        } else {
+                                                                            try {
+                                                                                await cloudinary.uploader.upload(
+                                                                                    dp,
+                                                                                    {
+                                                                                        folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
+                                                                                        public_id: `${bid}`,
+                                                                                    },
+                                                                                    async (
+                                                                                        error,
+                                                                                        response,
+                                                                                    ) => {
+                                                                                        if (
+                                                                                            error
+                                                                                        ) {
+                                                                                            res.json(
+                                                                                                {
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-025',
+                                                                                                },
+                                                                                            );
+                                                                                        } else {
+                                                                                            if (
+                                                                                                response
+                                                                                            ) {
+                                                                                                const imageurl =
+                                                                                                    response?.url;
+                                                                                                try {
+                                                                                                    await Blog.findByIdAndUpdate(
+                                                                                                        bid,
+                                                                                                        {
+                                                                                                            dp_link:
+                                                                                                                imageurl,
+                                                                                                        },
+                                                                                                    )
+                                                                                                        .catch(
+                                                                                                            err => {
+                                                                                                                res.json(
+                                                                                                                    {
+                                                                                                                        status: 'error',
+                                                                                                                        code: 'ERR-BLGD-027',
+                                                                                                                    },
+                                                                                                                );
+                                                                                                            },
+                                                                                                        )
+                                                                                                        .then(
+                                                                                                            data => {
+                                                                                                                if (
+                                                                                                                    data ===
+                                                                                                                        null ||
+                                                                                                                    data ===
+                                                                                                                        undefined
+                                                                                                                ) {
+                                                                                                                    res.json(
+                                                                                                                        {
+                                                                                                                            status: 'error',
+                                                                                                                            code: 'ERR-BLGD-027',
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                } else {
+                                                                                                                    res.json(
+                                                                                                                        {
+                                                                                                                            status: 'success',
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                }
+                                                                                                            },
+                                                                                                        );
+                                                                                                } catch (err) {
+                                                                                                    res.json(
+                                                                                                        {
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-027',
+                                                                                                        },
+                                                                                                    );
+                                                                                                }
+                                                                                            } else {
+                                                                                                res.json(
+                                                                                                    {
+                                                                                                        status: 'error',
+                                                                                                        code: 'ERR-BLGD-026',
+                                                                                                    },
+                                                                                                );
+                                                                                            }
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                            } catch (err) {
+                                                                                res.json(
+                                                                                    {
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-025',
+                                                                                    },
+                                                                                );
+                                                                            }
                                                                         }
                                                                     }
-                                                                }
-                                                            });
+                                                                },
+                                                            );
                                                     } catch (error) {
                                                         res.json({
                                                             status: 'error',
@@ -229,7 +290,11 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
         const tags = req.body.tags;
         const processed_tags = none_null_arr(tags) ? [] : tags;
 
-        if (none_null(bid) === false && none_null(title) === false && none_null(message) === false) {
+        if (
+            none_null(bid) === false &&
+            none_null(title) === false &&
+            none_null(message) === false
+        ) {
             try {
                 await User.aggregate([
                     {
@@ -276,168 +341,306 @@ router.patch('/edit', verifyJWTbody, async (req, res) => {
                                                 });
                                             })
                                             .then(async blog_response => {
-                                                if (blog_response !== null || blog_response !== undefined) {
-                                                    if (blog_response?.length > 0) {
-                                                        if (blog_response[0]?.author?.toString() === uid) {
+                                                if (
+                                                    blog_response !== null ||
+                                                    blog_response !== undefined
+                                                ) {
+                                                    if (
+                                                        blog_response?.length >
+                                                        0
+                                                    ) {
+                                                        if (
+                                                            blog_response[0]?.author?.toString() ===
+                                                            uid
+                                                        ) {
                                                             try {
-                                                                await Blog.findByIdAndUpdate(bid, {
-                                                                    title: title,
-                                                                    message: message,
-                                                                    tags: processed_tags,
-                                                                })
-                                                                    .catch(err => {
-                                                                        res.json({
-                                                                            status: 'error',
-                                                                            code: 'ERR-BLGD-044',
-                                                                        });
-                                                                    })
-                                                                    .then(async response => {
-                                                                        if (response === null || response === undefined) {
-                                                                            res.json({
-                                                                                status: 'error',
-                                                                                code: 'ERR-BLGD-044',
-                                                                            });
-                                                                        } else {
-                                                                            if (none_null(dp)) {
-                                                                                if (none_null(result[0]?.dp_link) === false) {
-                                                                                    try {
-                                                                                        await cloudinary.uploader.destroy(`${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}${bid}`, async (error, data) => {
-                                                                                            if (error) {
-                                                                                                res.json({
-                                                                                                    status: 'error',
-                                                                                                    code: 'ERR-BLGD-045',
-                                                                                                });
-                                                                                            } else {
-                                                                                                if (data?.result === 'not found' || data?.result === 'ok') {
-                                                                                                    try {
-                                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: 'none' })
-                                                                                                            .catch(err => {
-                                                                                                                res.json({
-                                                                                                                    status: 'error',
-                                                                                                                    code: 'ERR-BLGD-027',
-                                                                                                                });
-                                                                                                            })
-                                                                                                            .then(response => {
-                                                                                                                if (response === null || response === undefined) {
-                                                                                                                    res.json({
+                                                                await Blog.findByIdAndUpdate(
+                                                                    bid,
+                                                                    {
+                                                                        title: title,
+                                                                        message:
+                                                                            message,
+                                                                        tags: processed_tags,
+                                                                    },
+                                                                )
+                                                                    .catch(
+                                                                        err => {
+                                                                            res.json(
+                                                                                {
+                                                                                    status: 'error',
+                                                                                    code: 'ERR-BLGD-044',
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    )
+                                                                    .then(
+                                                                        async response => {
+                                                                            if (
+                                                                                response ===
+                                                                                    null ||
+                                                                                response ===
+                                                                                    undefined
+                                                                            ) {
+                                                                                res.json(
+                                                                                    {
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-044',
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                if (
+                                                                                    none_null(
+                                                                                        dp,
+                                                                                    )
+                                                                                ) {
+                                                                                    if (
+                                                                                        none_null(
+                                                                                            result[0]
+                                                                                                ?.dp_link,
+                                                                                        ) ===
+                                                                                        false
+                                                                                    ) {
+                                                                                        try {
+                                                                                            await cloudinary.uploader.destroy(
+                                                                                                `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}${bid}`,
+                                                                                                async (
+                                                                                                    error,
+                                                                                                    data,
+                                                                                                ) => {
+                                                                                                    if (
+                                                                                                        error
+                                                                                                    ) {
+                                                                                                        res.json(
+                                                                                                            {
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-045',
+                                                                                                            },
+                                                                                                        );
+                                                                                                    } else {
+                                                                                                        if (
+                                                                                                            data?.result ===
+                                                                                                                'not found' ||
+                                                                                                            data?.result ===
+                                                                                                                'ok'
+                                                                                                        ) {
+                                                                                                            try {
+                                                                                                                await Blog.findByIdAndUpdate(
+                                                                                                                    bid,
+                                                                                                                    {
+                                                                                                                        dp_link:
+                                                                                                                            'none',
+                                                                                                                    },
+                                                                                                                )
+                                                                                                                    .catch(
+                                                                                                                        err => {
+                                                                                                                            res.json(
+                                                                                                                                {
+                                                                                                                                    status: 'error',
+                                                                                                                                    code: 'ERR-BLGD-027',
+                                                                                                                                },
+                                                                                                                            );
+                                                                                                                        },
+                                                                                                                    )
+                                                                                                                    .then(
+                                                                                                                        response => {
+                                                                                                                            if (
+                                                                                                                                response ===
+                                                                                                                                    null ||
+                                                                                                                                response ===
+                                                                                                                                    undefined
+                                                                                                                            ) {
+                                                                                                                                res.json(
+                                                                                                                                    {
+                                                                                                                                        status: 'error',
+                                                                                                                                        code: 'ERR-BLGD-027',
+                                                                                                                                    },
+                                                                                                                                );
+                                                                                                                            } else {
+                                                                                                                                res.json(
+                                                                                                                                    {
+                                                                                                                                        status: 'success',
+                                                                                                                                    },
+                                                                                                                                );
+                                                                                                                            }
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                            } catch (err) {
+                                                                                                                res.json(
+                                                                                                                    {
                                                                                                                         status: 'error',
                                                                                                                         code: 'ERR-BLGD-027',
-                                                                                                                    });
-                                                                                                                } else {
-                                                                                                                    res.json({
-                                                                                                                        status: 'success',
-                                                                                                                    });
-                                                                                                                }
-                                                                                                            });
-                                                                                                    } catch (err) {
-                                                                                                        res.json({
-                                                                                                            status: 'error',
-                                                                                                            code: 'ERR-BLGD-027',
-                                                                                                        });
+                                                                                                                    },
+                                                                                                                );
+                                                                                                            }
+                                                                                                        } else {
+                                                                                                            res.json(
+                                                                                                                {
+                                                                                                                    status: 'error',
+                                                                                                                    code: 'ERR-BLGD-045',
+                                                                                                                },
+                                                                                                            );
+                                                                                                        }
                                                                                                     }
-                                                                                                } else {
-                                                                                                    res.json({
-                                                                                                        status: 'error',
-                                                                                                        code: 'ERR-BLGD-045',
-                                                                                                    });
-                                                                                                }
-                                                                                            }
-                                                                                        });
-                                                                                    } catch (err) {
-                                                                                        res.json({
-                                                                                            status: 'error',
-                                                                                            code: 'ERR-BLGD-045',
-                                                                                        });
+                                                                                                },
+                                                                                            );
+                                                                                        } catch (err) {
+                                                                                            res.json(
+                                                                                                {
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-045',
+                                                                                                },
+                                                                                            );
+                                                                                        }
+                                                                                    } else {
+                                                                                        try {
+                                                                                            await Blog.findByIdAndUpdate(
+                                                                                                bid,
+                                                                                                {
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                },
+                                                                                            )
+                                                                                                .catch(
+                                                                                                    err => {
+                                                                                                        res.json(
+                                                                                                            {
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-027',
+                                                                                                            },
+                                                                                                        );
+                                                                                                    },
+                                                                                                )
+                                                                                                .then(
+                                                                                                    response => {
+                                                                                                        if (
+                                                                                                            response ===
+                                                                                                                null ||
+                                                                                                            response ===
+                                                                                                                undefined
+                                                                                                        ) {
+                                                                                                            res.json(
+                                                                                                                {
+                                                                                                                    status: 'error',
+                                                                                                                    code: 'ERR-BLGD-027',
+                                                                                                                },
+                                                                                                            );
+                                                                                                        } else {
+                                                                                                            res.json(
+                                                                                                                {
+                                                                                                                    status: 'success',
+                                                                                                                },
+                                                                                                            );
+                                                                                                        }
+                                                                                                    },
+                                                                                                );
+                                                                                        } catch (err) {
+                                                                                            res.json(
+                                                                                                {
+                                                                                                    status: 'error',
+                                                                                                    code: 'ERR-BLGD-027',
+                                                                                                },
+                                                                                            );
+                                                                                        }
                                                                                     }
                                                                                 } else {
                                                                                     try {
-                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: 'none' })
-                                                                                            .catch(err => {
-                                                                                                res.json({
-                                                                                                    status: 'error',
-                                                                                                    code: 'ERR-BLGD-027',
-                                                                                                });
-                                                                                            })
-                                                                                            .then(response => {
-                                                                                                if (response === null || response === undefined) {
-                                                                                                    res.json({
-                                                                                                        status: 'error',
-                                                                                                        code: 'ERR-BLGD-027',
-                                                                                                    });
+                                                                                        await cloudinary.uploader.upload(
+                                                                                            dp,
+                                                                                            {
+                                                                                                folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
+                                                                                                public_id: `${bid}`,
+                                                                                            },
+                                                                                            async (
+                                                                                                error,
+                                                                                                response,
+                                                                                            ) => {
+                                                                                                if (
+                                                                                                    error
+                                                                                                ) {
+                                                                                                    res.json(
+                                                                                                        {
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-025',
+                                                                                                        },
+                                                                                                    );
                                                                                                 } else {
-                                                                                                    res.json({
-                                                                                                        status: 'success',
-                                                                                                    });
-                                                                                                }
-                                                                                            });
-                                                                                    } catch (err) {
-                                                                                        res.json({
-                                                                                            status: 'error',
-                                                                                            code: 'ERR-BLGD-027',
-                                                                                        });
-                                                                                    }
-                                                                                }
-                                                                            } else {
-                                                                                try {
-                                                                                    await cloudinary.uploader.upload(
-                                                                                        dp,
-                                                                                        {
-                                                                                            folder: `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}`,
-                                                                                            public_id: `${bid}`,
-                                                                                        },
-                                                                                        async (error, response) => {
-                                                                                            if (error) {
-                                                                                                res.json({
-                                                                                                    status: 'error',
-                                                                                                    code: 'ERR-BLGD-025',
-                                                                                                });
-                                                                                            } else {
-                                                                                                if (response) {
-                                                                                                    const imageurl = response?.url;
-                                                                                                    try {
-                                                                                                        await Blog.findByIdAndUpdate(bid, { dp_link: imageurl })
-                                                                                                            .catch(err => {
-                                                                                                                res.json({
+                                                                                                    if (
+                                                                                                        response
+                                                                                                    ) {
+                                                                                                        const imageurl =
+                                                                                                            response?.url;
+                                                                                                        try {
+                                                                                                            await Blog.findByIdAndUpdate(
+                                                                                                                bid,
+                                                                                                                {
+                                                                                                                    dp_link:
+                                                                                                                        imageurl,
+                                                                                                                },
+                                                                                                            )
+                                                                                                                .catch(
+                                                                                                                    err => {
+                                                                                                                        res.json(
+                                                                                                                            {
+                                                                                                                                status: 'error',
+                                                                                                                                code: 'ERR-BLGD-027',
+                                                                                                                            },
+                                                                                                                        );
+                                                                                                                    },
+                                                                                                                )
+                                                                                                                .then(
+                                                                                                                    data => {
+                                                                                                                        if (
+                                                                                                                            data ===
+                                                                                                                                null ||
+                                                                                                                            data ===
+                                                                                                                                undefined
+                                                                                                                        ) {
+                                                                                                                            res.json(
+                                                                                                                                {
+                                                                                                                                    status: 'error',
+                                                                                                                                    code: 'ERR-BLGD-027',
+                                                                                                                                },
+                                                                                                                            );
+                                                                                                                        } else {
+                                                                                                                            res.json(
+                                                                                                                                {
+                                                                                                                                    status: 'success',
+                                                                                                                                },
+                                                                                                                            );
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                                );
+                                                                                                        } catch (err) {
+                                                                                                            res.json(
+                                                                                                                {
                                                                                                                     status: 'error',
                                                                                                                     code: 'ERR-BLGD-027',
-                                                                                                                });
-                                                                                                            })
-                                                                                                            .then(data => {
-                                                                                                                if (data === null || data === undefined) {
-                                                                                                                    res.json({
-                                                                                                                        status: 'error',
-                                                                                                                        code: 'ERR-BLGD-027',
-                                                                                                                    });
-                                                                                                                } else {
-                                                                                                                    res.json({
-                                                                                                                        status: 'success',
-                                                                                                                    });
-                                                                                                                }
-                                                                                                            });
-                                                                                                    } catch (err) {
-                                                                                                        res.json({
-                                                                                                            status: 'error',
-                                                                                                            code: 'ERR-BLGD-027',
-                                                                                                        });
+                                                                                                                },
+                                                                                                            );
+                                                                                                        }
+                                                                                                    } else {
+                                                                                                        res.json(
+                                                                                                            {
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-026',
+                                                                                                            },
+                                                                                                        );
                                                                                                     }
-                                                                                                } else {
-                                                                                                    res.json({
-                                                                                                        status: 'error',
-                                                                                                        code: 'ERR-BLGD-026',
-                                                                                                    });
                                                                                                 }
-                                                                                            }
-                                                                                        },
-                                                                                    );
-                                                                                } catch (err) {
-                                                                                    res.json({
-                                                                                        status: 'error',
-                                                                                        code: 'ERR-BLGD-025',
-                                                                                    });
+                                                                                            },
+                                                                                        );
+                                                                                    } catch (err) {
+                                                                                        res.json(
+                                                                                            {
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-025',
+                                                                                            },
+                                                                                        );
+                                                                                    }
                                                                                 }
                                                                             }
-                                                                        }
-                                                                    });
+                                                                        },
+                                                                    );
                                                             } catch (error) {
                                                                 res.json({
                                                                     status: 'error',
@@ -565,93 +768,185 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                 });
                                             })
                                             .then(async blog_response => {
-                                                if (blog_response !== undefined || blog_response !== null) {
-                                                    if (blog_response?.length > 0) {
-                                                        const author = blog_response[0]?.author?.toString();
+                                                if (
+                                                    blog_response !==
+                                                        undefined ||
+                                                    blog_response !== null
+                                                ) {
+                                                    if (
+                                                        blog_response?.length >
+                                                        0
+                                                    ) {
+                                                        const author =
+                                                            blog_response[0]?.author?.toString();
                                                         if (author === uid) {
-                                                            if (none_null_dp(blog_response[0]?.dp_link) !== 'none') {
+                                                            if (
+                                                                none_null_dp(
+                                                                    blog_response[0]
+                                                                        ?.dp_link,
+                                                                ) !== 'none'
+                                                            ) {
                                                                 try {
-                                                                    await cloudinary.uploader.destroy(`${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}${bid}`, async (error, data) => {
-                                                                        if (error) {
-                                                                            res.json({
-                                                                                status: 'error',
-                                                                                code: 'ERR-BLGD-045',
-                                                                            });
-                                                                        } else {
-                                                                            if (data?.result === 'not found' || data?.result === 'ok') {
-                                                                                try {
-                                                                                    await User.updateMany({ _id: { $in: blog_response[0]?.likes } }, { $pull: { likes: ObjectId(bid) } })
-                                                                                        .catch(err => {
-                                                                                            res.json({
+                                                                    await cloudinary.uploader.destroy(
+                                                                        `${process.env.NODE_CLOUDINARY_BLOGS_FOLDER}${bid}`,
+                                                                        async (
+                                                                            error,
+                                                                            data,
+                                                                        ) => {
+                                                                            if (
+                                                                                error
+                                                                            ) {
+                                                                                res.json(
+                                                                                    {
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-045',
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                if (
+                                                                                    data?.result ===
+                                                                                        'not found' ||
+                                                                                    data?.result ===
+                                                                                        'ok'
+                                                                                ) {
+                                                                                    try {
+                                                                                        await User.updateMany(
+                                                                                            {
+                                                                                                _id: {
+                                                                                                    $in: blog_response[0]
+                                                                                                        ?.likes,
+                                                                                                },
+                                                                                            },
+                                                                                            {
+                                                                                                $pull: {
+                                                                                                    likes: ObjectId(
+                                                                                                        bid,
+                                                                                                    ),
+                                                                                                },
+                                                                                            },
+                                                                                        )
+                                                                                            .catch(
+                                                                                                err => {
+                                                                                                    res.json(
+                                                                                                        {
+                                                                                                            status: 'error',
+                                                                                                            code: 'ERR-BLGD-047',
+                                                                                                        },
+                                                                                                    );
+                                                                                                },
+                                                                                            )
+                                                                                            .then(
+                                                                                                async del_likes_res => {
+                                                                                                    if (
+                                                                                                        del_likes_res?.acknowledged
+                                                                                                    ) {
+                                                                                                        try {
+                                                                                                            await User.findByIdAndUpdate(
+                                                                                                                author,
+                                                                                                                {
+                                                                                                                    $pull: {
+                                                                                                                        blogs: ObjectId(
+                                                                                                                            bid,
+                                                                                                                        ),
+                                                                                                                    },
+                                                                                                                },
+                                                                                                            )
+                                                                                                                .catch(
+                                                                                                                    err => {
+                                                                                                                        res.json(
+                                                                                                                            {
+                                                                                                                                status: 'error',
+                                                                                                                                code: 'ERR-BLGD-050',
+                                                                                                                            },
+                                                                                                                        );
+                                                                                                                    },
+                                                                                                                )
+                                                                                                                .then(
+                                                                                                                    async user_del_blog_res => {
+                                                                                                                        try {
+                                                                                                                            await Blog.findByIdAndDelete(
+                                                                                                                                bid,
+                                                                                                                            )
+                                                                                                                                .catch(
+                                                                                                                                    err => {
+                                                                                                                                        res.json(
+                                                                                                                                            {
+                                                                                                                                                status: 'error',
+                                                                                                                                                code: 'ERR-BLGD-047',
+                                                                                                                                            },
+                                                                                                                                        );
+                                                                                                                                    },
+                                                                                                                                )
+                                                                                                                                .then(
+                                                                                                                                    del_blog_res => {
+                                                                                                                                        if (
+                                                                                                                                            del_blog_res !==
+                                                                                                                                                null ||
+                                                                                                                                            del_blog_res !==
+                                                                                                                                                undefined
+                                                                                                                                        ) {
+                                                                                                                                            res.json(
+                                                                                                                                                {
+                                                                                                                                                    status: 'success',
+                                                                                                                                                },
+                                                                                                                                            );
+                                                                                                                                        } else {
+                                                                                                                                            res.json(
+                                                                                                                                                {
+                                                                                                                                                    status: 'error',
+                                                                                                                                                    code: 'ERR-BLGD-047',
+                                                                                                                                                },
+                                                                                                                                            );
+                                                                                                                                        }
+                                                                                                                                    },
+                                                                                                                                );
+                                                                                                                        } catch (error) {
+                                                                                                                            res.json(
+                                                                                                                                {
+                                                                                                                                    status: 'error',
+                                                                                                                                    code: 'ERR-BLGD-047',
+                                                                                                                                },
+                                                                                                                            );
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                                );
+                                                                                                        } catch (error) {
+                                                                                                            res.json(
+                                                                                                                {
+                                                                                                                    status: 'error',
+                                                                                                                    code: 'ERR-BLGD-050',
+                                                                                                                },
+                                                                                                            );
+                                                                                                        }
+                                                                                                    } else {
+                                                                                                        res.json(
+                                                                                                            {
+                                                                                                                status: 'error',
+                                                                                                                code: 'ERR-BLGD-047',
+                                                                                                            },
+                                                                                                        );
+                                                                                                    }
+                                                                                                },
+                                                                                            );
+                                                                                    } catch (error) {
+                                                                                        res.json(
+                                                                                            {
                                                                                                 status: 'error',
                                                                                                 code: 'ERR-BLGD-047',
-                                                                                            });
-                                                                                        })
-                                                                                        .then(async del_likes_res => {
-                                                                                            if (del_likes_res?.acknowledged) {
-                                                                                                try {
-                                                                                                    await User.findByIdAndUpdate(author, { $pull: { blogs: ObjectId(bid) } })
-                                                                                                        .catch(err => {
-                                                                                                            res.json({
-                                                                                                                status: 'error',
-                                                                                                                code: 'ERR-BLGD-050',
-                                                                                                            });
-                                                                                                        })
-                                                                                                        .then(async user_del_blog_res => {
-                                                                                                            try {
-                                                                                                                await Blog.findByIdAndDelete(bid)
-                                                                                                                    .catch(err => {
-                                                                                                                        res.json({
-                                                                                                                            status: 'error',
-                                                                                                                            code: 'ERR-BLGD-047',
-                                                                                                                        });
-                                                                                                                    })
-                                                                                                                    .then(del_blog_res => {
-                                                                                                                        if (del_blog_res !== null || del_blog_res !== undefined) {
-                                                                                                                            res.json({
-                                                                                                                                status: 'success',
-                                                                                                                            });
-                                                                                                                        } else {
-                                                                                                                            res.json({
-                                                                                                                                status: 'error',
-                                                                                                                                code: 'ERR-BLGD-047',
-                                                                                                                            });
-                                                                                                                        }
-                                                                                                                    });
-                                                                                                            } catch (error) {
-                                                                                                                res.json({
-                                                                                                                    status: 'error',
-                                                                                                                    code: 'ERR-BLGD-047',
-                                                                                                                });
-                                                                                                            }
-                                                                                                        });
-                                                                                                } catch (error) {
-                                                                                                    res.json({
-                                                                                                        status: 'error',
-                                                                                                        code: 'ERR-BLGD-050',
-                                                                                                    });
-                                                                                                }
-                                                                                            } else {
-                                                                                                res.json({
-                                                                                                    status: 'error',
-                                                                                                    code: 'ERR-BLGD-047',
-                                                                                                });
-                                                                                            }
-                                                                                        });
-                                                                                } catch (error) {
-                                                                                    res.json({
-                                                                                        status: 'error',
-                                                                                        code: 'ERR-BLGD-047',
-                                                                                    });
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                } else {
+                                                                                    res.json(
+                                                                                        {
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-045',
+                                                                                        },
+                                                                                    );
                                                                                 }
-                                                                            } else {
-                                                                                res.json({
-                                                                                    status: 'error',
-                                                                                    code: 'ERR-BLGD-045',
-                                                                                });
                                                                             }
-                                                                        }
-                                                                    });
+                                                                        },
+                                                                    );
                                                                 } catch (error) {
                                                                     res.json({
                                                                         status: 'error',
@@ -660,64 +955,124 @@ router.delete('/delete', verifyJWTHeader, async (req, res) => {
                                                                 }
                                                             } else {
                                                                 try {
-                                                                    await User.updateMany({ _id: { $in: blog_response[0]?.likes } }, { $pull: { likes: ObjectId(bid) } })
-                                                                        .catch(err => {
-                                                                            res.json({
-                                                                                status: 'error',
-                                                                                code: 'ERR-BLGD-047',
-                                                                            });
-                                                                        })
-                                                                        .then(async del_likes_res => {
-                                                                            if (del_likes_res?.acknowledged) {
-                                                                                try {
-                                                                                    await User.findByIdAndUpdate(author, { $pull: { blogs: ObjectId(bid) } })
-                                                                                        .catch(err => {
-                                                                                            res.json({
-                                                                                                status: 'error',
-                                                                                                code: 'ERR-BLGD-050',
-                                                                                            });
-                                                                                        })
-                                                                                        .then(async user_del_blog_res => {
-                                                                                            try {
-                                                                                                await Blog.findByIdAndDelete(bid)
-                                                                                                    .catch(err => {
-                                                                                                        res.json({
+                                                                    await User.updateMany(
+                                                                        {
+                                                                            _id: {
+                                                                                $in: blog_response[0]
+                                                                                    ?.likes,
+                                                                            },
+                                                                        },
+                                                                        {
+                                                                            $pull: {
+                                                                                likes: ObjectId(
+                                                                                    bid,
+                                                                                ),
+                                                                            },
+                                                                        },
+                                                                    )
+                                                                        .catch(
+                                                                            err => {
+                                                                                res.json(
+                                                                                    {
+                                                                                        status: 'error',
+                                                                                        code: 'ERR-BLGD-047',
+                                                                                    },
+                                                                                );
+                                                                            },
+                                                                        )
+                                                                        .then(
+                                                                            async del_likes_res => {
+                                                                                if (
+                                                                                    del_likes_res?.acknowledged
+                                                                                ) {
+                                                                                    try {
+                                                                                        await User.findByIdAndUpdate(
+                                                                                            author,
+                                                                                            {
+                                                                                                $pull: {
+                                                                                                    blogs: ObjectId(
+                                                                                                        bid,
+                                                                                                    ),
+                                                                                                },
+                                                                                            },
+                                                                                        )
+                                                                                            .catch(
+                                                                                                err => {
+                                                                                                    res.json(
+                                                                                                        {
                                                                                                             status: 'error',
-                                                                                                            code: 'ERR-BLGD-047',
-                                                                                                        });
-                                                                                                    })
-                                                                                                    .then(del_blog_res => {
-                                                                                                        if (del_blog_res !== null || del_blog_res !== undefined) {
-                                                                                                            res.json({
-                                                                                                                status: 'success',
-                                                                                                            });
-                                                                                                        } else {
-                                                                                                            res.json({
+                                                                                                            code: 'ERR-BLGD-050',
+                                                                                                        },
+                                                                                                    );
+                                                                                                },
+                                                                                            )
+                                                                                            .then(
+                                                                                                async user_del_blog_res => {
+                                                                                                    try {
+                                                                                                        await Blog.findByIdAndDelete(
+                                                                                                            bid,
+                                                                                                        )
+                                                                                                            .catch(
+                                                                                                                err => {
+                                                                                                                    res.json(
+                                                                                                                        {
+                                                                                                                            status: 'error',
+                                                                                                                            code: 'ERR-BLGD-047',
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                },
+                                                                                                            )
+                                                                                                            .then(
+                                                                                                                del_blog_res => {
+                                                                                                                    if (
+                                                                                                                        del_blog_res !==
+                                                                                                                            null ||
+                                                                                                                        del_blog_res !==
+                                                                                                                            undefined
+                                                                                                                    ) {
+                                                                                                                        res.json(
+                                                                                                                            {
+                                                                                                                                status: 'success',
+                                                                                                                            },
+                                                                                                                        );
+                                                                                                                    } else {
+                                                                                                                        res.json(
+                                                                                                                            {
+                                                                                                                                status: 'error',
+                                                                                                                                code: 'ERR-BLGD-047',
+                                                                                                                            },
+                                                                                                                        );
+                                                                                                                    }
+                                                                                                                },
+                                                                                                            );
+                                                                                                    } catch (error) {
+                                                                                                        res.json(
+                                                                                                            {
                                                                                                                 status: 'error',
                                                                                                                 code: 'ERR-BLGD-047',
-                                                                                                            });
-                                                                                                        }
-                                                                                                    });
-                                                                                            } catch (error) {
-                                                                                                res.json({
-                                                                                                    status: 'error',
-                                                                                                    code: 'ERR-BLGD-047',
-                                                                                                });
-                                                                                            }
-                                                                                        });
-                                                                                } catch (error) {
-                                                                                    res.json({
-                                                                                        status: 'error',
-                                                                                        code: 'ERR-BLGD-050',
-                                                                                    });
+                                                                                                            },
+                                                                                                        );
+                                                                                                    }
+                                                                                                },
+                                                                                            );
+                                                                                    } catch (error) {
+                                                                                        res.json(
+                                                                                            {
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-050',
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                } else {
+                                                                                    res.json(
+                                                                                        {
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-047',
+                                                                                        },
+                                                                                    );
                                                                                 }
-                                                                            } else {
-                                                                                res.json({
-                                                                                    status: 'error',
-                                                                                    code: 'ERR-BLGD-047',
-                                                                                });
-                                                                            }
-                                                                        });
+                                                                            },
+                                                                        );
                                                                 } catch (error) {
                                                                     res.json({
                                                                         status: 'error',
@@ -824,7 +1179,9 @@ router.patch('/like', verifyJWTbody, async (req, res) => {
                             if (result?.length > 0) {
                                 if (result[0]?.email_v === true) {
                                     try {
-                                        await Blog.findByIdAndUpdate(bid, { $addToSet: { likes: ObjectId(uid) } })
+                                        await Blog.findByIdAndUpdate(bid, {
+                                            $addToSet: { likes: ObjectId(uid) },
+                                        })
                                             .catch(err => {
                                                 res.json({
                                                     status: 'error',
@@ -832,14 +1189,26 @@ router.patch('/like', verifyJWTbody, async (req, res) => {
                                                 });
                                             })
                                             .then(async response => {
-                                                if (response === null || response === undefined) {
+                                                if (
+                                                    response === null ||
+                                                    response === undefined
+                                                ) {
                                                     res.json({
                                                         status: 'error',
                                                         code: 'ERR-BLGD-030',
                                                     });
                                                 } else {
                                                     try {
-                                                        await User.findByIdAndUpdate(uid, { $addToSet: { likes: ObjectId(bid) } })
+                                                        await User.findByIdAndUpdate(
+                                                            uid,
+                                                            {
+                                                                $addToSet: {
+                                                                    likes: ObjectId(
+                                                                        bid,
+                                                                    ),
+                                                                },
+                                                            },
+                                                        )
                                                             .catch(err => {
                                                                 res.json({
                                                                     status: 'error',
@@ -847,7 +1216,12 @@ router.patch('/like', verifyJWTbody, async (req, res) => {
                                                                 });
                                                             })
                                                             .then(data => {
-                                                                if (data === null || data === undefined) {
+                                                                if (
+                                                                    data ===
+                                                                        null ||
+                                                                    data ===
+                                                                        undefined
+                                                                ) {
                                                                     res.json({
                                                                         status: 'error',
                                                                         code: 'ERR-BLGD-016',
@@ -946,7 +1320,9 @@ router.patch('/dislike', verifyJWTbody, async (req, res) => {
                             if (result?.length > 0) {
                                 if (result[0]?.email_v === true) {
                                     try {
-                                        await Blog.findByIdAndUpdate(bid, { $pull: { likes: ObjectId(uid) } })
+                                        await Blog.findByIdAndUpdate(bid, {
+                                            $pull: { likes: ObjectId(uid) },
+                                        })
                                             .catch(err => {
                                                 res.json({
                                                     status: 'error',
@@ -954,14 +1330,26 @@ router.patch('/dislike', verifyJWTbody, async (req, res) => {
                                                 });
                                             })
                                             .then(async response => {
-                                                if (response === null || response === undefined) {
+                                                if (
+                                                    response === null ||
+                                                    response === undefined
+                                                ) {
                                                     res.json({
                                                         status: 'error',
                                                         code: 'ERR-BLGD-031',
                                                     });
                                                 } else {
                                                     try {
-                                                        await User.findByIdAndUpdate(uid, { $pull: { likes: ObjectId(bid) } })
+                                                        await User.findByIdAndUpdate(
+                                                            uid,
+                                                            {
+                                                                $pull: {
+                                                                    likes: ObjectId(
+                                                                        bid,
+                                                                    ),
+                                                                },
+                                                            },
+                                                        )
                                                             .catch(err => {
                                                                 res.json({
                                                                     status: 'error',
@@ -969,7 +1357,12 @@ router.patch('/dislike', verifyJWTbody, async (req, res) => {
                                                                 });
                                                             })
                                                             .then(data => {
-                                                                if (data === null || data === undefined) {
+                                                                if (
+                                                                    data ===
+                                                                        null ||
+                                                                    data ===
+                                                                        undefined
+                                                                ) {
                                                                     res.json({
                                                                         status: 'error',
                                                                         code: 'ERR-BLGD-016',
@@ -1070,7 +1463,14 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                             if (result?.length > 0) {
                                 if (result[0]?.email_v === true) {
                                     try {
-                                        await Blog.findByIdAndUpdate(bid, { $push: { comments: { commenter: ObjectId(uid), comment: comment } } })
+                                        await Blog.findByIdAndUpdate(bid, {
+                                            $push: {
+                                                comments: {
+                                                    commenter: ObjectId(uid),
+                                                    comment: comment,
+                                                },
+                                            },
+                                        })
                                             .catch(err => {
                                                 res.json({
                                                     status: 'error',
@@ -1078,7 +1478,10 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                 });
                                             })
                                             .then(async response => {
-                                                if (response === null || response === undefined) {
+                                                if (
+                                                    response === null ||
+                                                    response === undefined
+                                                ) {
                                                     res.json({
                                                         status: 'error',
                                                         code: 'ERR-BLGD-036',
@@ -1089,7 +1492,9 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                         await Blog.aggregate([
                                                             {
                                                                 $match: {
-                                                                    _id: ObjectId(bid),
+                                                                    _id: ObjectId(
+                                                                        bid,
+                                                                    ),
                                                                 },
                                                             },
                                                             {
@@ -1099,611 +1504,1195 @@ router.patch('/comment/create', verifyJWTbody, async (req, res) => {
                                                                 },
                                                             },
                                                         ])
-                                                            .catch(async err => {
-                                                                const old_comments = response?.comments;
-                                                                const cmt_users = [];
-                                                                const processed_cmt_users = [];
-                                                                if (old_comments?.length > 0) {
-                                                                    old_comments?.map(item => {
-                                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                            cmt_users?.push(item?.commenter?.toString());
+                                                            .catch(
+                                                                async err => {
+                                                                    const old_comments =
+                                                                        response?.comments;
+                                                                    const cmt_users =
+                                                                        [];
+                                                                    const processed_cmt_users =
+                                                                        [];
+                                                                    if (
+                                                                        old_comments?.length >
+                                                                        0
+                                                                    ) {
+                                                                        old_comments?.map(
+                                                                            item => {
+                                                                                if (
+                                                                                    cmt_users?.includes(
+                                                                                        item?.commenter?.toString(),
+                                                                                    ) ===
+                                                                                    false
+                                                                                ) {
+                                                                                    cmt_users?.push(
+                                                                                        item?.commenter?.toString(),
+                                                                                    );
+                                                                                }
+                                                                            },
+                                                                        );
+                                                                        cmt_users?.map(
+                                                                            item =>
+                                                                                processed_cmt_users?.push(
+                                                                                    ObjectId(
+                                                                                        item,
+                                                                                    ),
+                                                                                ),
+                                                                        );
+                                                                        if (
+                                                                            processed_cmt_users?.length >
+                                                                            0
+                                                                        ) {
+                                                                            try {
+                                                                                await User.aggregate(
+                                                                                    [
+                                                                                        {
+                                                                                            $match: {
+                                                                                                _id: {
+                                                                                                    $in: processed_cmt_users,
+                                                                                                },
+                                                                                            },
+                                                                                        },
+                                                                                        {
+                                                                                            $project:
+                                                                                                {
+                                                                                                    username: 1,
+                                                                                                    verified: 1,
+                                                                                                    dp_link: 1,
+                                                                                                },
+                                                                                        },
+                                                                                    ],
+                                                                                )
+                                                                                    .catch(
+                                                                                        err => {
+                                                                                            old_comments?.map(
+                                                                                                item => {
+                                                                                                    const old_comment_item =
+                                                                                                        item;
+                                                                                                    new_comments?.push(
+                                                                                                        {
+                                                                                                            commenter:
+                                                                                                                old_comment_item?.commenter,
+                                                                                                            comment:
+                                                                                                                old_comment_item?.comment,
+                                                                                                            _id: old_comment_item?._id,
+                                                                                                            createdAt:
+                                                                                                                old_comment_item?.createdAt,
+                                                                                                            username:
+                                                                                                                'Not Found',
+                                                                                                            dp_link:
+                                                                                                                'none',
+                                                                                                            verified: false,
+                                                                                                            is_c_owner: false,
+                                                                                                        },
+                                                                                                    );
+                                                                                                },
+                                                                                            );
+                                                                                        },
+                                                                                    )
+                                                                                    .then(
+                                                                                        user_data => {
+                                                                                            if (
+                                                                                                user_data?.length >
+                                                                                                0
+                                                                                            ) {
+                                                                                                const cmt_usernames =
+                                                                                                    user_data;
+                                                                                                old_comments?.map(
+                                                                                                    item => {
+                                                                                                        const old_comment_item =
+                                                                                                            item;
+                                                                                                        const user =
+                                                                                                            cmt_usernames?.filter(
+                                                                                                                usernames =>
+                                                                                                                    usernames?._id?.toString() ===
+                                                                                                                    old_comment_item?.commenter?.toString(),
+                                                                                                            );
+                                                                                                        if (
+                                                                                                            user?.length >
+                                                                                                            0
+                                                                                                        ) {
+                                                                                                            new_comments?.push(
+                                                                                                                {
+                                                                                                                    commenter:
+                                                                                                                        old_comment_item?.commenter,
+                                                                                                                    comment:
+                                                                                                                        old_comment_item?.comment,
+                                                                                                                    _id: old_comment_item?._id,
+                                                                                                                    createdAt:
+                                                                                                                        old_comment_item?.createdAt,
+                                                                                                                    username:
+                                                                                                                        user?.[0]
+                                                                                                                            ?.username,
+                                                                                                                    dp_link:
+                                                                                                                        user?.[0]
+                                                                                                                            ?.dp_link,
+                                                                                                                    verified:
+                                                                                                                        none_null_bool(
+                                                                                                                            user?.[0]
+                                                                                                                                ?.verified,
+                                                                                                                        )
+                                                                                                                            ? false
+                                                                                                                            : user?.[0]
+                                                                                                                                  ?.verified,
+                                                                                                                    is_c_owner:
+                                                                                                                        uid ===
+                                                                                                                        item?.commenter?.toString(),
+                                                                                                                },
+                                                                                                            );
+                                                                                                        } else {
+                                                                                                            new_comments?.push(
+                                                                                                                {
+                                                                                                                    commenter:
+                                                                                                                        old_comment_item?.commenter,
+                                                                                                                    comment:
+                                                                                                                        old_comment_item?.comment,
+                                                                                                                    _id: old_comment_item?._id,
+                                                                                                                    createdAt:
+                                                                                                                        old_comment_item?.createdAt,
+                                                                                                                    username:
+                                                                                                                        'Not Found',
+                                                                                                                    dp_link:
+                                                                                                                        'none',
+                                                                                                                    verified: false,
+                                                                                                                    is_c_owner: false,
+                                                                                                                },
+                                                                                                            );
+                                                                                                        }
+                                                                                                    },
+                                                                                                );
+                                                                                            } else {
+                                                                                                old_comments?.map(
+                                                                                                    item => {
+                                                                                                        const old_comment_item =
+                                                                                                            item;
+                                                                                                        new_comments?.push(
+                                                                                                            {
+                                                                                                                commenter:
+                                                                                                                    old_comment_item?.commenter,
+                                                                                                                comment:
+                                                                                                                    old_comment_item?.comment,
+                                                                                                                _id: old_comment_item?._id,
+                                                                                                                createdAt:
+                                                                                                                    old_comment_item?.createdAt,
+                                                                                                                username:
+                                                                                                                    'Not Found',
+                                                                                                                dp_link:
+                                                                                                                    'none',
+                                                                                                                verified: false,
+                                                                                                                is_c_owner: false,
+                                                                                                            },
+                                                                                                        );
+                                                                                                    },
+                                                                                                );
+                                                                                            }
+                                                                                        },
+                                                                                    );
+                                                                            } catch (error) {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        } else {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
                                                                         }
-                                                                    });
-                                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                                    if (processed_cmt_users?.length > 0) {
-                                                                        try {
-                                                                            await User.aggregate([
-                                                                                {
-                                                                                    $match: {
-                                                                                        _id: { $in: processed_cmt_users },
+                                                                    }
+                                                                },
+                                                            )
+                                                            .then(
+                                                                async blog_res => {
+                                                                    if (
+                                                                        blog_res !==
+                                                                            null ||
+                                                                        blog_res !==
+                                                                            undefined
+                                                                    ) {
+                                                                        if (
+                                                                            blog_res?.length >
+                                                                            0
+                                                                        ) {
+                                                                            const old_comments =
+                                                                                blog_res?.[0]
+                                                                                    ?.comments;
+                                                                            const cmt_users =
+                                                                                [];
+                                                                            const processed_cmt_users =
+                                                                                [];
+                                                                            if (
+                                                                                old_comments?.length >
+                                                                                0
+                                                                            ) {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        if (
+                                                                                            cmt_users?.includes(
+                                                                                                item?.commenter?.toString(),
+                                                                                            ) ===
+                                                                                            false
+                                                                                        ) {
+                                                                                            cmt_users?.push(
+                                                                                                item?.commenter?.toString(),
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                                cmt_users?.map(
+                                                                                    item =>
+                                                                                        processed_cmt_users?.push(
+                                                                                            ObjectId(
+                                                                                                item,
+                                                                                            ),
+                                                                                        ),
+                                                                                );
+                                                                                if (
+                                                                                    processed_cmt_users?.length >
+                                                                                    0
+                                                                                ) {
+                                                                                    try {
+                                                                                        await User.aggregate(
+                                                                                            [
+                                                                                                {
+                                                                                                    $match: {
+                                                                                                        _id: {
+                                                                                                            $in: processed_cmt_users,
+                                                                                                        },
+                                                                                                    },
+                                                                                                },
+                                                                                                {
+                                                                                                    $project:
+                                                                                                        {
+                                                                                                            username: 1,
+                                                                                                            verified: 1,
+                                                                                                            dp_link: 1,
+                                                                                                        },
+                                                                                                },
+                                                                                            ],
+                                                                                        )
+                                                                                            .catch(
+                                                                                                err => {
+                                                                                                    old_comments?.map(
+                                                                                                        item => {
+                                                                                                            const old_comment_item =
+                                                                                                                item;
+                                                                                                            new_comments?.push(
+                                                                                                                {
+                                                                                                                    commenter:
+                                                                                                                        old_comment_item?.commenter,
+                                                                                                                    comment:
+                                                                                                                        old_comment_item?.comment,
+                                                                                                                    _id: old_comment_item?._id,
+                                                                                                                    createdAt:
+                                                                                                                        old_comment_item?.createdAt,
+                                                                                                                    username:
+                                                                                                                        'Not Found',
+                                                                                                                    dp_link:
+                                                                                                                        'none',
+                                                                                                                    verified: false,
+                                                                                                                    is_c_owner: false,
+                                                                                                                },
+                                                                                                            );
+                                                                                                        },
+                                                                                                    );
+                                                                                                },
+                                                                                            )
+                                                                                            .then(
+                                                                                                user_data => {
+                                                                                                    if (
+                                                                                                        user_data?.length >
+                                                                                                        0
+                                                                                                    ) {
+                                                                                                        const cmt_usernames =
+                                                                                                            user_data;
+                                                                                                        old_comments?.map(
+                                                                                                            item => {
+                                                                                                                const old_comment_item =
+                                                                                                                    item;
+                                                                                                                const user =
+                                                                                                                    cmt_usernames?.filter(
+                                                                                                                        usernames =>
+                                                                                                                            usernames?._id?.toString() ===
+                                                                                                                            old_comment_item?.commenter?.toString(),
+                                                                                                                    );
+                                                                                                                if (
+                                                                                                                    user?.length >
+                                                                                                                    0
+                                                                                                                ) {
+                                                                                                                    new_comments?.push(
+                                                                                                                        {
+                                                                                                                            commenter:
+                                                                                                                                old_comment_item?.commenter,
+                                                                                                                            comment:
+                                                                                                                                old_comment_item?.comment,
+                                                                                                                            _id: old_comment_item?._id,
+                                                                                                                            createdAt:
+                                                                                                                                old_comment_item?.createdAt,
+                                                                                                                            username:
+                                                                                                                                user?.[0]
+                                                                                                                                    ?.username,
+                                                                                                                            dp_link:
+                                                                                                                                user?.[0]
+                                                                                                                                    ?.dp_link,
+                                                                                                                            verified:
+                                                                                                                                none_null_bool(
+                                                                                                                                    user?.[0]
+                                                                                                                                        ?.verified,
+                                                                                                                                )
+                                                                                                                                    ? false
+                                                                                                                                    : user?.[0]
+                                                                                                                                          ?.verified,
+                                                                                                                            is_c_owner:
+                                                                                                                                uid ===
+                                                                                                                                item?.commenter?.toString(),
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                } else {
+                                                                                                                    new_comments?.push(
+                                                                                                                        {
+                                                                                                                            commenter:
+                                                                                                                                old_comment_item?.commenter,
+                                                                                                                            comment:
+                                                                                                                                old_comment_item?.comment,
+                                                                                                                            _id: old_comment_item?._id,
+                                                                                                                            createdAt:
+                                                                                                                                old_comment_item?.createdAt,
+                                                                                                                            username:
+                                                                                                                                'Not Found',
+                                                                                                                            dp_link:
+                                                                                                                                'none',
+                                                                                                                            verified: false,
+                                                                                                                            is_c_owner: false,
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                }
+                                                                                                            },
+                                                                                                        );
+                                                                                                    } else {
+                                                                                                        old_comments?.map(
+                                                                                                            item => {
+                                                                                                                const old_comment_item =
+                                                                                                                    item;
+                                                                                                                new_comments?.push(
+                                                                                                                    {
+                                                                                                                        commenter:
+                                                                                                                            old_comment_item?.commenter,
+                                                                                                                        comment:
+                                                                                                                            old_comment_item?.comment,
+                                                                                                                        _id: old_comment_item?._id,
+                                                                                                                        createdAt:
+                                                                                                                            old_comment_item?.createdAt,
+                                                                                                                        username:
+                                                                                                                            'Not Found',
+                                                                                                                        dp_link:
+                                                                                                                            'none',
+                                                                                                                        verified: false,
+                                                                                                                        is_c_owner: false,
+                                                                                                                    },
+                                                                                                                );
+                                                                                                            },
+                                                                                                        );
+                                                                                                    }
+                                                                                                },
+                                                                                            );
+                                                                                    } catch (error) {
+                                                                                        old_comments?.map(
+                                                                                            item => {
+                                                                                                const old_comment_item =
+                                                                                                    item;
+                                                                                                new_comments?.push(
+                                                                                                    {
+                                                                                                        commenter:
+                                                                                                            old_comment_item?.commenter,
+                                                                                                        comment:
+                                                                                                            old_comment_item?.comment,
+                                                                                                        _id: old_comment_item?._id,
+                                                                                                        createdAt:
+                                                                                                            old_comment_item?.createdAt,
+                                                                                                        username:
+                                                                                                            'Not Found',
+                                                                                                        dp_link:
+                                                                                                            'none',
+                                                                                                        verified: false,
+                                                                                                        is_c_owner: false,
+                                                                                                    },
+                                                                                                );
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                } else {
+                                                                                    old_comments?.map(
+                                                                                        item => {
+                                                                                            const old_comment_item =
+                                                                                                item;
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        },
+                                                                                    );
+                                                                                }
+                                                                            }
+                                                                        } else {
+                                                                            const old_comments =
+                                                                                response?.comments;
+                                                                            const cmt_users =
+                                                                                [];
+                                                                            const processed_cmt_users =
+                                                                                [];
+                                                                            if (
+                                                                                old_comments?.length >
+                                                                                0
+                                                                            ) {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        if (
+                                                                                            cmt_users?.includes(
+                                                                                                item?.commenter?.toString(),
+                                                                                            ) ===
+                                                                                            false
+                                                                                        ) {
+                                                                                            cmt_users?.push(
+                                                                                                item?.commenter?.toString(),
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                                cmt_users?.map(
+                                                                                    item =>
+                                                                                        processed_cmt_users?.push(
+                                                                                            ObjectId(
+                                                                                                item,
+                                                                                            ),
+                                                                                        ),
+                                                                                );
+                                                                                if (
+                                                                                    processed_cmt_users?.length >
+                                                                                    0
+                                                                                ) {
+                                                                                    try {
+                                                                                        await User.aggregate(
+                                                                                            [
+                                                                                                {
+                                                                                                    $match: {
+                                                                                                        _id: {
+                                                                                                            $in: processed_cmt_users,
+                                                                                                        },
+                                                                                                    },
+                                                                                                },
+                                                                                                {
+                                                                                                    $project:
+                                                                                                        {
+                                                                                                            username: 1,
+                                                                                                            verified: 1,
+                                                                                                            dp_link: 1,
+                                                                                                        },
+                                                                                                },
+                                                                                            ],
+                                                                                        )
+                                                                                            .catch(
+                                                                                                err => {
+                                                                                                    old_comments?.map(
+                                                                                                        item => {
+                                                                                                            const old_comment_item =
+                                                                                                                item;
+                                                                                                            new_comments?.push(
+                                                                                                                {
+                                                                                                                    commenter:
+                                                                                                                        old_comment_item?.commenter,
+                                                                                                                    comment:
+                                                                                                                        old_comment_item?.comment,
+                                                                                                                    _id: old_comment_item?._id,
+                                                                                                                    createdAt:
+                                                                                                                        old_comment_item?.createdAt,
+                                                                                                                    username:
+                                                                                                                        'Not Found',
+                                                                                                                    dp_link:
+                                                                                                                        'none',
+                                                                                                                    verified: false,
+                                                                                                                    is_c_owner: false,
+                                                                                                                },
+                                                                                                            );
+                                                                                                        },
+                                                                                                    );
+                                                                                                },
+                                                                                            )
+                                                                                            .then(
+                                                                                                user_data => {
+                                                                                                    if (
+                                                                                                        user_data?.length >
+                                                                                                        0
+                                                                                                    ) {
+                                                                                                        const cmt_usernames =
+                                                                                                            user_data;
+                                                                                                        old_comments?.map(
+                                                                                                            item => {
+                                                                                                                const old_comment_item =
+                                                                                                                    item;
+                                                                                                                const user =
+                                                                                                                    cmt_usernames?.filter(
+                                                                                                                        usernames =>
+                                                                                                                            usernames?._id?.toString() ===
+                                                                                                                            old_comment_item?.commenter?.toString(),
+                                                                                                                    );
+                                                                                                                if (
+                                                                                                                    user?.length >
+                                                                                                                    0
+                                                                                                                ) {
+                                                                                                                    new_comments?.push(
+                                                                                                                        {
+                                                                                                                            commenter:
+                                                                                                                                old_comment_item?.commenter,
+                                                                                                                            comment:
+                                                                                                                                old_comment_item?.comment,
+                                                                                                                            _id: old_comment_item?._id,
+                                                                                                                            createdAt:
+                                                                                                                                old_comment_item?.createdAt,
+                                                                                                                            username:
+                                                                                                                                user?.[0]
+                                                                                                                                    ?.username,
+                                                                                                                            dp_link:
+                                                                                                                                user?.[0]
+                                                                                                                                    ?.dp_link,
+                                                                                                                            verified:
+                                                                                                                                none_null_bool(
+                                                                                                                                    user?.[0]
+                                                                                                                                        ?.verified,
+                                                                                                                                )
+                                                                                                                                    ? false
+                                                                                                                                    : user?.[0]
+                                                                                                                                          ?.verified,
+                                                                                                                            is_c_owner:
+                                                                                                                                uid ===
+                                                                                                                                item?.commenter?.toString(),
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                } else {
+                                                                                                                    new_comments?.push(
+                                                                                                                        {
+                                                                                                                            commenter:
+                                                                                                                                old_comment_item?.commenter,
+                                                                                                                            comment:
+                                                                                                                                old_comment_item?.comment,
+                                                                                                                            _id: old_comment_item?._id,
+                                                                                                                            createdAt:
+                                                                                                                                old_comment_item?.createdAt,
+                                                                                                                            username:
+                                                                                                                                'Not Found',
+                                                                                                                            dp_link:
+                                                                                                                                'none',
+                                                                                                                            verified: false,
+                                                                                                                            is_c_owner: false,
+                                                                                                                        },
+                                                                                                                    );
+                                                                                                                }
+                                                                                                            },
+                                                                                                        );
+                                                                                                    } else {
+                                                                                                        old_comments?.map(
+                                                                                                            item => {
+                                                                                                                const old_comment_item =
+                                                                                                                    item;
+                                                                                                                new_comments?.push(
+                                                                                                                    {
+                                                                                                                        commenter:
+                                                                                                                            old_comment_item?.commenter,
+                                                                                                                        comment:
+                                                                                                                            old_comment_item?.comment,
+                                                                                                                        _id: old_comment_item?._id,
+                                                                                                                        createdAt:
+                                                                                                                            old_comment_item?.createdAt,
+                                                                                                                        username:
+                                                                                                                            'Not Found',
+                                                                                                                        dp_link:
+                                                                                                                            'none',
+                                                                                                                        verified: false,
+                                                                                                                        is_c_owner: false,
+                                                                                                                    },
+                                                                                                                );
+                                                                                                            },
+                                                                                                        );
+                                                                                                    }
+                                                                                                },
+                                                                                            );
+                                                                                    } catch (error) {
+                                                                                        old_comments?.map(
+                                                                                            item => {
+                                                                                                const old_comment_item =
+                                                                                                    item;
+                                                                                                new_comments?.push(
+                                                                                                    {
+                                                                                                        commenter:
+                                                                                                            old_comment_item?.commenter,
+                                                                                                        comment:
+                                                                                                            old_comment_item?.comment,
+                                                                                                        _id: old_comment_item?._id,
+                                                                                                        createdAt:
+                                                                                                            old_comment_item?.createdAt,
+                                                                                                        username:
+                                                                                                            'Not Found',
+                                                                                                        dp_link:
+                                                                                                            'none',
+                                                                                                        verified: false,
+                                                                                                        is_c_owner: false,
+                                                                                                    },
+                                                                                                );
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                } else {
+                                                                                    old_comments?.map(
+                                                                                        item => {
+                                                                                            const old_comment_item =
+                                                                                                item;
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        },
+                                                                                    );
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    } else {
+                                                                        const old_comments =
+                                                                            response?.comments;
+                                                                        const cmt_users =
+                                                                            [];
+                                                                        const processed_cmt_users =
+                                                                            [];
+                                                                        if (
+                                                                            old_comments?.length >
+                                                                            0
+                                                                        ) {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    if (
+                                                                                        cmt_users?.includes(
+                                                                                            item?.commenter?.toString(),
+                                                                                        ) ===
+                                                                                        false
+                                                                                    ) {
+                                                                                        cmt_users?.push(
+                                                                                            item?.commenter?.toString(),
+                                                                                        );
+                                                                                    }
+                                                                                },
+                                                                            );
+                                                                            cmt_users?.map(
+                                                                                item =>
+                                                                                    processed_cmt_users?.push(
+                                                                                        ObjectId(
+                                                                                            item,
+                                                                                        ),
+                                                                                    ),
+                                                                            );
+                                                                            if (
+                                                                                processed_cmt_users?.length >
+                                                                                0
+                                                                            ) {
+                                                                                try {
+                                                                                    await User.aggregate(
+                                                                                        [
+                                                                                            {
+                                                                                                $match: {
+                                                                                                    _id: {
+                                                                                                        $in: processed_cmt_users,
+                                                                                                    },
+                                                                                                },
+                                                                                            },
+                                                                                            {
+                                                                                                $project:
+                                                                                                    {
+                                                                                                        username: 1,
+                                                                                                        verified: 1,
+                                                                                                        dp_link: 1,
+                                                                                                    },
+                                                                                            },
+                                                                                        ],
+                                                                                    )
+                                                                                        .catch(
+                                                                                            err => {
+                                                                                                old_comments?.map(
+                                                                                                    item => {
+                                                                                                        const old_comment_item =
+                                                                                                            item;
+                                                                                                        new_comments?.push(
+                                                                                                            {
+                                                                                                                commenter:
+                                                                                                                    old_comment_item?.commenter,
+                                                                                                                comment:
+                                                                                                                    old_comment_item?.comment,
+                                                                                                                _id: old_comment_item?._id,
+                                                                                                                createdAt:
+                                                                                                                    old_comment_item?.createdAt,
+                                                                                                                username:
+                                                                                                                    'Not Found',
+                                                                                                                dp_link:
+                                                                                                                    'none',
+                                                                                                                verified: false,
+                                                                                                                is_c_owner: false,
+                                                                                                            },
+                                                                                                        );
+                                                                                                    },
+                                                                                                );
+                                                                                            },
+                                                                                        )
+                                                                                        .then(
+                                                                                            user_data => {
+                                                                                                if (
+                                                                                                    user_data?.length >
+                                                                                                    0
+                                                                                                ) {
+                                                                                                    const cmt_usernames =
+                                                                                                        user_data;
+                                                                                                    old_comments?.map(
+                                                                                                        item => {
+                                                                                                            const old_comment_item =
+                                                                                                                item;
+                                                                                                            const user =
+                                                                                                                cmt_usernames?.filter(
+                                                                                                                    usernames =>
+                                                                                                                        usernames?._id?.toString() ===
+                                                                                                                        old_comment_item?.commenter?.toString(),
+                                                                                                                );
+                                                                                                            if (
+                                                                                                                user?.length >
+                                                                                                                0
+                                                                                                            ) {
+                                                                                                                new_comments?.push(
+                                                                                                                    {
+                                                                                                                        commenter:
+                                                                                                                            old_comment_item?.commenter,
+                                                                                                                        comment:
+                                                                                                                            old_comment_item?.comment,
+                                                                                                                        _id: old_comment_item?._id,
+                                                                                                                        createdAt:
+                                                                                                                            old_comment_item?.createdAt,
+                                                                                                                        username:
+                                                                                                                            user?.[0]
+                                                                                                                                ?.username,
+                                                                                                                        dp_link:
+                                                                                                                            user?.[0]
+                                                                                                                                ?.dp_link,
+                                                                                                                        verified:
+                                                                                                                            none_null_bool(
+                                                                                                                                user?.[0]
+                                                                                                                                    ?.verified,
+                                                                                                                            )
+                                                                                                                                ? false
+                                                                                                                                : user?.[0]
+                                                                                                                                      ?.verified,
+                                                                                                                        is_c_owner:
+                                                                                                                            uid ===
+                                                                                                                            item?.commenter?.toString(),
+                                                                                                                    },
+                                                                                                                );
+                                                                                                            } else {
+                                                                                                                new_comments?.push(
+                                                                                                                    {
+                                                                                                                        commenter:
+                                                                                                                            old_comment_item?.commenter,
+                                                                                                                        comment:
+                                                                                                                            old_comment_item?.comment,
+                                                                                                                        _id: old_comment_item?._id,
+                                                                                                                        createdAt:
+                                                                                                                            old_comment_item?.createdAt,
+                                                                                                                        username:
+                                                                                                                            'Not Found',
+                                                                                                                        dp_link:
+                                                                                                                            'none',
+                                                                                                                        verified: false,
+                                                                                                                        is_c_owner: false,
+                                                                                                                    },
+                                                                                                                );
+                                                                                                            }
+                                                                                                        },
+                                                                                                    );
+                                                                                                } else {
+                                                                                                    old_comments?.map(
+                                                                                                        item => {
+                                                                                                            const old_comment_item =
+                                                                                                                item;
+                                                                                                            new_comments?.push(
+                                                                                                                {
+                                                                                                                    commenter:
+                                                                                                                        old_comment_item?.commenter,
+                                                                                                                    comment:
+                                                                                                                        old_comment_item?.comment,
+                                                                                                                    _id: old_comment_item?._id,
+                                                                                                                    createdAt:
+                                                                                                                        old_comment_item?.createdAt,
+                                                                                                                    username:
+                                                                                                                        'Not Found',
+                                                                                                                    dp_link:
+                                                                                                                        'none',
+                                                                                                                    verified: false,
+                                                                                                                    is_c_owner: false,
+                                                                                                                },
+                                                                                                            );
+                                                                                                        },
+                                                                                                    );
+                                                                                                }
+                                                                                            },
+                                                                                        );
+                                                                                } catch (error) {
+                                                                                    old_comments?.map(
+                                                                                        item => {
+                                                                                            const old_comment_item =
+                                                                                                item;
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        },
+                                                                                    );
+                                                                                }
+                                                                            } else {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                            );
+                                                    } catch (error) {
+                                                        const old_comments =
+                                                            response?.comments;
+                                                        const cmt_users = [];
+                                                        const processed_cmt_users =
+                                                            [];
+                                                        if (
+                                                            old_comments?.length >
+                                                            0
+                                                        ) {
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    if (
+                                                                        cmt_users?.includes(
+                                                                            item?.commenter?.toString(),
+                                                                        ) ===
+                                                                        false
+                                                                    ) {
+                                                                        cmt_users?.push(
+                                                                            item?.commenter?.toString(),
+                                                                        );
+                                                                    }
+                                                                },
+                                                            );
+                                                            cmt_users?.map(
+                                                                item =>
+                                                                    processed_cmt_users?.push(
+                                                                        ObjectId(
+                                                                            item,
+                                                                        ),
+                                                                    ),
+                                                            );
+                                                            if (
+                                                                processed_cmt_users?.length >
+                                                                0
+                                                            ) {
+                                                                try {
+                                                                    await User.aggregate(
+                                                                        [
+                                                                            {
+                                                                                $match: {
+                                                                                    _id: {
+                                                                                        $in: processed_cmt_users,
                                                                                     },
                                                                                 },
-                                                                                {
-                                                                                    $project: {
+                                                                            },
+                                                                            {
+                                                                                $project:
+                                                                                    {
                                                                                         username: 1,
                                                                                         verified: 1,
                                                                                         dp_link: 1,
                                                                                     },
-                                                                                },
-                                                                            ])
-                                                                                .catch(err => {
-                                                                                    old_comments?.map(item => {
-                                                                                        const old_comment_item = item;
-                                                                                        new_comments?.push({
-                                                                                            commenter: old_comment_item?.commenter,
-                                                                                            comment: old_comment_item?.comment,
-                                                                                            _id: old_comment_item?._id,
-                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                            username: 'Not Found',
-                                                                                            dp_link: 'none',
-                                                                                            verified: false,
-                                                                                            is_c_owner: false,
-                                                                                        });
-                                                                                    });
-                                                                                })
-                                                                                .then(user_data => {
-                                                                                    if (user_data?.length > 0) {
-                                                                                        const cmt_usernames = user_data;
-                                                                                        old_comments?.map(item => {
-                                                                                            const old_comment_item = item;
-                                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
-                                                                                            if (user?.length > 0) {
-                                                                                                new_comments?.push({
-                                                                                                    commenter: old_comment_item?.commenter,
-                                                                                                    comment: old_comment_item?.comment,
-                                                                                                    _id: old_comment_item?._id,
-                                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                                    username: user?.[0]?.username,
-                                                                                                    dp_link: user?.[0]?.dp_link,
-                                                                                                    verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                    is_c_owner: uid === item?.commenter?.toString(),
-                                                                                                });
-                                                                                            } else {
-                                                                                                new_comments?.push({
-                                                                                                    commenter: old_comment_item?.commenter,
-                                                                                                    comment: old_comment_item?.comment,
-                                                                                                    _id: old_comment_item?._id,
-                                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                                    username: 'Not Found',
-                                                                                                    dp_link: 'none',
-                                                                                                    verified: false,
-                                                                                                    is_c_owner: false,
-                                                                                                });
-                                                                                            }
-                                                                                        });
-                                                                                    } else {
-                                                                                        old_comments?.map(item => {
-                                                                                            const old_comment_item = item;
-                                                                                            new_comments?.push({
-                                                                                                commenter: old_comment_item?.commenter,
-                                                                                                comment: old_comment_item?.comment,
+                                                                            },
+                                                                        ],
+                                                                    )
+                                                                        .catch(
+                                                                            err => {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
                                                                                                 _id: old_comment_item?._id,
-                                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                                username: 'Not Found',
-                                                                                                dp_link: 'none',
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
                                                                                                 verified: false,
                                                                                                 is_c_owner: false,
-                                                                                            });
-                                                                                        });
-                                                                                    }
-                                                                                });
-                                                                        } catch (error) {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        }
-                                                                    } else {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
-                                                                                _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
-                                                                                verified: false,
-                                                                                is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    }
-                                                                }
-                                                            })
-                                                            .then(async blog_res => {
-                                                                if (blog_res !== null || blog_res !== undefined) {
-                                                                    if (blog_res?.length > 0) {
-                                                                        const old_comments = blog_res?.[0]?.comments;
-                                                                        const cmt_users = [];
-                                                                        const processed_cmt_users = [];
-                                                                        if (old_comments?.length > 0) {
-                                                                            old_comments?.map(item => {
-                                                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                                    cmt_users?.push(item?.commenter?.toString());
-                                                                                }
-                                                                            });
-                                                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                                            if (processed_cmt_users?.length > 0) {
-                                                                                try {
-                                                                                    await User.aggregate([
-                                                                                        {
-                                                                                            $match: {
-                                                                                                _id: { $in: processed_cmt_users },
                                                                                             },
-                                                                                        },
-                                                                                        {
-                                                                                            $project: {
-                                                                                                username: 1,
-                                                                                                verified: 1,
-                                                                                                dp_link: 1,
-                                                                                            },
-                                                                                        },
-                                                                                    ])
-                                                                                        .catch(err => {
-                                                                                            old_comments?.map(item => {
-                                                                                                const old_comment_item = item;
-                                                                                                new_comments?.push({
-                                                                                                    commenter: old_comment_item?.commenter,
-                                                                                                    comment: old_comment_item?.comment,
-                                                                                                    _id: old_comment_item?._id,
-                                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                                    username: 'Not Found',
-                                                                                                    dp_link: 'none',
-                                                                                                    verified: false,
-                                                                                                    is_c_owner: false,
-                                                                                                });
-                                                                                            });
-                                                                                        })
-                                                                                        .then(user_data => {
-                                                                                            if (user_data?.length > 0) {
-                                                                                                const cmt_usernames = user_data;
-                                                                                                old_comments?.map(item => {
-                                                                                                    const old_comment_item = item;
-                                                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
-                                                                                                    if (user?.length > 0) {
-                                                                                                        new_comments?.push({
-                                                                                                            commenter: old_comment_item?.commenter,
-                                                                                                            comment: old_comment_item?.comment,
-                                                                                                            _id: old_comment_item?._id,
-                                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                                            username: user?.[0]?.username,
-                                                                                                            dp_link: user?.[0]?.dp_link,
-                                                                                                            verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                            is_c_owner: uid === item?.commenter?.toString(),
-                                                                                                        });
-                                                                                                    } else {
-                                                                                                        new_comments?.push({
-                                                                                                            commenter: old_comment_item?.commenter,
-                                                                                                            comment: old_comment_item?.comment,
-                                                                                                            _id: old_comment_item?._id,
-                                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                                            username: 'Not Found',
-                                                                                                            dp_link: 'none',
-                                                                                                            verified: false,
-                                                                                                            is_c_owner: false,
-                                                                                                        });
-                                                                                                    }
-                                                                                                });
-                                                                                            } else {
-                                                                                                old_comments?.map(item => {
-                                                                                                    const old_comment_item = item;
-                                                                                                    new_comments?.push({
-                                                                                                        commenter: old_comment_item?.commenter,
-                                                                                                        comment: old_comment_item?.comment,
-                                                                                                        _id: old_comment_item?._id,
-                                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                                        username: 'Not Found',
-                                                                                                        dp_link: 'none',
-                                                                                                        verified: false,
-                                                                                                        is_c_owner: false,
-                                                                                                    });
-                                                                                                });
-                                                                                            }
-                                                                                        });
-                                                                                } catch (error) {
-                                                                                    old_comments?.map(item => {
-                                                                                        const old_comment_item = item;
-                                                                                        new_comments?.push({
-                                                                                            commenter: old_comment_item?.commenter,
-                                                                                            comment: old_comment_item?.comment,
-                                                                                            _id: old_comment_item?._id,
-                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                            username: 'Not Found',
-                                                                                            dp_link: 'none',
-                                                                                            verified: false,
-                                                                                            is_c_owner: false,
-                                                                                        });
-                                                                                    });
-                                                                                }
-                                                                            } else {
-                                                                                old_comments?.map(item => {
-                                                                                    const old_comment_item = item;
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                        }
-                                                                    } else {
-                                                                        const old_comments = response?.comments;
-                                                                        const cmt_users = [];
-                                                                        const processed_cmt_users = [];
-                                                                        if (old_comments?.length > 0) {
-                                                                            old_comments?.map(item => {
-                                                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                                    cmt_users?.push(item?.commenter?.toString());
-                                                                                }
-                                                                            });
-                                                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                                            if (processed_cmt_users?.length > 0) {
-                                                                                try {
-                                                                                    await User.aggregate([
-                                                                                        {
-                                                                                            $match: {
-                                                                                                _id: { $in: processed_cmt_users },
-                                                                                            },
-                                                                                        },
-                                                                                        {
-                                                                                            $project: {
-                                                                                                username: 1,
-                                                                                                verified: 1,
-                                                                                                dp_link: 1,
-                                                                                            },
-                                                                                        },
-                                                                                    ])
-                                                                                        .catch(err => {
-                                                                                            old_comments?.map(item => {
-                                                                                                const old_comment_item = item;
-                                                                                                new_comments?.push({
-                                                                                                    commenter: old_comment_item?.commenter,
-                                                                                                    comment: old_comment_item?.comment,
-                                                                                                    _id: old_comment_item?._id,
-                                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                                    username: 'Not Found',
-                                                                                                    dp_link: 'none',
-                                                                                                    verified: false,
-                                                                                                    is_c_owner: false,
-                                                                                                });
-                                                                                            });
-                                                                                        })
-                                                                                        .then(user_data => {
-                                                                                            if (user_data?.length > 0) {
-                                                                                                const cmt_usernames = user_data;
-                                                                                                old_comments?.map(item => {
-                                                                                                    const old_comment_item = item;
-                                                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
-                                                                                                    if (user?.length > 0) {
-                                                                                                        new_comments?.push({
-                                                                                                            commenter: old_comment_item?.commenter,
-                                                                                                            comment: old_comment_item?.comment,
-                                                                                                            _id: old_comment_item?._id,
-                                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                                            username: user?.[0]?.username,
-                                                                                                            dp_link: user?.[0]?.dp_link,
-                                                                                                            verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                            is_c_owner: uid === item?.commenter?.toString(),
-                                                                                                        });
-                                                                                                    } else {
-                                                                                                        new_comments?.push({
-                                                                                                            commenter: old_comment_item?.commenter,
-                                                                                                            comment: old_comment_item?.comment,
-                                                                                                            _id: old_comment_item?._id,
-                                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                                            username: 'Not Found',
-                                                                                                            dp_link: 'none',
-                                                                                                            verified: false,
-                                                                                                            is_c_owner: false,
-                                                                                                        });
-                                                                                                    }
-                                                                                                });
-                                                                                            } else {
-                                                                                                old_comments?.map(item => {
-                                                                                                    const old_comment_item = item;
-                                                                                                    new_comments?.push({
-                                                                                                        commenter: old_comment_item?.commenter,
-                                                                                                        comment: old_comment_item?.comment,
-                                                                                                        _id: old_comment_item?._id,
-                                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                                        username: 'Not Found',
-                                                                                                        dp_link: 'none',
-                                                                                                        verified: false,
-                                                                                                        is_c_owner: false,
-                                                                                                    });
-                                                                                                });
-                                                                                            }
-                                                                                        });
-                                                                                } catch (error) {
-                                                                                    old_comments?.map(item => {
-                                                                                        const old_comment_item = item;
-                                                                                        new_comments?.push({
-                                                                                            commenter: old_comment_item?.commenter,
-                                                                                            comment: old_comment_item?.comment,
-                                                                                            _id: old_comment_item?._id,
-                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                            username: 'Not Found',
-                                                                                            dp_link: 'none',
-                                                                                            verified: false,
-                                                                                            is_c_owner: false,
-                                                                                        });
-                                                                                    });
-                                                                                }
-                                                                            } else {
-                                                                                old_comments?.map(item => {
-                                                                                    const old_comment_item = item;
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    const old_comments = response?.comments;
-                                                                    const cmt_users = [];
-                                                                    const processed_cmt_users = [];
-                                                                    if (old_comments?.length > 0) {
-                                                                        old_comments?.map(item => {
-                                                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                                cmt_users?.push(item?.commenter?.toString());
-                                                                            }
-                                                                        });
-                                                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                                        if (processed_cmt_users?.length > 0) {
-                                                                            try {
-                                                                                await User.aggregate([
-                                                                                    {
-                                                                                        $match: {
-                                                                                            _id: { $in: processed_cmt_users },
-                                                                                        },
+                                                                                        );
                                                                                     },
-                                                                                    {
-                                                                                        $project: {
-                                                                                            username: 1,
-                                                                                            verified: 1,
-                                                                                            dp_link: 1,
-                                                                                        },
-                                                                                    },
-                                                                                ])
-                                                                                    .catch(err => {
-                                                                                        old_comments?.map(item => {
-                                                                                            const old_comment_item = item;
-                                                                                            new_comments?.push({
-                                                                                                commenter: old_comment_item?.commenter,
-                                                                                                comment: old_comment_item?.comment,
-                                                                                                _id: old_comment_item?._id,
-                                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                                username: 'Not Found',
-                                                                                                dp_link: 'none',
-                                                                                                verified: false,
-                                                                                                is_c_owner: false,
-                                                                                            });
-                                                                                        });
-                                                                                    })
-                                                                                    .then(user_data => {
-                                                                                        if (user_data?.length > 0) {
-                                                                                            const cmt_usernames = user_data;
-                                                                                            old_comments?.map(item => {
-                                                                                                const old_comment_item = item;
-                                                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
-                                                                                                if (user?.length > 0) {
-                                                                                                    new_comments?.push({
-                                                                                                        commenter: old_comment_item?.commenter,
-                                                                                                        comment: old_comment_item?.comment,
+                                                                                );
+                                                                            },
+                                                                        )
+                                                                        .then(
+                                                                            user_data => {
+                                                                                if (
+                                                                                    user_data?.length >
+                                                                                    0
+                                                                                ) {
+                                                                                    const cmt_usernames =
+                                                                                        user_data;
+                                                                                    old_comments?.map(
+                                                                                        item => {
+                                                                                            const old_comment_item =
+                                                                                                item;
+                                                                                            const user =
+                                                                                                cmt_usernames?.filter(
+                                                                                                    usernames =>
+                                                                                                        usernames?._id?.toString() ===
+                                                                                                        old_comment_item?.commenter?.toString(),
+                                                                                                );
+                                                                                            if (
+                                                                                                user?.length >
+                                                                                                0
+                                                                                            ) {
+                                                                                                new_comments?.push(
+                                                                                                    {
+                                                                                                        commenter:
+                                                                                                            old_comment_item?.commenter,
+                                                                                                        comment:
+                                                                                                            old_comment_item?.comment,
                                                                                                         _id: old_comment_item?._id,
-                                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                                        username: user?.[0]?.username,
-                                                                                                        dp_link: user?.[0]?.dp_link,
-                                                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                                        is_c_owner: uid === item?.commenter?.toString(),
-                                                                                                    });
-                                                                                                } else {
-                                                                                                    new_comments?.push({
-                                                                                                        commenter: old_comment_item?.commenter,
-                                                                                                        comment: old_comment_item?.comment,
+                                                                                                        createdAt:
+                                                                                                            old_comment_item?.createdAt,
+                                                                                                        username:
+                                                                                                            user?.[0]
+                                                                                                                ?.username,
+                                                                                                        dp_link:
+                                                                                                            user?.[0]
+                                                                                                                ?.dp_link,
+                                                                                                        verified:
+                                                                                                            none_null_bool(
+                                                                                                                user?.[0]
+                                                                                                                    ?.verified,
+                                                                                                            )
+                                                                                                                ? false
+                                                                                                                : user?.[0]
+                                                                                                                      ?.verified,
+                                                                                                        is_c_owner:
+                                                                                                            uid ===
+                                                                                                            item?.commenter?.toString(),
+                                                                                                    },
+                                                                                                );
+                                                                                            } else {
+                                                                                                new_comments?.push(
+                                                                                                    {
+                                                                                                        commenter:
+                                                                                                            old_comment_item?.commenter,
+                                                                                                        comment:
+                                                                                                            old_comment_item?.comment,
                                                                                                         _id: old_comment_item?._id,
-                                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                                        username: 'Not Found',
-                                                                                                        dp_link: 'none',
+                                                                                                        createdAt:
+                                                                                                            old_comment_item?.createdAt,
+                                                                                                        username:
+                                                                                                            'Not Found',
+                                                                                                        dp_link:
+                                                                                                            'none',
                                                                                                         verified: false,
                                                                                                         is_c_owner: false,
-                                                                                                    });
-                                                                                                }
-                                                                                            });
-                                                                                        } else {
-                                                                                            old_comments?.map(item => {
-                                                                                                const old_comment_item = item;
-                                                                                                new_comments?.push({
-                                                                                                    commenter: old_comment_item?.commenter,
-                                                                                                    comment: old_comment_item?.comment,
+                                                                                                    },
+                                                                                                );
+                                                                                            }
+                                                                                        },
+                                                                                    );
+                                                                                } else {
+                                                                                    old_comments?.map(
+                                                                                        item => {
+                                                                                            const old_comment_item =
+                                                                                                item;
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
                                                                                                     _id: old_comment_item?._id,
-                                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                                    username: 'Not Found',
-                                                                                                    dp_link: 'none',
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
                                                                                                     verified: false,
                                                                                                     is_c_owner: false,
-                                                                                                });
-                                                                                            });
-                                                                                        }
-                                                                                    });
-                                                                            } catch (error) {
-                                                                                old_comments?.map(item => {
-                                                                                    const old_comment_item = item;
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                        } else {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                }
-                                                            });
-                                                    } catch (error) {
-                                                        const old_comments = response?.comments;
-                                                        const cmt_users = [];
-                                                        const processed_cmt_users = [];
-                                                        if (old_comments?.length > 0) {
-                                                            old_comments?.map(item => {
-                                                                if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                    cmt_users?.push(item?.commenter?.toString());
-                                                                }
-                                                            });
-                                                            cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                            if (processed_cmt_users?.length > 0) {
-                                                                try {
-                                                                    await User.aggregate([
-                                                                        {
-                                                                            $match: {
-                                                                                _id: { $in: processed_cmt_users },
+                                                                                                },
+                                                                                            );
+                                                                                        },
+                                                                                    );
+                                                                                }
                                                                             },
-                                                                        },
-                                                                        {
-                                                                            $project: {
-                                                                                username: 1,
-                                                                                verified: 1,
-                                                                                dp_link: 1,
-                                                                            },
-                                                                        },
-                                                                    ])
-                                                                        .catch(err => {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        })
-                                                                        .then(user_data => {
-                                                                            if (user_data?.length > 0) {
-                                                                                const cmt_usernames = user_data;
-                                                                                old_comments?.map(item => {
-                                                                                    const old_comment_item = item;
-                                                                                    const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === old_comment_item?.commenter?.toString());
-                                                                                    if (user?.length > 0) {
-                                                                                        new_comments?.push({
-                                                                                            commenter: old_comment_item?.commenter,
-                                                                                            comment: old_comment_item?.comment,
-                                                                                            _id: old_comment_item?._id,
-                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                            username: user?.[0]?.username,
-                                                                                            dp_link: user?.[0]?.dp_link,
-                                                                                            verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                            is_c_owner: uid === item?.commenter?.toString(),
-                                                                                        });
-                                                                                    } else {
-                                                                                        new_comments?.push({
-                                                                                            commenter: old_comment_item?.commenter,
-                                                                                            comment: old_comment_item?.comment,
-                                                                                            _id: old_comment_item?._id,
-                                                                                            createdAt: old_comment_item?.createdAt,
-                                                                                            username: 'Not Found',
-                                                                                            dp_link: 'none',
-                                                                                            verified: false,
-                                                                                            is_c_owner: false,
-                                                                                        });
-                                                                                    }
-                                                                                });
-                                                                            } else {
-                                                                                old_comments?.map(item => {
-                                                                                    const old_comment_item = item;
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                });
-                                                                            }
-                                                                        });
+                                                                        );
                                                                 } catch (error) {
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        new_comments?.push({
-                                                                            commenter: old_comment_item?.commenter,
-                                                                            comment: old_comment_item?.comment,
-                                                                            _id: old_comment_item?._id,
-                                                                            createdAt: old_comment_item?.createdAt,
-                                                                            username: 'Not Found',
-                                                                            dp_link: 'none',
-                                                                            verified: false,
-                                                                            is_c_owner: false,
-                                                                        });
-                                                                    });
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            new_comments?.push(
+                                                                                {
+                                                                                    commenter:
+                                                                                        old_comment_item?.commenter,
+                                                                                    comment:
+                                                                                        old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt:
+                                                                                        old_comment_item?.createdAt,
+                                                                                    username:
+                                                                                        'Not Found',
+                                                                                    dp_link:
+                                                                                        'none',
+                                                                                    verified: false,
+                                                                                    is_c_owner: false,
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    );
                                                                 }
                                                             } else {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
+                                                                                verified: false,
+                                                                                is_c_owner: false,
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
                                                             }
                                                         }
                                                     }
                                                     res.json({
                                                         status: 'success',
-                                                        response: [...new_comments].reverse(),
+                                                        response: [
+                                                            ...new_comments,
+                                                        ].reverse(),
                                                     });
                                                 }
                                             });
@@ -1765,7 +2754,11 @@ router.patch('/comment/edit', verifyJWTbody, async (req, res) => {
         const cid = req.body.cid;
         const comment = req.body.comment;
 
-        if (none_null(bid) === false && none_null(cid) === false && none_null(comment) === false) {
+        if (
+            none_null(bid) === false &&
+            none_null(cid) === false &&
+            none_null(comment) === false
+        ) {
             try {
                 await User.aggregate([
                     {
@@ -1811,43 +2804,97 @@ router.patch('/comment/edit', verifyJWTbody, async (req, res) => {
                                                 });
                                             })
                                             .then(async blog_res => {
-                                                if (blog_res !== undefined || blog_res !== null) {
+                                                if (
+                                                    blog_res !== undefined ||
+                                                    blog_res !== null
+                                                ) {
                                                     if (blog_res?.length > 0) {
-                                                        if (blog_res[0]?.comments?.length > 0) {
-                                                            const cmtr_id = blog_res[0]?.comments?.filter(item => item?._id?.toString() === cid)?.[0]?.commenter?.toString();
+                                                        if (
+                                                            blog_res[0]
+                                                                ?.comments
+                                                                ?.length > 0
+                                                        ) {
+                                                            const cmtr_id =
+                                                                blog_res[0]?.comments
+                                                                    ?.filter(
+                                                                        item =>
+                                                                            item?._id?.toString() ===
+                                                                            cid,
+                                                                    )?.[0]
+                                                                    ?.commenter?.toString();
 
-                                                            if (cmtr_id === undefined || cmtr_id === null) {
+                                                            if (
+                                                                cmtr_id ===
+                                                                    undefined ||
+                                                                cmtr_id === null
+                                                            ) {
                                                                 res.json({
                                                                     status: 'error',
                                                                     code: 'ERR-BLGD-040',
                                                                 });
                                                             } else {
-                                                                if (uid === cmtr_id) {
+                                                                if (
+                                                                    uid ===
+                                                                    cmtr_id
+                                                                ) {
                                                                     try {
-                                                                        await Blog.updateOne({ _id: ObjectId(bid), 'comments._id': ObjectId(cid) }, { $set: { 'comments.$.comment': comment } })
-                                                                            .catch(err => {
-                                                                                res.json({
-                                                                                    status: 'error',
-                                                                                    code: 'ERR-BLGD-042',
-                                                                                });
-                                                                            })
-                                                                            .then(response => {
-                                                                                if (response === null || response === undefined) {
-                                                                                    res.json({
-                                                                                        status: 'error',
-                                                                                        code: 'ERR-BLGD-042',
-                                                                                    });
-                                                                                } else {
-                                                                                    res.json({
-                                                                                        status: 'success',
-                                                                                    });
-                                                                                }
-                                                                            });
+                                                                        await Blog.updateOne(
+                                                                            {
+                                                                                _id: ObjectId(
+                                                                                    bid,
+                                                                                ),
+                                                                                'comments._id':
+                                                                                    ObjectId(
+                                                                                        cid,
+                                                                                    ),
+                                                                            },
+                                                                            {
+                                                                                $set: {
+                                                                                    'comments.$.comment':
+                                                                                        comment,
+                                                                                },
+                                                                            },
+                                                                        )
+                                                                            .catch(
+                                                                                err => {
+                                                                                    res.json(
+                                                                                        {
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-042',
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            )
+                                                                            .then(
+                                                                                response => {
+                                                                                    if (
+                                                                                        response ===
+                                                                                            null ||
+                                                                                        response ===
+                                                                                            undefined
+                                                                                    ) {
+                                                                                        res.json(
+                                                                                            {
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-042',
+                                                                                            },
+                                                                                        );
+                                                                                    } else {
+                                                                                        res.json(
+                                                                                            {
+                                                                                                status: 'success',
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                },
+                                                                            );
                                                                     } catch (error) {
-                                                                        res.json({
-                                                                            status: 'error',
-                                                                            code: 'ERR-BLGD-042',
-                                                                        });
+                                                                        res.json(
+                                                                            {
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-042',
+                                                                            },
+                                                                        );
                                                                     }
                                                                 } else {
                                                                     res.json({
@@ -1978,45 +3025,98 @@ router.patch('/comment/delete', verifyJWTbody, async (req, res) => {
                                                 });
                                             })
                                             .then(async blog_res => {
-                                                if (result !== null || result !== undefined) {
+                                                if (
+                                                    result !== null ||
+                                                    result !== undefined
+                                                ) {
                                                     if (blog_res?.length > 0) {
-                                                        const aid = blog_res[0]?.author?.toString();
+                                                        const aid =
+                                                            blog_res[0]?.author?.toString();
 
-                                                        if (blog_res[0]?.comments?.length > 0) {
-                                                            const cmtr_id = blog_res[0]?.comments?.filter(item => item?._id?.toString() === cid)?.[0]?.commenter?.toString();
+                                                        if (
+                                                            blog_res[0]
+                                                                ?.comments
+                                                                ?.length > 0
+                                                        ) {
+                                                            const cmtr_id =
+                                                                blog_res[0]?.comments
+                                                                    ?.filter(
+                                                                        item =>
+                                                                            item?._id?.toString() ===
+                                                                            cid,
+                                                                    )?.[0]
+                                                                    ?.commenter?.toString();
 
-                                                            if (cmtr_id === undefined || cmtr_id === null) {
+                                                            if (
+                                                                cmtr_id ===
+                                                                    undefined ||
+                                                                cmtr_id === null
+                                                            ) {
                                                                 res.json({
                                                                     status: 'error',
                                                                     code: 'ERR-BLGD-040',
                                                                 });
                                                             } else {
-                                                                if (uid === aid || uid === cmtr_id) {
+                                                                if (
+                                                                    uid ===
+                                                                        aid ||
+                                                                    uid ===
+                                                                        cmtr_id
+                                                                ) {
                                                                     try {
-                                                                        await Blog.findByIdAndUpdate(bid, { $pull: { comments: { _id: ObjectId(cid) } } })
-                                                                            .catch(err => {
-                                                                                res.json({
-                                                                                    status: 'error',
-                                                                                    code: 'ERR-BLGD-037',
-                                                                                });
-                                                                            })
-                                                                            .then(response => {
-                                                                                if (response === null || response === undefined) {
-                                                                                    res.json({
-                                                                                        status: 'error',
-                                                                                        code: 'ERR-BLGD-037',
-                                                                                    });
-                                                                                } else {
-                                                                                    res.json({
-                                                                                        status: 'success',
-                                                                                    });
-                                                                                }
-                                                                            });
+                                                                        await Blog.findByIdAndUpdate(
+                                                                            bid,
+                                                                            {
+                                                                                $pull: {
+                                                                                    comments:
+                                                                                        {
+                                                                                            _id: ObjectId(
+                                                                                                cid,
+                                                                                            ),
+                                                                                        },
+                                                                                },
+                                                                            },
+                                                                        )
+                                                                            .catch(
+                                                                                err => {
+                                                                                    res.json(
+                                                                                        {
+                                                                                            status: 'error',
+                                                                                            code: 'ERR-BLGD-037',
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            )
+                                                                            .then(
+                                                                                response => {
+                                                                                    if (
+                                                                                        response ===
+                                                                                            null ||
+                                                                                        response ===
+                                                                                            undefined
+                                                                                    ) {
+                                                                                        res.json(
+                                                                                            {
+                                                                                                status: 'error',
+                                                                                                code: 'ERR-BLGD-037',
+                                                                                            },
+                                                                                        );
+                                                                                    } else {
+                                                                                        res.json(
+                                                                                            {
+                                                                                                status: 'success',
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                },
+                                                                            );
                                                                     } catch (error) {
-                                                                        res.json({
-                                                                            status: 'error',
-                                                                            code: 'ERR-BLGD-037',
-                                                                        });
+                                                                        res.json(
+                                                                            {
+                                                                                status: 'error',
+                                                                                code: 'ERR-BLGD-037',
+                                                                            },
+                                                                        );
                                                                     }
                                                                 } else {
                                                                     res.json({
@@ -2139,9 +3239,13 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                             author: 1,
                                             dp_link: 1,
                                             likes_length: { $size: '$likes' },
-                                            comments_length: { $size: '$comments' },
+                                            comments_length: {
+                                                $size: '$comments',
+                                            },
                                             tags: 1,
-                                            liked: { $in: [ObjectId(uid), '$likes'] },
+                                            liked: {
+                                                $in: [ObjectId(uid), '$likes'],
+                                            },
                                             createdAt: 1,
                                             updatedAt: 1,
                                         },
@@ -2157,10 +3261,15 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                         });
                                     })
                                     .then(async blog_res => {
-                                        if (blog_res !== null || blog_res !== undefined) {
+                                        if (
+                                            blog_res !== null ||
+                                            blog_res !== undefined
+                                        ) {
                                             if (blog_res?.length > 0) {
                                                 const authors = [];
-                                                blog_res?.map(blog => authors.push(blog?.author));
+                                                blog_res?.map(blog =>
+                                                    authors.push(blog?.author),
+                                                );
                                                 const authors_info = [];
                                                 try {
                                                     await User.aggregate([
@@ -2179,9 +3288,22 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                                             },
                                                         },
                                                     ]).then(res_author_name => {
-                                                        if (res_author_name !== null || res_author_name !== undefined) {
-                                                            if (res_author_name?.length > 0) {
-                                                                res_author_name?.map(item => authors_info.push(item));
+                                                        if (
+                                                            res_author_name !==
+                                                                null ||
+                                                            res_author_name !==
+                                                                undefined
+                                                        ) {
+                                                            if (
+                                                                res_author_name?.length >
+                                                                0
+                                                            ) {
+                                                                res_author_name?.map(
+                                                                    item =>
+                                                                        authors_info.push(
+                                                                            item,
+                                                                        ),
+                                                                );
                                                             }
                                                         }
                                                     });
@@ -2190,23 +3312,68 @@ router.get('/foryou', verifyJWTHeader, async (req, res) => {
                                                 }
                                                 const blogs_arr = [];
                                                 blog_res.map(item => {
-                                                    const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                                    const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                                    const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                                    const p_author_username =
+                                                        authors_info?.filter(
+                                                            a_info =>
+                                                                a_info?._id?.toString() ===
+                                                                item?.author?.toString(),
+                                                        )?.[0]?.username;
+                                                    const p_author_verified =
+                                                        authors_info?.filter(
+                                                            a_info =>
+                                                                a_info?._id?.toString() ===
+                                                                item?.author?.toString(),
+                                                        )?.[0]?.verified;
+                                                    const p_p_author_verified =
+                                                        none_null_bool(
+                                                            p_author_verified,
+                                                        )
+                                                            ? false
+                                                            : p_author_verified;
                                                     const blog_item = {};
-                                                    blog_item['bid'] = item?._id?.toString();
-                                                    blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                                    blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                                    blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
-                                                    blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
-                                                    blog_item['title'] = item?.title;
-                                                    blog_item['b_dp_link'] = item?.dp_link;
-                                                    blog_item['likes_l'] = item?.likes_length;
-                                                    blog_item['comments_l'] = item?.comments_length;
-                                                    blog_item['tags'] = item?.tags;
-                                                    blog_item['liked'] = item?.liked;
-                                                    blog_item['createdAt'] = item?.createdAt;
-                                                    blog_item['updatedAt'] = item?.updatedAt;
+                                                    blog_item['bid'] =
+                                                        item?._id?.toString();
+                                                    blog_item['aid'] =
+                                                        none_null(
+                                                            p_author_username,
+                                                        )
+                                                            ? 'Not Found'
+                                                            : item?.author?.toString();
+                                                    blog_item['author'] =
+                                                        none_null(
+                                                            p_author_username,
+                                                        )
+                                                            ? 'Not Found'
+                                                            : p_author_username;
+                                                    blog_item['averified'] =
+                                                        none_null(
+                                                            p_author_username,
+                                                        )
+                                                            ? false
+                                                            : p_p_author_verified;
+                                                    blog_item['isowner'] =
+                                                        none_null(
+                                                            p_author_username,
+                                                        )
+                                                            ? false
+                                                            : item?.author?.toString() ===
+                                                              uid;
+                                                    blog_item['title'] =
+                                                        item?.title;
+                                                    blog_item['b_dp_link'] =
+                                                        item?.dp_link;
+                                                    blog_item['likes_l'] =
+                                                        item?.likes_length;
+                                                    blog_item['comments_l'] =
+                                                        item?.comments_length;
+                                                    blog_item['tags'] =
+                                                        item?.tags;
+                                                    blog_item['liked'] =
+                                                        item?.liked;
+                                                    blog_item['createdAt'] =
+                                                        item?.createdAt;
+                                                    blog_item['updatedAt'] =
+                                                        item?.updatedAt;
                                                     blogs_arr.push(blog_item);
                                                 });
                                                 res.json({
@@ -2329,9 +3496,14 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                             },
                                         },
                                     ]).then(res_author_name => {
-                                        if (res_author_name !== null || res_author_name !== undefined) {
+                                        if (
+                                            res_author_name !== null ||
+                                            res_author_name !== undefined
+                                        ) {
                                             if (res_author_name?.length > 0) {
-                                                res_author_name?.map(item => authors_info.push(item));
+                                                res_author_name?.map(item =>
+                                                    authors_info.push(item),
+                                                );
                                             }
                                         }
                                     });
@@ -2340,19 +3512,46 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                 }
                                 const blogs_arr = [];
                                 result.map(item => {
-                                    const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                    const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                    const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                    const p_author_username =
+                                        authors_info?.filter(
+                                            a_info =>
+                                                a_info?._id?.toString() ===
+                                                item?.author?.toString(),
+                                        )?.[0]?.username;
+                                    const p_author_verified =
+                                        authors_info?.filter(
+                                            a_info =>
+                                                a_info?._id?.toString() ===
+                                                item?.author?.toString(),
+                                        )?.[0]?.verified;
+                                    const p_p_author_verified = none_null_bool(
+                                        p_author_verified,
+                                    )
+                                        ? false
+                                        : p_author_verified;
                                     const blog_item = {};
                                     blog_item['bid'] = item?._id?.toString();
-                                    blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                    blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                    blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                    blog_item['aid'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? 'Not Found'
+                                        : item?.author?.toString();
+                                    blog_item['author'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? 'Not Found'
+                                        : p_author_username;
+                                    blog_item['averified'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? false
+                                        : p_p_author_verified;
                                     blog_item['isowner'] = false;
                                     blog_item['title'] = item?.title;
                                     blog_item['b_dp_link'] = item?.dp_link;
                                     blog_item['likes_l'] = item?.likes_length;
-                                    blog_item['comments_l'] = item?.comments_length;
+                                    blog_item['comments_l'] =
+                                        item?.comments_length;
                                     blog_item['tags'] = item?.tags;
                                     blog_item['liked'] = false;
                                     blog_item['createdAt'] = item?.createdAt;
@@ -2443,9 +3642,14 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                             },
                                         },
                                     ]).then(res_author_name => {
-                                        if (res_author_name !== null || res_author_name !== undefined) {
+                                        if (
+                                            res_author_name !== null ||
+                                            res_author_name !== undefined
+                                        ) {
                                             if (res_author_name?.length > 0) {
-                                                res_author_name?.map(item => authors_info.push(item));
+                                                res_author_name?.map(item =>
+                                                    authors_info.push(item),
+                                                );
                                             }
                                         }
                                     });
@@ -2454,19 +3658,50 @@ router.get('/trending', verifyJWTHeaderIA, async (req, res) => {
                                 }
                                 const blogs_arr = [];
                                 result.map(item => {
-                                    const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                    const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                    const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                    const p_author_username =
+                                        authors_info?.filter(
+                                            a_info =>
+                                                a_info?._id?.toString() ===
+                                                item?.author?.toString(),
+                                        )?.[0]?.username;
+                                    const p_author_verified =
+                                        authors_info?.filter(
+                                            a_info =>
+                                                a_info?._id?.toString() ===
+                                                item?.author?.toString(),
+                                        )?.[0]?.verified;
+                                    const p_p_author_verified = none_null_bool(
+                                        p_author_verified,
+                                    )
+                                        ? false
+                                        : p_author_verified;
                                     const blog_item = {};
                                     blog_item['bid'] = item?._id?.toString();
-                                    blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                    blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                    blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
-                                    blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                    blog_item['aid'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? 'Not Found'
+                                        : item?.author?.toString();
+                                    blog_item['author'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? 'Not Found'
+                                        : p_author_username;
+                                    blog_item['averified'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? false
+                                        : p_p_author_verified;
+                                    blog_item['isowner'] = none_null(
+                                        p_author_username,
+                                    )
+                                        ? false
+                                        : item?.author?.toString() === uid;
                                     blog_item['title'] = item?.title;
                                     blog_item['b_dp_link'] = item?.dp_link;
                                     blog_item['likes_l'] = item?.likes_length;
-                                    blog_item['comments_l'] = item?.comments_length;
+                                    blog_item['comments_l'] =
+                                        item?.comments_length;
                                     blog_item['tags'] = item?.tags;
                                     blog_item['liked'] = item?.liked;
                                     blog_item['createdAt'] = item?.createdAt;
@@ -2558,7 +3793,9 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                     username: 1,
                                                     dp_link: 1,
                                                     verified: 1,
-                                                    followers_l: { $size: '$followers' },
+                                                    followers_l: {
+                                                        $size: '$followers',
+                                                    },
                                                     createdAt: 1,
                                                 },
                                             },
@@ -2573,25 +3810,60 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                 });
                                             })
                                             .then(response => {
-                                                if (response !== null || response !== undefined) {
+                                                if (
+                                                    response !== null ||
+                                                    response !== undefined
+                                                ) {
                                                     if (response?.length > 0) {
-                                                        const new_likes_info = [];
-                                                        if (response?.length > 0) {
-                                                            response?.map(item => {
-                                                                const user_info = {};
-                                                                user_info['uid'] = item?._id?.toString();
-                                                                user_info['isowner'] = false;
-                                                                user_info['username'] = item?.username;
-                                                                user_info['verified'] = none_null_bool(item?.verified) ? false : item?.verified;
-                                                                user_info['dp_link'] = item?.dp_link;
-                                                                user_info['followers'] = item?.followers_l;
-                                                                user_info['followed'] = false;
-                                                                new_likes_info.push(user_info);
-                                                            });
+                                                        const new_likes_info =
+                                                            [];
+                                                        if (
+                                                            response?.length > 0
+                                                        ) {
+                                                            response?.map(
+                                                                item => {
+                                                                    const user_info =
+                                                                        {};
+                                                                    user_info[
+                                                                        'uid'
+                                                                    ] =
+                                                                        item?._id?.toString();
+                                                                    user_info[
+                                                                        'isowner'
+                                                                    ] = false;
+                                                                    user_info[
+                                                                        'username'
+                                                                    ] =
+                                                                        item?.username;
+                                                                    user_info[
+                                                                        'verified'
+                                                                    ] =
+                                                                        none_null_bool(
+                                                                            item?.verified,
+                                                                        )
+                                                                            ? false
+                                                                            : item?.verified;
+                                                                    user_info[
+                                                                        'dp_link'
+                                                                    ] =
+                                                                        item?.dp_link;
+                                                                    user_info[
+                                                                        'followers'
+                                                                    ] =
+                                                                        item?.followers_l;
+                                                                    user_info[
+                                                                        'followed'
+                                                                    ] = false;
+                                                                    new_likes_info.push(
+                                                                        user_info,
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                         res.json({
                                                             status: 'success',
-                                                            response: new_likes_info,
+                                                            response:
+                                                                new_likes_info,
                                                         });
                                                     } else {
                                                         res.json({
@@ -2677,8 +3949,15 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                     username: 1,
                                                     verified: 1,
                                                     dp_link: 1,
-                                                    followers_l: { $size: '$followers' },
-                                                    followed: { $in: [ObjectId(uid), '$followers'] },
+                                                    followers_l: {
+                                                        $size: '$followers',
+                                                    },
+                                                    followed: {
+                                                        $in: [
+                                                            ObjectId(uid),
+                                                            '$followers',
+                                                        ],
+                                                    },
                                                     createdAt: 1,
                                                 },
                                             },
@@ -2693,25 +3972,63 @@ router.get('/:bid/likes', verifyJWTHeaderIA, async (req, res) => {
                                                 });
                                             })
                                             .then(response => {
-                                                if (response !== null || response !== undefined) {
+                                                if (
+                                                    response !== null ||
+                                                    response !== undefined
+                                                ) {
                                                     if (response?.length > 0) {
-                                                        const new_likes_info = [];
-                                                        if (response?.length > 0) {
-                                                            response?.map(item => {
-                                                                const user_info = {};
-                                                                user_info['uid'] = item?._id?.toString();
-                                                                user_info['isowner'] = item?._id?.toString() === uid;
-                                                                user_info['username'] = item?.username;
-                                                                user_info['verified'] = none_null_bool(item?.verified) ? false : item?.verified;
-                                                                user_info['dp_link'] = item?.dp_link;
-                                                                user_info['followers'] = item?.followers_l;
-                                                                user_info['followed'] = item?.followed;
-                                                                new_likes_info.push(user_info);
-                                                            });
+                                                        const new_likes_info =
+                                                            [];
+                                                        if (
+                                                            response?.length > 0
+                                                        ) {
+                                                            response?.map(
+                                                                item => {
+                                                                    const user_info =
+                                                                        {};
+                                                                    user_info[
+                                                                        'uid'
+                                                                    ] =
+                                                                        item?._id?.toString();
+                                                                    user_info[
+                                                                        'isowner'
+                                                                    ] =
+                                                                        item?._id?.toString() ===
+                                                                        uid;
+                                                                    user_info[
+                                                                        'username'
+                                                                    ] =
+                                                                        item?.username;
+                                                                    user_info[
+                                                                        'verified'
+                                                                    ] =
+                                                                        none_null_bool(
+                                                                            item?.verified,
+                                                                        )
+                                                                            ? false
+                                                                            : item?.verified;
+                                                                    user_info[
+                                                                        'dp_link'
+                                                                    ] =
+                                                                        item?.dp_link;
+                                                                    user_info[
+                                                                        'followers'
+                                                                    ] =
+                                                                        item?.followers_l;
+                                                                    user_info[
+                                                                        'followed'
+                                                                    ] =
+                                                                        item?.followed;
+                                                                    new_likes_info.push(
+                                                                        user_info,
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                         res.json({
                                                             status: 'success',
-                                                            response: new_likes_info,
+                                                            response:
+                                                                new_likes_info,
                                                         });
                                                     } else {
                                                         res.json({
@@ -2811,7 +4128,9 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                     await User.aggregate([
                                         {
                                             $match: {
-                                                _id: ObjectId(result[0]?.author),
+                                                _id: ObjectId(
+                                                    result[0]?.author,
+                                                ),
                                             },
                                         },
                                         {
@@ -2820,29 +4139,47 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 username: 1,
                                                 verified: 1,
                                                 dp_link: 1,
-                                                followers_l: { $size: '$followers' },
+                                                followers_l: {
+                                                    $size: '$followers',
+                                                },
                                                 createdAt: 1,
                                             },
                                         },
                                     ])
                                         .catch(async err => {
-                                            const old_comments = result[0]?.comments;
+                                            const old_comments =
+                                                result[0]?.comments;
                                             const new_comments = [];
                                             const cmt_users = [];
                                             const processed_cmt_users = [];
                                             if (old_comments?.length > 0) {
                                                 old_comments?.map(item => {
-                                                    if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                        cmt_users?.push(item?.commenter?.toString());
+                                                    if (
+                                                        cmt_users?.includes(
+                                                            item?.commenter?.toString(),
+                                                        ) === false
+                                                    ) {
+                                                        cmt_users?.push(
+                                                            item?.commenter?.toString(),
+                                                        );
                                                     }
                                                 });
-                                                cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                if (processed_cmt_users?.length > 0) {
+                                                cmt_users?.map(item =>
+                                                    processed_cmt_users?.push(
+                                                        ObjectId(item),
+                                                    ),
+                                                );
+                                                if (
+                                                    processed_cmt_users?.length >
+                                                    0
+                                                ) {
                                                     try {
                                                         await User.aggregate([
                                                             {
                                                                 $match: {
-                                                                    _id: { $in: processed_cmt_users },
+                                                                    _id: {
+                                                                        $in: processed_cmt_users,
+                                                                    },
                                                                 },
                                                             },
                                                             {
@@ -2854,90 +4191,163 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             },
                                                         ])
                                                             .catch(err => {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
-                                                            })
-                                                            .then(response => {
-                                                                if (response?.length > 0) {
-                                                                    const cmt_usernames = response;
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                        if (user?.length > 0) {
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: user?.[0]?.username,
-                                                                                dp_link: user?.[0]?.dp_link,
-                                                                                verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                is_c_owner: false,
-                                                                            });
-                                                                        } else {
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
-                                                                                _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
                                                                                 verified: false,
                                                                                 is_c_owner: false,
-                                                                            });
-                                                                        }
-                                                                    });
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
+                                                            })
+                                                            .then(response => {
+                                                                if (
+                                                                    response?.length >
+                                                                    0
+                                                                ) {
+                                                                    const cmt_usernames =
+                                                                        response;
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            const user =
+                                                                                cmt_usernames?.filter(
+                                                                                    usernames =>
+                                                                                        usernames?._id?.toString() ===
+                                                                                        item?.commenter?.toString(),
+                                                                                );
+                                                                            if (
+                                                                                user?.length >
+                                                                                0
+                                                                            ) {
+                                                                                new_comments?.push(
+                                                                                    {
+                                                                                        commenter:
+                                                                                            old_comment_item?.commenter,
+                                                                                        comment:
+                                                                                            old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt:
+                                                                                            old_comment_item?.createdAt,
+                                                                                        username:
+                                                                                            user?.[0]
+                                                                                                ?.username,
+                                                                                        dp_link:
+                                                                                            user?.[0]
+                                                                                                ?.dp_link,
+                                                                                        verified:
+                                                                                            none_null_bool(
+                                                                                                user?.[0]
+                                                                                                    ?.verified,
+                                                                                            )
+                                                                                                ? false
+                                                                                                : user?.[0]
+                                                                                                      ?.verified,
+                                                                                        is_c_owner: false,
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                new_comments?.push(
+                                                                                    {
+                                                                                        commenter:
+                                                                                            old_comment_item?.commenter,
+                                                                                        comment:
+                                                                                            old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt:
+                                                                                            old_comment_item?.createdAt,
+                                                                                        username:
+                                                                                            'Not Found',
+                                                                                        dp_link:
+                                                                                            'none',
+                                                                                        verified: false,
+                                                                                        is_c_owner: false,
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        },
+                                                                    );
                                                                 } else {
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        new_comments?.push({
-                                                                            commenter: old_comment_item?.commenter,
-                                                                            comment: old_comment_item?.comment,
-                                                                            _id: old_comment_item?._id,
-                                                                            createdAt: old_comment_item?.createdAt,
-                                                                            username: 'Not Found',
-                                                                            dp_link: 'none',
-                                                                            verified: false,
-                                                                            is_c_owner: false,
-                                                                        });
-                                                                    });
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            new_comments?.push(
+                                                                                {
+                                                                                    commenter:
+                                                                                        old_comment_item?.commenter,
+                                                                                    comment:
+                                                                                        old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt:
+                                                                                        old_comment_item?.createdAt,
+                                                                                    username:
+                                                                                        'Not Found',
+                                                                                    dp_link:
+                                                                                        'none',
+                                                                                    verified: false,
+                                                                                    is_c_owner: false,
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    );
                                                                 }
                                                             });
                                                     } catch (error) {
-                                                        old_comments?.map(item => {
-                                                            const old_comment_item = item;
-                                                            new_comments?.push({
-                                                                commenter: old_comment_item?.commenter,
-                                                                comment: old_comment_item?.comment,
-                                                                _id: old_comment_item?._id,
-                                                                createdAt: old_comment_item?.createdAt,
-                                                                username: 'Not Found',
-                                                                dp_link: 'none',
-                                                                verified: false,
-                                                                is_c_owner: false,
-                                                            });
-                                                        });
+                                                        old_comments?.map(
+                                                            item => {
+                                                                const old_comment_item =
+                                                                    item;
+                                                                new_comments?.push(
+                                                                    {
+                                                                        commenter:
+                                                                            old_comment_item?.commenter,
+                                                                        comment:
+                                                                            old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt:
+                                                                            old_comment_item?.createdAt,
+                                                                        username:
+                                                                            'Not Found',
+                                                                        dp_link:
+                                                                            'none',
+                                                                        verified: false,
+                                                                        is_c_owner: false,
+                                                                    },
+                                                                );
+                                                            },
+                                                        );
                                                     }
                                                 } else {
                                                     old_comments?.map(item => {
-                                                        const old_comment_item = item;
+                                                        const old_comment_item =
+                                                            item;
                                                         new_comments?.push({
-                                                            commenter: old_comment_item?.commenter,
-                                                            comment: old_comment_item?.comment,
+                                                            commenter:
+                                                                old_comment_item?.commenter,
+                                                            comment:
+                                                                old_comment_item?.comment,
                                                             _id: old_comment_item?._id,
-                                                            createdAt: old_comment_item?.createdAt,
-                                                            username: 'Not Found',
+                                                            createdAt:
+                                                                old_comment_item?.createdAt,
+                                                            username:
+                                                                'Not Found',
                                                             dp_link: 'none',
                                                             verified: false,
                                                             is_c_owner: false,
@@ -2955,17 +4365,29 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         a_id: 'Not Found',
                                                         a_followed: false,
                                                         a_dp_link: 'none',
-                                                        a_followers: 'Not Found',
-                                                        a_createdAt: 'Not Found',
-                                                        b_dp_link: result[0]?.dp_link,
-                                                        message: result[0]?.message,
-                                                        likes_l: result[0]?.likes_l,
-                                                        comments: new_comments?.reverse(),
-                                                        comments_l: result[0]?.comments_l,
+                                                        a_followers:
+                                                            'Not Found',
+                                                        a_createdAt:
+                                                            'Not Found',
+                                                        b_dp_link:
+                                                            result[0]?.dp_link,
+                                                        message:
+                                                            result[0]?.message,
+                                                        likes_l:
+                                                            result[0]?.likes_l,
+                                                        comments:
+                                                            new_comments?.reverse(),
+                                                        comments_l:
+                                                            result[0]
+                                                                ?.comments_l,
                                                         tags: result[0]?.tags,
                                                         liked: false,
-                                                        createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt,
+                                                        createdAt:
+                                                            result[0]
+                                                                ?.createdAt,
+                                                        updatedAt:
+                                                            result[0]
+                                                                ?.updatedAt,
                                                     },
                                                 });
                                             } else {
@@ -2980,164 +4402,309 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         a_id: 'Not Found',
                                                         a_followed: false,
                                                         a_dp_link: 'none',
-                                                        a_followers: 'Not Found',
-                                                        a_createdAt: 'Not Found',
-                                                        b_dp_link: result[0]?.dp_link,
-                                                        message: result[0]?.message,
-                                                        likes_l: result[0]?.likes_l,
-                                                        comments: result[0]?.comments,
-                                                        comments_l: result[0]?.comments_l,
+                                                        a_followers:
+                                                            'Not Found',
+                                                        a_createdAt:
+                                                            'Not Found',
+                                                        b_dp_link:
+                                                            result[0]?.dp_link,
+                                                        message:
+                                                            result[0]?.message,
+                                                        likes_l:
+                                                            result[0]?.likes_l,
+                                                        comments:
+                                                            result[0]?.comments,
+                                                        comments_l:
+                                                            result[0]
+                                                                ?.comments_l,
                                                         tags: result[0]?.tags,
                                                         liked: false,
-                                                        createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt,
+                                                        createdAt:
+                                                            result[0]
+                                                                ?.createdAt,
+                                                        updatedAt:
+                                                            result[0]
+                                                                ?.updatedAt,
                                                     },
                                                 });
                                             }
                                         })
                                         .then(async response => {
-                                            if (response !== null || response !== undefined) {
+                                            if (
+                                                response !== null ||
+                                                response !== undefined
+                                            ) {
                                                 if (response?.length > 0) {
-                                                    const old_comments = result[0]?.comments;
+                                                    const old_comments =
+                                                        result[0]?.comments;
                                                     const new_comments = [];
                                                     const cmt_users = [];
-                                                    const processed_cmt_users = [];
-                                                    if (old_comments?.length > 0) {
-                                                        old_comments?.map(item => {
-                                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                cmt_users?.push(item?.commenter?.toString());
-                                                            }
-                                                        });
-                                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                        if (processed_cmt_users?.length > 0) {
+                                                    const processed_cmt_users =
+                                                        [];
+                                                    if (
+                                                        old_comments?.length > 0
+                                                    ) {
+                                                        old_comments?.map(
+                                                            item => {
+                                                                if (
+                                                                    cmt_users?.includes(
+                                                                        item?.commenter?.toString(),
+                                                                    ) === false
+                                                                ) {
+                                                                    cmt_users?.push(
+                                                                        item?.commenter?.toString(),
+                                                                    );
+                                                                }
+                                                            },
+                                                        );
+                                                        cmt_users?.map(item =>
+                                                            processed_cmt_users?.push(
+                                                                ObjectId(item),
+                                                            ),
+                                                        );
+                                                        if (
+                                                            processed_cmt_users?.length >
+                                                            0
+                                                        ) {
                                                             try {
-                                                                await User.aggregate([
-                                                                    {
-                                                                        $match: {
-                                                                            _id: { $in: processed_cmt_users },
+                                                                await User.aggregate(
+                                                                    [
+                                                                        {
+                                                                            $match: {
+                                                                                _id: {
+                                                                                    $in: processed_cmt_users,
+                                                                                },
+                                                                            },
                                                                         },
-                                                                    },
-                                                                    {
-                                                                        $project: {
-                                                                            username: 1,
-                                                                            verified: 1,
-                                                                            dp_link: 1,
+                                                                        {
+                                                                            $project:
+                                                                                {
+                                                                                    username: 1,
+                                                                                    verified: 1,
+                                                                                    dp_link: 1,
+                                                                                },
                                                                         },
-                                                                    },
-                                                                ])
-                                                                    .catch(err => {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
+                                                                    ],
+                                                                )
+                                                                    .catch(
+                                                                        err => {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    )
+                                                                    .then(
+                                                                        response => {
+                                                                            if (
+                                                                                response?.length >
+                                                                                0
+                                                                            ) {
+                                                                                const cmt_usernames =
+                                                                                    response;
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        const user =
+                                                                                            cmt_usernames?.filter(
+                                                                                                usernames =>
+                                                                                                    usernames?._id?.toString() ===
+                                                                                                    item?.commenter?.toString(),
+                                                                                            );
+                                                                                        if (
+                                                                                            user?.length >
+                                                                                            0
+                                                                                        ) {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        user?.[0]
+                                                                                                            ?.username,
+                                                                                                    dp_link:
+                                                                                                        user?.[0]
+                                                                                                            ?.dp_link,
+                                                                                                    verified:
+                                                                                                        none_null_bool(
+                                                                                                            user?.[0]
+                                                                                                                ?.verified,
+                                                                                                        )
+                                                                                                            ? false
+                                                                                                            : user?.[0]
+                                                                                                                  ?.verified,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        } else {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        },
+                                                                    );
+                                                            } catch (error) {
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
                                                                                 verified: false,
                                                                                 is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    })
-                                                                    .then(response => {
-                                                                        if (response?.length > 0) {
-                                                                            const cmt_usernames = response;
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                                if (user?.length > 0) {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: user?.[0]?.username,
-                                                                                        dp_link: user?.[0]?.dp_link,
-                                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                } else {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                }
-                                                                            });
-                                                                        } else {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        }
-                                                                    });
-                                                            } catch (error) {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
                                                             }
                                                         } else {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                         res.json({
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
-                                                                author: response[0]?.username,
-                                                                averified: response[0]?.verified,
+                                                                title: result[0]
+                                                                    ?.title,
+                                                                author: response[0]
+                                                                    ?.username,
+                                                                averified:
+                                                                    response[0]
+                                                                        ?.verified,
                                                                 isowner: false,
                                                                 a_id: response[0]?._id?.toString(),
                                                                 a_followed: false,
-                                                                a_dp_link: response[0]?.dp_link,
-                                                                a_followers: response[0]?.followers_l,
-                                                                a_createdAt: response[0]?.createdAt,
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: new_comments?.reverse(),
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
+                                                                a_dp_link:
+                                                                    response[0]
+                                                                        ?.dp_link,
+                                                                a_followers:
+                                                                    response[0]
+                                                                        ?.followers_l,
+                                                                a_createdAt:
+                                                                    response[0]
+                                                                        ?.createdAt,
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    new_comments?.reverse(),
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
                                                                 liked: false,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     } else {
@@ -3145,168 +4712,317 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
-                                                                author: response[0]?.username,
-                                                                averified: response[0]?.verified,
+                                                                title: result[0]
+                                                                    ?.title,
+                                                                author: response[0]
+                                                                    ?.username,
+                                                                averified:
+                                                                    response[0]
+                                                                        ?.verified,
                                                                 isowner: false,
                                                                 a_id: response[0]?._id?.toString(),
                                                                 a_followed: false,
-                                                                a_dp_link: response[0]?.dp_link,
-                                                                a_followers: response[0]?.followers_l,
-                                                                a_createdAt: response[0]?.createdAt,
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: result[0]?.comments,
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
+                                                                a_dp_link:
+                                                                    response[0]
+                                                                        ?.dp_link,
+                                                                a_followers:
+                                                                    response[0]
+                                                                        ?.followers_l,
+                                                                a_createdAt:
+                                                                    response[0]
+                                                                        ?.createdAt,
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    result[0]
+                                                                        ?.comments,
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
                                                                 liked: false,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     }
                                                 } else {
-                                                    const old_comments = result[0]?.comments;
+                                                    const old_comments =
+                                                        result[0]?.comments;
                                                     const new_comments = [];
                                                     const cmt_users = [];
-                                                    const processed_cmt_users = [];
-                                                    if (old_comments?.length > 0) {
-                                                        old_comments?.map(item => {
-                                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                cmt_users?.push(item?.commenter?.toString());
-                                                            }
-                                                        });
-                                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                        if (processed_cmt_users?.length > 0) {
+                                                    const processed_cmt_users =
+                                                        [];
+                                                    if (
+                                                        old_comments?.length > 0
+                                                    ) {
+                                                        old_comments?.map(
+                                                            item => {
+                                                                if (
+                                                                    cmt_users?.includes(
+                                                                        item?.commenter?.toString(),
+                                                                    ) === false
+                                                                ) {
+                                                                    cmt_users?.push(
+                                                                        item?.commenter?.toString(),
+                                                                    );
+                                                                }
+                                                            },
+                                                        );
+                                                        cmt_users?.map(item =>
+                                                            processed_cmt_users?.push(
+                                                                ObjectId(item),
+                                                            ),
+                                                        );
+                                                        if (
+                                                            processed_cmt_users?.length >
+                                                            0
+                                                        ) {
                                                             try {
-                                                                await User.aggregate([
-                                                                    {
-                                                                        $match: {
-                                                                            _id: { $in: processed_cmt_users },
+                                                                await User.aggregate(
+                                                                    [
+                                                                        {
+                                                                            $match: {
+                                                                                _id: {
+                                                                                    $in: processed_cmt_users,
+                                                                                },
+                                                                            },
                                                                         },
-                                                                    },
-                                                                    {
-                                                                        $project: {
-                                                                            username: 1,
-                                                                            verified: 1,
-                                                                            dp_link: 1,
+                                                                        {
+                                                                            $project:
+                                                                                {
+                                                                                    username: 1,
+                                                                                    verified: 1,
+                                                                                    dp_link: 1,
+                                                                                },
                                                                         },
-                                                                    },
-                                                                ])
-                                                                    .catch(err => {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
+                                                                    ],
+                                                                )
+                                                                    .catch(
+                                                                        err => {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    )
+                                                                    .then(
+                                                                        response => {
+                                                                            if (
+                                                                                response?.length >
+                                                                                0
+                                                                            ) {
+                                                                                const cmt_usernames =
+                                                                                    response;
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        const user =
+                                                                                            cmt_usernames?.filter(
+                                                                                                usernames =>
+                                                                                                    usernames?._id?.toString() ===
+                                                                                                    item?.commenter?.toString(),
+                                                                                            );
+                                                                                        if (
+                                                                                            user?.length >
+                                                                                            0
+                                                                                        ) {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        user?.[0]
+                                                                                                            ?.username,
+                                                                                                    dp_link:
+                                                                                                        user?.[0]
+                                                                                                            ?.dp_link,
+                                                                                                    verified:
+                                                                                                        none_null_bool(
+                                                                                                            user?.[0]
+                                                                                                                ?.verified,
+                                                                                                        )
+                                                                                                            ? false
+                                                                                                            : user?.[0]
+                                                                                                                  ?.verified,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        } else {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        },
+                                                                    );
+                                                            } catch (error) {
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
                                                                                 verified: false,
                                                                                 is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    })
-                                                                    .then(response => {
-                                                                        if (response?.length > 0) {
-                                                                            const cmt_usernames = response;
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                                if (user?.length > 0) {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: user?.[0]?.username,
-                                                                                        dp_link: user?.[0]?.dp_link,
-                                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                } else {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                }
-                                                                            });
-                                                                        } else {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        }
-                                                                    });
-                                                            } catch (error) {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
                                                             }
                                                         } else {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                         res.json({
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
+                                                                title: result[0]
+                                                                    ?.title,
                                                                 author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
                                                                 a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: 'none',
-                                                                a_followers: 'Not Found',
-                                                                a_createdAt: 'Not Found',
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: new_comments?.reverse(),
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
+                                                                a_dp_link:
+                                                                    'none',
+                                                                a_followers:
+                                                                    'Not Found',
+                                                                a_createdAt:
+                                                                    'Not Found',
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    new_comments?.reverse(),
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
                                                                 liked: false,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     } else {
@@ -3314,169 +5030,304 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
+                                                                title: result[0]
+                                                                    ?.title,
                                                                 author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
                                                                 a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: 'none',
-                                                                a_followers: 'Not Found',
-                                                                a_createdAt: 'Not Found',
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: result[0]?.comments,
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
+                                                                a_dp_link:
+                                                                    'none',
+                                                                a_followers:
+                                                                    'Not Found',
+                                                                a_createdAt:
+                                                                    'Not Found',
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    result[0]
+                                                                        ?.comments,
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
                                                                 liked: false,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     }
                                                 }
                                             } else {
-                                                const old_comments = result[0]?.comments;
+                                                const old_comments =
+                                                    result[0]?.comments;
                                                 const new_comments = [];
                                                 const cmt_users = [];
                                                 const processed_cmt_users = [];
                                                 if (old_comments?.length > 0) {
                                                     old_comments?.map(item => {
-                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                            cmt_users?.push(item?.commenter?.toString());
+                                                        if (
+                                                            cmt_users?.includes(
+                                                                item?.commenter?.toString(),
+                                                            ) === false
+                                                        ) {
+                                                            cmt_users?.push(
+                                                                item?.commenter?.toString(),
+                                                            );
                                                         }
                                                     });
-                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                    if (processed_cmt_users?.length > 0) {
+                                                    cmt_users?.map(item =>
+                                                        processed_cmt_users?.push(
+                                                            ObjectId(item),
+                                                        ),
+                                                    );
+                                                    if (
+                                                        processed_cmt_users?.length >
+                                                        0
+                                                    ) {
                                                         try {
-                                                            await User.aggregate([
-                                                                {
-                                                                    $match: {
-                                                                        _id: { $in: processed_cmt_users },
+                                                            await User.aggregate(
+                                                                [
+                                                                    {
+                                                                        $match: {
+                                                                            _id: {
+                                                                                $in: processed_cmt_users,
+                                                                            },
+                                                                        },
                                                                     },
-                                                                },
-                                                                {
-                                                                    $project: {
-                                                                        username: 1,
-                                                                        verified: 1,
-                                                                        dp_link: 1,
+                                                                    {
+                                                                        $project:
+                                                                            {
+                                                                                username: 1,
+                                                                                verified: 1,
+                                                                                dp_link: 1,
+                                                                            },
                                                                     },
-                                                                },
-                                                            ])
+                                                                ],
+                                                            )
                                                                 .catch(err => {
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        new_comments?.push({
-                                                                            commenter: old_comment_item?.commenter,
-                                                                            comment: old_comment_item?.comment,
-                                                                            _id: old_comment_item?._id,
-                                                                            createdAt: old_comment_item?.createdAt,
-                                                                            username: 'Not Found',
-                                                                            dp_link: 'none',
-                                                                            verified: false,
-                                                                            is_c_owner: false,
-                                                                        });
-                                                                    });
-                                                                })
-                                                                .then(response => {
-                                                                    if (response?.length > 0) {
-                                                                        const cmt_usernames = response;
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                            if (user?.length > 0) {
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            new_comments?.push(
+                                                                                {
+                                                                                    commenter:
+                                                                                        old_comment_item?.commenter,
+                                                                                    comment:
+                                                                                        old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: user?.[0]?.username,
-                                                                                    dp_link: user?.[0]?.dp_link,
-                                                                                    verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            } else {
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
+                                                                                    createdAt:
+                                                                                        old_comment_item?.createdAt,
+                                                                                    username:
+                                                                                        'Not Found',
+                                                                                    dp_link:
+                                                                                        'none',
                                                                                     verified: false,
                                                                                     is_c_owner: false,
-                                                                                });
-                                                                            }
-                                                                        });
-                                                                    } else {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
-                                                                                _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
-                                                                                verified: false,
-                                                                                is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    }
-                                                                });
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    );
+                                                                })
+                                                                .then(
+                                                                    response => {
+                                                                        if (
+                                                                            response?.length >
+                                                                            0
+                                                                        ) {
+                                                                            const cmt_usernames =
+                                                                                response;
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    const user =
+                                                                                        cmt_usernames?.filter(
+                                                                                            usernames =>
+                                                                                                usernames?._id?.toString() ===
+                                                                                                item?.commenter?.toString(),
+                                                                                        );
+                                                                                    if (
+                                                                                        user?.length >
+                                                                                        0
+                                                                                    ) {
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    user?.[0]
+                                                                                                        ?.username,
+                                                                                                dp_link:
+                                                                                                    user?.[0]
+                                                                                                        ?.dp_link,
+                                                                                                verified:
+                                                                                                    none_null_bool(
+                                                                                                        user?.[0]
+                                                                                                            ?.verified,
+                                                                                                    )
+                                                                                                        ? false
+                                                                                                        : user?.[0]
+                                                                                                              ?.verified,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    } else {
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                },
+                                                                            );
+                                                                        } else {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
+                                                                        }
+                                                                    },
+                                                                );
                                                         } catch (error) {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                     } else {
-                                                        old_comments?.map(item => {
-                                                            const old_comment_item = item;
-                                                            new_comments?.push({
-                                                                commenter: old_comment_item?.commenter,
-                                                                comment: old_comment_item?.comment,
-                                                                _id: old_comment_item?._id,
-                                                                createdAt: old_comment_item?.createdAt,
-                                                                username: 'Not Found',
-                                                                dp_link: 'none',
-                                                                verified: false,
-                                                                is_c_owner: false,
-                                                            });
-                                                        });
+                                                        old_comments?.map(
+                                                            item => {
+                                                                const old_comment_item =
+                                                                    item;
+                                                                new_comments?.push(
+                                                                    {
+                                                                        commenter:
+                                                                            old_comment_item?.commenter,
+                                                                        comment:
+                                                                            old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt:
+                                                                            old_comment_item?.createdAt,
+                                                                        username:
+                                                                            'Not Found',
+                                                                        dp_link:
+                                                                            'none',
+                                                                        verified: false,
+                                                                        is_c_owner: false,
+                                                                    },
+                                                                );
+                                                            },
+                                                        );
                                                     }
                                                     res.json({
                                                         status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
-                                                            title: result[0]?.title,
+                                                            title: result[0]
+                                                                ?.title,
                                                             author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
                                                             a_id: 'Not Found',
                                                             a_followed: false,
                                                             a_dp_link: 'none',
-                                                            a_followers: 'Not Found',
-                                                            a_createdAt: 'Not Found',
-                                                            b_dp_link: result[0]?.dp_link,
-                                                            message: result[0]?.message,
-                                                            likes_l: result[0]?.likes_l,
-                                                            comments: new_comments?.reverse(),
-                                                            comments_l: result[0]?.comments_l,
-                                                            tags: result[0]?.tags,
+                                                            a_followers:
+                                                                'Not Found',
+                                                            a_createdAt:
+                                                                'Not Found',
+                                                            b_dp_link:
+                                                                result[0]
+                                                                    ?.dp_link,
+                                                            message:
+                                                                result[0]
+                                                                    ?.message,
+                                                            likes_l:
+                                                                result[0]
+                                                                    ?.likes_l,
+                                                            comments:
+                                                                new_comments?.reverse(),
+                                                            comments_l:
+                                                                result[0]
+                                                                    ?.comments_l,
+                                                            tags: result[0]
+                                                                ?.tags,
                                                             liked: false,
-                                                            createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt,
+                                                            createdAt:
+                                                                result[0]
+                                                                    ?.createdAt,
+                                                            updatedAt:
+                                                                result[0]
+                                                                    ?.updatedAt,
                                                         },
                                                     });
                                                 } else {
@@ -3484,24 +5335,42 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
-                                                            title: result[0]?.title,
+                                                            title: result[0]
+                                                                ?.title,
                                                             author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
                                                             a_id: 'Not Found',
                                                             a_followed: false,
                                                             a_dp_link: 'none',
-                                                            a_followers: 'Not Found',
-                                                            a_createdAt: 'Not Found',
-                                                            b_dp_link: result[0]?.dp_link,
-                                                            message: result[0]?.message,
-                                                            likes_l: result[0]?.likes_l,
-                                                            comments: result[0]?.comments,
-                                                            comments_l: result[0]?.comments_l,
-                                                            tags: result[0]?.tags,
+                                                            a_followers:
+                                                                'Not Found',
+                                                            a_createdAt:
+                                                                'Not Found',
+                                                            b_dp_link:
+                                                                result[0]
+                                                                    ?.dp_link,
+                                                            message:
+                                                                result[0]
+                                                                    ?.message,
+                                                            likes_l:
+                                                                result[0]
+                                                                    ?.likes_l,
+                                                            comments:
+                                                                result[0]
+                                                                    ?.comments,
+                                                            comments_l:
+                                                                result[0]
+                                                                    ?.comments_l,
+                                                            tags: result[0]
+                                                                ?.tags,
                                                             liked: false,
-                                                            createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt,
+                                                            createdAt:
+                                                                result[0]
+                                                                    ?.createdAt,
+                                                            updatedAt:
+                                                                result[0]
+                                                                    ?.updatedAt,
                                                         },
                                                     });
                                                 }
@@ -3514,17 +5383,29 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                     const processed_cmt_users = [];
                                     if (old_comments?.length > 0) {
                                         old_comments?.map(item => {
-                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                cmt_users?.push(item?.commenter?.toString());
+                                            if (
+                                                cmt_users?.includes(
+                                                    item?.commenter?.toString(),
+                                                ) === false
+                                            ) {
+                                                cmt_users?.push(
+                                                    item?.commenter?.toString(),
+                                                );
                                             }
                                         });
-                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                        cmt_users?.map(item =>
+                                            processed_cmt_users?.push(
+                                                ObjectId(item),
+                                            ),
+                                        );
                                         if (processed_cmt_users?.length > 0) {
                                             try {
                                                 await User.aggregate([
                                                     {
                                                         $match: {
-                                                            _id: { $in: processed_cmt_users },
+                                                            _id: {
+                                                                $in: processed_cmt_users,
+                                                            },
                                                         },
                                                     },
                                                     {
@@ -3536,74 +5417,135 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     },
                                                 ])
                                                     .catch(err => {
-                                                        old_comments?.map(item => {
-                                                            const old_comment_item = item;
-                                                            new_comments?.push({
-                                                                commenter: old_comment_item?.commenter,
-                                                                comment: old_comment_item?.comment,
-                                                                _id: old_comment_item?._id,
-                                                                createdAt: old_comment_item?.createdAt,
-                                                                username: 'Not Found',
-                                                                dp_link: 'none',
-                                                                verified: false,
-                                                                is_c_owner: false,
-                                                            });
-                                                        });
-                                                    })
-                                                    .then(response => {
-                                                        if (response?.length > 0) {
-                                                            const cmt_usernames = response;
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                if (user?.length > 0) {
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
+                                                        old_comments?.map(
+                                                            item => {
+                                                                const old_comment_item =
+                                                                    item;
+                                                                new_comments?.push(
+                                                                    {
+                                                                        commenter:
+                                                                            old_comment_item?.commenter,
+                                                                        comment:
+                                                                            old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: user?.[0]?.username,
-                                                                        dp_link: user?.[0]?.dp_link,
-                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                } else {
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
+                                                                        createdAt:
+                                                                            old_comment_item?.createdAt,
+                                                                        username:
+                                                                            'Not Found',
+                                                                        dp_link:
+                                                                            'none',
                                                                         verified: false,
                                                                         is_c_owner: false,
-                                                                    });
-                                                                }
-                                                            });
+                                                                    },
+                                                                );
+                                                            },
+                                                        );
+                                                    })
+                                                    .then(response => {
+                                                        if (
+                                                            response?.length > 0
+                                                        ) {
+                                                            const cmt_usernames =
+                                                                response;
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    const user =
+                                                                        cmt_usernames?.filter(
+                                                                            usernames =>
+                                                                                usernames?._id?.toString() ===
+                                                                                item?.commenter?.toString(),
+                                                                        );
+                                                                    if (
+                                                                        user?.length >
+                                                                        0
+                                                                    ) {
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    user?.[0]
+                                                                                        ?.username,
+                                                                                dp_link:
+                                                                                    user?.[0]
+                                                                                        ?.dp_link,
+                                                                                verified:
+                                                                                    none_null_bool(
+                                                                                        user?.[0]
+                                                                                            ?.verified,
+                                                                                    )
+                                                                                        ? false
+                                                                                        : user?.[0]
+                                                                                              ?.verified,
+                                                                                is_c_owner: false,
+                                                                            },
+                                                                        );
+                                                                    } else {
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
+                                                                                verified: false,
+                                                                                is_c_owner: false,
+                                                                            },
+                                                                        );
+                                                                    }
+                                                                },
+                                                            );
                                                         } else {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                     });
                                             } catch (error) {
                                                 old_comments?.map(item => {
-                                                    const old_comment_item = item;
+                                                    const old_comment_item =
+                                                        item;
                                                     new_comments?.push({
-                                                        commenter: old_comment_item?.commenter,
-                                                        comment: old_comment_item?.comment,
+                                                        commenter:
+                                                            old_comment_item?.commenter,
+                                                        comment:
+                                                            old_comment_item?.comment,
                                                         _id: old_comment_item?._id,
-                                                        createdAt: old_comment_item?.createdAt,
+                                                        createdAt:
+                                                            old_comment_item?.createdAt,
                                                         username: 'Not Found',
                                                         dp_link: 'none',
                                                         verified: false,
@@ -3615,10 +5557,13 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             old_comments?.map(item => {
                                                 const old_comment_item = item;
                                                 new_comments?.push({
-                                                    commenter: old_comment_item?.commenter,
-                                                    comment: old_comment_item?.comment,
+                                                    commenter:
+                                                        old_comment_item?.commenter,
+                                                    comment:
+                                                        old_comment_item?.comment,
                                                     _id: old_comment_item?._id,
-                                                    createdAt: old_comment_item?.createdAt,
+                                                    createdAt:
+                                                        old_comment_item?.createdAt,
                                                     username: 'Not Found',
                                                     dp_link: 'none',
                                                     verified: false,
@@ -3642,8 +5587,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 b_dp_link: result[0]?.dp_link,
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
-                                                comments: new_comments?.reverse(),
-                                                comments_l: result[0]?.comments_l,
+                                                comments:
+                                                    new_comments?.reverse(),
+                                                comments_l:
+                                                    result[0]?.comments_l,
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
@@ -3668,7 +5615,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
                                                 comments: result[0]?.comments,
-                                                comments_l: result[0]?.comments_l,
+                                                comments_l:
+                                                    result[0]?.comments_l,
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
@@ -3734,7 +5682,9 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                     await User.aggregate([
                                         {
                                             $match: {
-                                                _id: ObjectId(result[0]?.author),
+                                                _id: ObjectId(
+                                                    result[0]?.author,
+                                                ),
                                             },
                                         },
                                         {
@@ -3743,30 +5693,53 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 username: 1,
                                                 verified: 1,
                                                 dp_link: 1,
-                                                followers_l: { $size: '$followers' },
-                                                a_followed: { $in: [ObjectId(uid), '$followers'] },
+                                                followers_l: {
+                                                    $size: '$followers',
+                                                },
+                                                a_followed: {
+                                                    $in: [
+                                                        ObjectId(uid),
+                                                        '$followers',
+                                                    ],
+                                                },
                                                 createdAt: 1,
                                             },
                                         },
                                     ])
                                         .catch(async err => {
-                                            const old_comments = result[0]?.comments;
+                                            const old_comments =
+                                                result[0]?.comments;
                                             const new_comments = [];
                                             const cmt_users = [];
                                             const processed_cmt_users = [];
                                             if (old_comments?.length > 0) {
                                                 old_comments?.map(item => {
-                                                    if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                        cmt_users?.push(item?.commenter?.toString());
+                                                    if (
+                                                        cmt_users?.includes(
+                                                            item?.commenter?.toString(),
+                                                        ) === false
+                                                    ) {
+                                                        cmt_users?.push(
+                                                            item?.commenter?.toString(),
+                                                        );
                                                     }
                                                 });
-                                                cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                if (processed_cmt_users?.length > 0) {
+                                                cmt_users?.map(item =>
+                                                    processed_cmt_users?.push(
+                                                        ObjectId(item),
+                                                    ),
+                                                );
+                                                if (
+                                                    processed_cmt_users?.length >
+                                                    0
+                                                ) {
                                                     try {
                                                         await User.aggregate([
                                                             {
                                                                 $match: {
-                                                                    _id: { $in: processed_cmt_users },
+                                                                    _id: {
+                                                                        $in: processed_cmt_users,
+                                                                    },
                                                                 },
                                                             },
                                                             {
@@ -3778,90 +5751,165 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             },
                                                         ])
                                                             .catch(err => {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
-                                                            })
-                                                            .then(response => {
-                                                                if (response?.length > 0) {
-                                                                    const cmt_usernames = response;
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                        if (user?.length > 0) {
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: user?.[0]?.username,
-                                                                                dp_link: user?.[0]?.dp_link,
-                                                                                verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                is_c_owner: uid === item?.commenter?.toString(),
-                                                                            });
-                                                                        } else {
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
-                                                                                _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
                                                                                 verified: false,
                                                                                 is_c_owner: false,
-                                                                            });
-                                                                        }
-                                                                    });
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
+                                                            })
+                                                            .then(response => {
+                                                                if (
+                                                                    response?.length >
+                                                                    0
+                                                                ) {
+                                                                    const cmt_usernames =
+                                                                        response;
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            const user =
+                                                                                cmt_usernames?.filter(
+                                                                                    usernames =>
+                                                                                        usernames?._id?.toString() ===
+                                                                                        item?.commenter?.toString(),
+                                                                                );
+                                                                            if (
+                                                                                user?.length >
+                                                                                0
+                                                                            ) {
+                                                                                new_comments?.push(
+                                                                                    {
+                                                                                        commenter:
+                                                                                            old_comment_item?.commenter,
+                                                                                        comment:
+                                                                                            old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt:
+                                                                                            old_comment_item?.createdAt,
+                                                                                        username:
+                                                                                            user?.[0]
+                                                                                                ?.username,
+                                                                                        dp_link:
+                                                                                            user?.[0]
+                                                                                                ?.dp_link,
+                                                                                        verified:
+                                                                                            none_null_bool(
+                                                                                                user?.[0]
+                                                                                                    ?.verified,
+                                                                                            )
+                                                                                                ? false
+                                                                                                : user?.[0]
+                                                                                                      ?.verified,
+                                                                                        is_c_owner:
+                                                                                            uid ===
+                                                                                            item?.commenter?.toString(),
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                new_comments?.push(
+                                                                                    {
+                                                                                        commenter:
+                                                                                            old_comment_item?.commenter,
+                                                                                        comment:
+                                                                                            old_comment_item?.comment,
+                                                                                        _id: old_comment_item?._id,
+                                                                                        createdAt:
+                                                                                            old_comment_item?.createdAt,
+                                                                                        username:
+                                                                                            'Not Found',
+                                                                                        dp_link:
+                                                                                            'none',
+                                                                                        verified: false,
+                                                                                        is_c_owner: false,
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        },
+                                                                    );
                                                                 } else {
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        new_comments?.push({
-                                                                            commenter: old_comment_item?.commenter,
-                                                                            comment: old_comment_item?.comment,
-                                                                            _id: old_comment_item?._id,
-                                                                            createdAt: old_comment_item?.createdAt,
-                                                                            username: 'Not Found',
-                                                                            dp_link: 'none',
-                                                                            verified: false,
-                                                                            is_c_owner: false,
-                                                                        });
-                                                                    });
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            new_comments?.push(
+                                                                                {
+                                                                                    commenter:
+                                                                                        old_comment_item?.commenter,
+                                                                                    comment:
+                                                                                        old_comment_item?.comment,
+                                                                                    _id: old_comment_item?._id,
+                                                                                    createdAt:
+                                                                                        old_comment_item?.createdAt,
+                                                                                    username:
+                                                                                        'Not Found',
+                                                                                    dp_link:
+                                                                                        'none',
+                                                                                    verified: false,
+                                                                                    is_c_owner: false,
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    );
                                                                 }
                                                             });
                                                     } catch (error) {
-                                                        old_comments?.map(item => {
-                                                            const old_comment_item = item;
-                                                            new_comments?.push({
-                                                                commenter: old_comment_item?.commenter,
-                                                                comment: old_comment_item?.comment,
-                                                                _id: old_comment_item?._id,
-                                                                createdAt: old_comment_item?.createdAt,
-                                                                username: 'Not Found',
-                                                                dp_link: 'none',
-                                                                verified: false,
-                                                                is_c_owner: false,
-                                                            });
-                                                        });
+                                                        old_comments?.map(
+                                                            item => {
+                                                                const old_comment_item =
+                                                                    item;
+                                                                new_comments?.push(
+                                                                    {
+                                                                        commenter:
+                                                                            old_comment_item?.commenter,
+                                                                        comment:
+                                                                            old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt:
+                                                                            old_comment_item?.createdAt,
+                                                                        username:
+                                                                            'Not Found',
+                                                                        dp_link:
+                                                                            'none',
+                                                                        verified: false,
+                                                                        is_c_owner: false,
+                                                                    },
+                                                                );
+                                                            },
+                                                        );
                                                     }
                                                 } else {
                                                     old_comments?.map(item => {
-                                                        const old_comment_item = item;
+                                                        const old_comment_item =
+                                                            item;
                                                         new_comments?.push({
-                                                            commenter: old_comment_item?.commenter,
-                                                            comment: old_comment_item?.comment,
+                                                            commenter:
+                                                                old_comment_item?.commenter,
+                                                            comment:
+                                                                old_comment_item?.comment,
                                                             _id: old_comment_item?._id,
-                                                            createdAt: old_comment_item?.createdAt,
-                                                            username: 'Not Found',
+                                                            createdAt:
+                                                                old_comment_item?.createdAt,
+                                                            username:
+                                                                'Not Found',
                                                             dp_link: 'none',
                                                             verified: false,
                                                             is_c_owner: false,
@@ -3879,17 +5927,29 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         a_id: 'Not Found',
                                                         a_followed: false,
                                                         a_dp_link: 'none',
-                                                        a_followers: 'Not Found',
-                                                        a_createdAt: 'Not Found',
-                                                        b_dp_link: result[0]?.dp_link,
-                                                        message: result[0]?.message,
-                                                        likes_l: result[0]?.likes_l,
-                                                        comments: new_comments?.reverse(),
-                                                        comments_l: result[0]?.comments_l,
+                                                        a_followers:
+                                                            'Not Found',
+                                                        a_createdAt:
+                                                            'Not Found',
+                                                        b_dp_link:
+                                                            result[0]?.dp_link,
+                                                        message:
+                                                            result[0]?.message,
+                                                        likes_l:
+                                                            result[0]?.likes_l,
+                                                        comments:
+                                                            new_comments?.reverse(),
+                                                        comments_l:
+                                                            result[0]
+                                                                ?.comments_l,
                                                         tags: result[0]?.tags,
                                                         liked: false,
-                                                        createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt,
+                                                        createdAt:
+                                                            result[0]
+                                                                ?.createdAt,
+                                                        updatedAt:
+                                                            result[0]
+                                                                ?.updatedAt,
                                                     },
                                                 });
                                             } else {
@@ -3904,164 +5964,316 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         a_id: 'Not Found',
                                                         a_followed: false,
                                                         a_dp_link: 'none',
-                                                        a_followers: 'Not Found',
-                                                        a_createdAt: 'Not Found',
-                                                        b_dp_link: result[0]?.dp_link,
-                                                        message: result[0]?.message,
-                                                        likes_l: result[0]?.likes_l,
-                                                        comments: result[0]?.comments,
-                                                        comments_l: result[0]?.comments_l,
+                                                        a_followers:
+                                                            'Not Found',
+                                                        a_createdAt:
+                                                            'Not Found',
+                                                        b_dp_link:
+                                                            result[0]?.dp_link,
+                                                        message:
+                                                            result[0]?.message,
+                                                        likes_l:
+                                                            result[0]?.likes_l,
+                                                        comments:
+                                                            result[0]?.comments,
+                                                        comments_l:
+                                                            result[0]
+                                                                ?.comments_l,
                                                         tags: result[0]?.tags,
                                                         liked: false,
-                                                        createdAt: result[0]?.createdAt,
-                                                        updatedAt: result[0]?.updatedAt,
+                                                        createdAt:
+                                                            result[0]
+                                                                ?.createdAt,
+                                                        updatedAt:
+                                                            result[0]
+                                                                ?.updatedAt,
                                                     },
                                                 });
                                             }
                                         })
                                         .then(async response => {
-                                            if (response !== null || response !== undefined) {
+                                            if (
+                                                response !== null ||
+                                                response !== undefined
+                                            ) {
                                                 if (response?.length > 0) {
-                                                    const old_comments = result[0]?.comments;
+                                                    const old_comments =
+                                                        result[0]?.comments;
                                                     const new_comments = [];
                                                     const cmt_users = [];
-                                                    const processed_cmt_users = [];
-                                                    if (old_comments?.length > 0) {
-                                                        old_comments?.map(item => {
-                                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                cmt_users?.push(item?.commenter?.toString());
-                                                            }
-                                                        });
-                                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                        if (processed_cmt_users?.length > 0) {
+                                                    const processed_cmt_users =
+                                                        [];
+                                                    if (
+                                                        old_comments?.length > 0
+                                                    ) {
+                                                        old_comments?.map(
+                                                            item => {
+                                                                if (
+                                                                    cmt_users?.includes(
+                                                                        item?.commenter?.toString(),
+                                                                    ) === false
+                                                                ) {
+                                                                    cmt_users?.push(
+                                                                        item?.commenter?.toString(),
+                                                                    );
+                                                                }
+                                                            },
+                                                        );
+                                                        cmt_users?.map(item =>
+                                                            processed_cmt_users?.push(
+                                                                ObjectId(item),
+                                                            ),
+                                                        );
+                                                        if (
+                                                            processed_cmt_users?.length >
+                                                            0
+                                                        ) {
                                                             try {
-                                                                await User.aggregate([
-                                                                    {
-                                                                        $match: {
-                                                                            _id: { $in: processed_cmt_users },
+                                                                await User.aggregate(
+                                                                    [
+                                                                        {
+                                                                            $match: {
+                                                                                _id: {
+                                                                                    $in: processed_cmt_users,
+                                                                                },
+                                                                            },
                                                                         },
-                                                                    },
-                                                                    {
-                                                                        $project: {
-                                                                            username: 1,
-                                                                            verified: 1,
-                                                                            dp_link: 1,
+                                                                        {
+                                                                            $project:
+                                                                                {
+                                                                                    username: 1,
+                                                                                    verified: 1,
+                                                                                    dp_link: 1,
+                                                                                },
                                                                         },
-                                                                    },
-                                                                ])
-                                                                    .catch(err => {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
+                                                                    ],
+                                                                )
+                                                                    .catch(
+                                                                        err => {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    )
+                                                                    .then(
+                                                                        response => {
+                                                                            if (
+                                                                                response?.length >
+                                                                                0
+                                                                            ) {
+                                                                                const cmt_usernames =
+                                                                                    response;
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        const user =
+                                                                                            cmt_usernames?.filter(
+                                                                                                usernames =>
+                                                                                                    usernames?._id?.toString() ===
+                                                                                                    item?.commenter?.toString(),
+                                                                                            );
+                                                                                        if (
+                                                                                            user?.length >
+                                                                                            0
+                                                                                        ) {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        user?.[0]
+                                                                                                            ?.username,
+                                                                                                    dp_link:
+                                                                                                        user?.[0]
+                                                                                                            ?.dp_link,
+                                                                                                    verified:
+                                                                                                        none_null_bool(
+                                                                                                            user?.[0]
+                                                                                                                ?.verified,
+                                                                                                        )
+                                                                                                            ? false
+                                                                                                            : user?.[0]
+                                                                                                                  ?.verified,
+                                                                                                    is_c_owner:
+                                                                                                        uid ===
+                                                                                                        item?.commenter?.toString(),
+                                                                                                },
+                                                                                            );
+                                                                                        } else {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        },
+                                                                    );
+                                                            } catch (error) {
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
                                                                                 verified: false,
                                                                                 is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    })
-                                                                    .then(response => {
-                                                                        if (response?.length > 0) {
-                                                                            const cmt_usernames = response;
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                                if (user?.length > 0) {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: user?.[0]?.username,
-                                                                                        dp_link: user?.[0]?.dp_link,
-                                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: uid === item?.commenter?.toString(),
-                                                                                    });
-                                                                                } else {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                }
-                                                                            });
-                                                                        } else {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        }
-                                                                    });
-                                                            } catch (error) {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
                                                             }
                                                         } else {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                         res.json({
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
-                                                                author: response[0]?.username,
-                                                                averified: response[0]?.verified,
-                                                                isowner: response[0]?._id?.toString() === uid,
+                                                                title: result[0]
+                                                                    ?.title,
+                                                                author: response[0]
+                                                                    ?.username,
+                                                                averified:
+                                                                    response[0]
+                                                                        ?.verified,
+                                                                isowner:
+                                                                    response[0]?._id?.toString() ===
+                                                                    uid,
                                                                 a_id: response[0]?._id?.toString(),
-                                                                a_followed: response[0]?.a_followed,
-                                                                a_dp_link: response[0]?.dp_link,
-                                                                a_followers: response[0]?.followers_l,
-                                                                a_createdAt: response[0]?.createdAt,
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: new_comments?.reverse(),
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
-                                                                liked: result[0]?.liked,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                a_followed:
+                                                                    response[0]
+                                                                        ?.a_followed,
+                                                                a_dp_link:
+                                                                    response[0]
+                                                                        ?.dp_link,
+                                                                a_followers:
+                                                                    response[0]
+                                                                        ?.followers_l,
+                                                                a_createdAt:
+                                                                    response[0]
+                                                                        ?.createdAt,
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    new_comments?.reverse(),
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
+                                                                liked: result[0]
+                                                                    ?.liked,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     } else {
@@ -4069,168 +6281,324 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
-                                                                author: response[0]?.username,
-                                                                averified: response[0]?.verified,
-                                                                isowner: response[0]?._id?.toString() === uid,
+                                                                title: result[0]
+                                                                    ?.title,
+                                                                author: response[0]
+                                                                    ?.username,
+                                                                averified:
+                                                                    response[0]
+                                                                        ?.verified,
+                                                                isowner:
+                                                                    response[0]?._id?.toString() ===
+                                                                    uid,
                                                                 a_id: response[0]?._id?.toString(),
-                                                                a_followed: response[0]?.a_followed,
-                                                                a_dp_link: response[0]?.dp_link,
-                                                                a_followers: response[0]?.followers_l,
-                                                                a_createdAt: response[0]?.createdAt,
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: result[0]?.comments,
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
-                                                                liked: result[0]?.liked,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                a_followed:
+                                                                    response[0]
+                                                                        ?.a_followed,
+                                                                a_dp_link:
+                                                                    response[0]
+                                                                        ?.dp_link,
+                                                                a_followers:
+                                                                    response[0]
+                                                                        ?.followers_l,
+                                                                a_createdAt:
+                                                                    response[0]
+                                                                        ?.createdAt,
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    result[0]
+                                                                        ?.comments,
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
+                                                                liked: result[0]
+                                                                    ?.liked,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     }
                                                 } else {
-                                                    const old_comments = result[0]?.comments;
+                                                    const old_comments =
+                                                        result[0]?.comments;
                                                     const new_comments = [];
                                                     const cmt_users = [];
-                                                    const processed_cmt_users = [];
-                                                    if (old_comments?.length > 0) {
-                                                        old_comments?.map(item => {
-                                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                                cmt_users?.push(item?.commenter?.toString());
-                                                            }
-                                                        });
-                                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                        if (processed_cmt_users?.length > 0) {
+                                                    const processed_cmt_users =
+                                                        [];
+                                                    if (
+                                                        old_comments?.length > 0
+                                                    ) {
+                                                        old_comments?.map(
+                                                            item => {
+                                                                if (
+                                                                    cmt_users?.includes(
+                                                                        item?.commenter?.toString(),
+                                                                    ) === false
+                                                                ) {
+                                                                    cmt_users?.push(
+                                                                        item?.commenter?.toString(),
+                                                                    );
+                                                                }
+                                                            },
+                                                        );
+                                                        cmt_users?.map(item =>
+                                                            processed_cmt_users?.push(
+                                                                ObjectId(item),
+                                                            ),
+                                                        );
+                                                        if (
+                                                            processed_cmt_users?.length >
+                                                            0
+                                                        ) {
                                                             try {
-                                                                await User.aggregate([
-                                                                    {
-                                                                        $match: {
-                                                                            _id: { $in: processed_cmt_users },
+                                                                await User.aggregate(
+                                                                    [
+                                                                        {
+                                                                            $match: {
+                                                                                _id: {
+                                                                                    $in: processed_cmt_users,
+                                                                                },
+                                                                            },
                                                                         },
-                                                                    },
-                                                                    {
-                                                                        $project: {
-                                                                            username: 1,
-                                                                            verified: 1,
-                                                                            dp_link: 1,
+                                                                        {
+                                                                            $project:
+                                                                                {
+                                                                                    username: 1,
+                                                                                    verified: 1,
+                                                                                    dp_link: 1,
+                                                                                },
                                                                         },
-                                                                    },
-                                                                ])
-                                                                    .catch(err => {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
+                                                                    ],
+                                                                )
+                                                                    .catch(
+                                                                        err => {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    )
+                                                                    .then(
+                                                                        response => {
+                                                                            if (
+                                                                                response?.length >
+                                                                                0
+                                                                            ) {
+                                                                                const cmt_usernames =
+                                                                                    response;
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        const user =
+                                                                                            cmt_usernames?.filter(
+                                                                                                usernames =>
+                                                                                                    usernames?._id?.toString() ===
+                                                                                                    item?.commenter?.toString(),
+                                                                                            );
+                                                                                        if (
+                                                                                            user?.length >
+                                                                                            0
+                                                                                        ) {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        user?.[0]
+                                                                                                            ?.username,
+                                                                                                    dp_link:
+                                                                                                        user?.[0]
+                                                                                                            ?.dp_link,
+                                                                                                    verified:
+                                                                                                        none_null_bool(
+                                                                                                            user?.[0]
+                                                                                                                ?.verified,
+                                                                                                        )
+                                                                                                            ? false
+                                                                                                            : user?.[0]
+                                                                                                                  ?.verified,
+                                                                                                    is_c_owner:
+                                                                                                        uid ===
+                                                                                                        item?.commenter?.toString(),
+                                                                                                },
+                                                                                            );
+                                                                                        } else {
+                                                                                            new_comments?.push(
+                                                                                                {
+                                                                                                    commenter:
+                                                                                                        old_comment_item?.commenter,
+                                                                                                    comment:
+                                                                                                        old_comment_item?.comment,
+                                                                                                    _id: old_comment_item?._id,
+                                                                                                    createdAt:
+                                                                                                        old_comment_item?.createdAt,
+                                                                                                    username:
+                                                                                                        'Not Found',
+                                                                                                    dp_link:
+                                                                                                        'none',
+                                                                                                    verified: false,
+                                                                                                    is_c_owner: false,
+                                                                                                },
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                );
+                                                                            } else {
+                                                                                old_comments?.map(
+                                                                                    item => {
+                                                                                        const old_comment_item =
+                                                                                            item;
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    },
+                                                                                );
+                                                                            }
+                                                                        },
+                                                                    );
+                                                            } catch (error) {
+                                                                old_comments?.map(
+                                                                    item => {
+                                                                        const old_comment_item =
+                                                                            item;
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
                                                                                 _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
                                                                                 verified: false,
                                                                                 is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    })
-                                                                    .then(response => {
-                                                                        if (response?.length > 0) {
-                                                                            const cmt_usernames = response;
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                                if (user?.length > 0) {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: user?.[0]?.username,
-                                                                                        dp_link: user?.[0]?.dp_link,
-                                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                        is_c_owner: uid === item?.commenter?.toString(),
-                                                                                    });
-                                                                                } else {
-                                                                                    new_comments?.push({
-                                                                                        commenter: old_comment_item?.commenter,
-                                                                                        comment: old_comment_item?.comment,
-                                                                                        _id: old_comment_item?._id,
-                                                                                        createdAt: old_comment_item?.createdAt,
-                                                                                        username: 'Not Found',
-                                                                                        dp_link: 'none',
-                                                                                        verified: false,
-                                                                                        is_c_owner: false,
-                                                                                    });
-                                                                                }
-                                                                            });
-                                                                        } else {
-                                                                            old_comments?.map(item => {
-                                                                                const old_comment_item = item;
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
-                                                                                    verified: false,
-                                                                                    is_c_owner: false,
-                                                                                });
-                                                                            });
-                                                                        }
-                                                                    });
-                                                            } catch (error) {
-                                                                old_comments?.map(item => {
-                                                                    const old_comment_item = item;
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
-                                                                        verified: false,
-                                                                        is_c_owner: false,
-                                                                    });
-                                                                });
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                );
                                                             }
                                                         } else {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                         res.json({
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
+                                                                title: result[0]
+                                                                    ?.title,
                                                                 author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
                                                                 a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: 'none',
-                                                                a_followers: 'Not Found',
-                                                                a_createdAt: 'Not Found',
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: new_comments?.reverse(),
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
+                                                                a_dp_link:
+                                                                    'none',
+                                                                a_followers:
+                                                                    'Not Found',
+                                                                a_createdAt:
+                                                                    'Not Found',
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    new_comments?.reverse(),
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
                                                                 liked: false,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     } else {
@@ -4238,169 +6606,306 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                             status: 'success',
                                                             response: {
                                                                 bid: result[0]?._id?.toString(),
-                                                                title: result[0]?.title,
+                                                                title: result[0]
+                                                                    ?.title,
                                                                 author: 'Not Found',
                                                                 averified: false,
                                                                 isowner: false,
                                                                 a_id: 'Not Found',
                                                                 a_followed: false,
-                                                                a_dp_link: 'none',
-                                                                a_followers: 'Not Found',
-                                                                a_createdAt: 'Not Found',
-                                                                b_dp_link: result[0]?.dp_link,
-                                                                message: result[0]?.message,
-                                                                likes_l: result[0]?.likes_l,
-                                                                comments: result[0]?.comments,
-                                                                comments_l: result[0]?.comments_l,
-                                                                tags: result[0]?.tags,
+                                                                a_dp_link:
+                                                                    'none',
+                                                                a_followers:
+                                                                    'Not Found',
+                                                                a_createdAt:
+                                                                    'Not Found',
+                                                                b_dp_link:
+                                                                    result[0]
+                                                                        ?.dp_link,
+                                                                message:
+                                                                    result[0]
+                                                                        ?.message,
+                                                                likes_l:
+                                                                    result[0]
+                                                                        ?.likes_l,
+                                                                comments:
+                                                                    result[0]
+                                                                        ?.comments,
+                                                                comments_l:
+                                                                    result[0]
+                                                                        ?.comments_l,
+                                                                tags: result[0]
+                                                                    ?.tags,
                                                                 liked: false,
-                                                                createdAt: result[0]?.createdAt,
-                                                                updatedAt: result[0]?.updatedAt,
+                                                                createdAt:
+                                                                    result[0]
+                                                                        ?.createdAt,
+                                                                updatedAt:
+                                                                    result[0]
+                                                                        ?.updatedAt,
                                                             },
                                                         });
                                                     }
                                                 }
                                             } else {
-                                                const old_comments = result[0]?.comments;
+                                                const old_comments =
+                                                    result[0]?.comments;
                                                 const new_comments = [];
                                                 const cmt_users = [];
                                                 const processed_cmt_users = [];
                                                 if (old_comments?.length > 0) {
                                                     old_comments?.map(item => {
-                                                        if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                            cmt_users?.push(item?.commenter?.toString());
+                                                        if (
+                                                            cmt_users?.includes(
+                                                                item?.commenter?.toString(),
+                                                            ) === false
+                                                        ) {
+                                                            cmt_users?.push(
+                                                                item?.commenter?.toString(),
+                                                            );
                                                         }
                                                     });
-                                                    cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
-                                                    if (processed_cmt_users?.length > 0) {
+                                                    cmt_users?.map(item =>
+                                                        processed_cmt_users?.push(
+                                                            ObjectId(item),
+                                                        ),
+                                                    );
+                                                    if (
+                                                        processed_cmt_users?.length >
+                                                        0
+                                                    ) {
                                                         try {
-                                                            await User.aggregate([
-                                                                {
-                                                                    $match: {
-                                                                        _id: { $in: processed_cmt_users },
+                                                            await User.aggregate(
+                                                                [
+                                                                    {
+                                                                        $match: {
+                                                                            _id: {
+                                                                                $in: processed_cmt_users,
+                                                                            },
+                                                                        },
                                                                     },
-                                                                },
-                                                                {
-                                                                    $project: {
-                                                                        username: 1,
-                                                                        verified: 1,
-                                                                        dp_link: 1,
+                                                                    {
+                                                                        $project:
+                                                                            {
+                                                                                username: 1,
+                                                                                verified: 1,
+                                                                                dp_link: 1,
+                                                                            },
                                                                     },
-                                                                },
-                                                            ])
+                                                                ],
+                                                            )
                                                                 .catch(err => {
-                                                                    old_comments?.map(item => {
-                                                                        const old_comment_item = item;
-                                                                        new_comments?.push({
-                                                                            commenter: old_comment_item?.commenter,
-                                                                            comment: old_comment_item?.comment,
-                                                                            _id: old_comment_item?._id,
-                                                                            createdAt: old_comment_item?.createdAt,
-                                                                            username: 'Not Found',
-                                                                            dp_link: 'none',
-                                                                            verified: false,
-                                                                            is_c_owner: false,
-                                                                        });
-                                                                    });
-                                                                })
-                                                                .then(response => {
-                                                                    if (response?.length > 0) {
-                                                                        const cmt_usernames = response;
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                            if (user?.length > 0) {
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
+                                                                    old_comments?.map(
+                                                                        item => {
+                                                                            const old_comment_item =
+                                                                                item;
+                                                                            new_comments?.push(
+                                                                                {
+                                                                                    commenter:
+                                                                                        old_comment_item?.commenter,
+                                                                                    comment:
+                                                                                        old_comment_item?.comment,
                                                                                     _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: user?.[0]?.username,
-                                                                                    dp_link: user?.[0]?.dp_link,
-                                                                                    verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                                    is_c_owner: uid === item?.commenter?.toString(),
-                                                                                });
-                                                                            } else {
-                                                                                new_comments?.push({
-                                                                                    commenter: old_comment_item?.commenter,
-                                                                                    comment: old_comment_item?.comment,
-                                                                                    _id: old_comment_item?._id,
-                                                                                    createdAt: old_comment_item?.createdAt,
-                                                                                    username: 'Not Found',
-                                                                                    dp_link: 'none',
+                                                                                    createdAt:
+                                                                                        old_comment_item?.createdAt,
+                                                                                    username:
+                                                                                        'Not Found',
+                                                                                    dp_link:
+                                                                                        'none',
                                                                                     verified: false,
                                                                                     is_c_owner: false,
-                                                                                });
-                                                                            }
-                                                                        });
-                                                                    } else {
-                                                                        old_comments?.map(item => {
-                                                                            const old_comment_item = item;
-                                                                            new_comments?.push({
-                                                                                commenter: old_comment_item?.commenter,
-                                                                                comment: old_comment_item?.comment,
-                                                                                _id: old_comment_item?._id,
-                                                                                createdAt: old_comment_item?.createdAt,
-                                                                                username: 'Not Found',
-                                                                                dp_link: 'none',
-                                                                                verified: false,
-                                                                                is_c_owner: false,
-                                                                            });
-                                                                        });
-                                                                    }
-                                                                });
+                                                                                },
+                                                                            );
+                                                                        },
+                                                                    );
+                                                                })
+                                                                .then(
+                                                                    response => {
+                                                                        if (
+                                                                            response?.length >
+                                                                            0
+                                                                        ) {
+                                                                            const cmt_usernames =
+                                                                                response;
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    const user =
+                                                                                        cmt_usernames?.filter(
+                                                                                            usernames =>
+                                                                                                usernames?._id?.toString() ===
+                                                                                                item?.commenter?.toString(),
+                                                                                        );
+                                                                                    if (
+                                                                                        user?.length >
+                                                                                        0
+                                                                                    ) {
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    user?.[0]
+                                                                                                        ?.username,
+                                                                                                dp_link:
+                                                                                                    user?.[0]
+                                                                                                        ?.dp_link,
+                                                                                                verified:
+                                                                                                    none_null_bool(
+                                                                                                        user?.[0]
+                                                                                                            ?.verified,
+                                                                                                    )
+                                                                                                        ? false
+                                                                                                        : user?.[0]
+                                                                                                              ?.verified,
+                                                                                                is_c_owner:
+                                                                                                    uid ===
+                                                                                                    item?.commenter?.toString(),
+                                                                                            },
+                                                                                        );
+                                                                                    } else {
+                                                                                        new_comments?.push(
+                                                                                            {
+                                                                                                commenter:
+                                                                                                    old_comment_item?.commenter,
+                                                                                                comment:
+                                                                                                    old_comment_item?.comment,
+                                                                                                _id: old_comment_item?._id,
+                                                                                                createdAt:
+                                                                                                    old_comment_item?.createdAt,
+                                                                                                username:
+                                                                                                    'Not Found',
+                                                                                                dp_link:
+                                                                                                    'none',
+                                                                                                verified: false,
+                                                                                                is_c_owner: false,
+                                                                                            },
+                                                                                        );
+                                                                                    }
+                                                                                },
+                                                                            );
+                                                                        } else {
+                                                                            old_comments?.map(
+                                                                                item => {
+                                                                                    const old_comment_item =
+                                                                                        item;
+                                                                                    new_comments?.push(
+                                                                                        {
+                                                                                            commenter:
+                                                                                                old_comment_item?.commenter,
+                                                                                            comment:
+                                                                                                old_comment_item?.comment,
+                                                                                            _id: old_comment_item?._id,
+                                                                                            createdAt:
+                                                                                                old_comment_item?.createdAt,
+                                                                                            username:
+                                                                                                'Not Found',
+                                                                                            dp_link:
+                                                                                                'none',
+                                                                                            verified: false,
+                                                                                            is_c_owner: false,
+                                                                                        },
+                                                                                    );
+                                                                                },
+                                                                            );
+                                                                        }
+                                                                    },
+                                                                );
                                                         } catch (error) {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                     } else {
-                                                        old_comments?.map(item => {
-                                                            const old_comment_item = item;
-                                                            new_comments?.push({
-                                                                commenter: old_comment_item?.commenter,
-                                                                comment: old_comment_item?.comment,
-                                                                _id: old_comment_item?._id,
-                                                                createdAt: old_comment_item?.createdAt,
-                                                                username: 'Not Found',
-                                                                dp_link: 'none',
-                                                                verified: false,
-                                                                is_c_owner: false,
-                                                            });
-                                                        });
+                                                        old_comments?.map(
+                                                            item => {
+                                                                const old_comment_item =
+                                                                    item;
+                                                                new_comments?.push(
+                                                                    {
+                                                                        commenter:
+                                                                            old_comment_item?.commenter,
+                                                                        comment:
+                                                                            old_comment_item?.comment,
+                                                                        _id: old_comment_item?._id,
+                                                                        createdAt:
+                                                                            old_comment_item?.createdAt,
+                                                                        username:
+                                                                            'Not Found',
+                                                                        dp_link:
+                                                                            'none',
+                                                                        verified: false,
+                                                                        is_c_owner: false,
+                                                                    },
+                                                                );
+                                                            },
+                                                        );
                                                     }
                                                     res.json({
                                                         status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
-                                                            title: result[0]?.title,
+                                                            title: result[0]
+                                                                ?.title,
                                                             author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
                                                             a_id: 'Not Found',
                                                             a_followed: false,
                                                             a_dp_link: 'none',
-                                                            a_followers: 'Not Found',
-                                                            a_createdAt: 'Not Found',
-                                                            b_dp_link: result[0]?.dp_link,
-                                                            message: result[0]?.message,
-                                                            likes_l: result[0]?.likes_l,
-                                                            comments: new_comments?.reverse(),
-                                                            comments_l: result[0]?.comments_l,
-                                                            tags: result[0]?.tags,
+                                                            a_followers:
+                                                                'Not Found',
+                                                            a_createdAt:
+                                                                'Not Found',
+                                                            b_dp_link:
+                                                                result[0]
+                                                                    ?.dp_link,
+                                                            message:
+                                                                result[0]
+                                                                    ?.message,
+                                                            likes_l:
+                                                                result[0]
+                                                                    ?.likes_l,
+                                                            comments:
+                                                                new_comments?.reverse(),
+                                                            comments_l:
+                                                                result[0]
+                                                                    ?.comments_l,
+                                                            tags: result[0]
+                                                                ?.tags,
                                                             liked: false,
-                                                            createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt,
+                                                            createdAt:
+                                                                result[0]
+                                                                    ?.createdAt,
+                                                            updatedAt:
+                                                                result[0]
+                                                                    ?.updatedAt,
                                                         },
                                                     });
                                                 } else {
@@ -4408,24 +6913,42 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                         status: 'success',
                                                         response: {
                                                             bid: result[0]?._id?.toString(),
-                                                            title: result[0]?.title,
+                                                            title: result[0]
+                                                                ?.title,
                                                             author: 'Not Found',
                                                             averified: false,
                                                             isowner: false,
                                                             a_id: 'Not Found',
                                                             a_followed: false,
                                                             a_dp_link: 'none',
-                                                            a_followers: 'Not Found',
-                                                            a_createdAt: 'Not Found',
-                                                            b_dp_link: result[0]?.dp_link,
-                                                            message: result[0]?.message,
-                                                            likes_l: result[0]?.likes_l,
-                                                            comments: result[0]?.comments,
-                                                            comments_l: result[0]?.comments_l,
-                                                            tags: result[0]?.tags,
+                                                            a_followers:
+                                                                'Not Found',
+                                                            a_createdAt:
+                                                                'Not Found',
+                                                            b_dp_link:
+                                                                result[0]
+                                                                    ?.dp_link,
+                                                            message:
+                                                                result[0]
+                                                                    ?.message,
+                                                            likes_l:
+                                                                result[0]
+                                                                    ?.likes_l,
+                                                            comments:
+                                                                result[0]
+                                                                    ?.comments,
+                                                            comments_l:
+                                                                result[0]
+                                                                    ?.comments_l,
+                                                            tags: result[0]
+                                                                ?.tags,
                                                             liked: false,
-                                                            createdAt: result[0]?.createdAt,
-                                                            updatedAt: result[0]?.updatedAt,
+                                                            createdAt:
+                                                                result[0]
+                                                                    ?.createdAt,
+                                                            updatedAt:
+                                                                result[0]
+                                                                    ?.updatedAt,
                                                         },
                                                     });
                                                 }
@@ -4438,17 +6961,29 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                     const processed_cmt_users = [];
                                     if (old_comments?.length > 0) {
                                         old_comments?.map(item => {
-                                            if (cmt_users?.includes(item?.commenter?.toString()) === false) {
-                                                cmt_users?.push(item?.commenter?.toString());
+                                            if (
+                                                cmt_users?.includes(
+                                                    item?.commenter?.toString(),
+                                                ) === false
+                                            ) {
+                                                cmt_users?.push(
+                                                    item?.commenter?.toString(),
+                                                );
                                             }
                                         });
-                                        cmt_users?.map(item => processed_cmt_users?.push(ObjectId(item)));
+                                        cmt_users?.map(item =>
+                                            processed_cmt_users?.push(
+                                                ObjectId(item),
+                                            ),
+                                        );
                                         if (processed_cmt_users?.length > 0) {
                                             try {
                                                 await User.aggregate([
                                                     {
                                                         $match: {
-                                                            _id: { $in: processed_cmt_users },
+                                                            _id: {
+                                                                $in: processed_cmt_users,
+                                                            },
                                                         },
                                                     },
                                                     {
@@ -4460,74 +6995,137 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                     },
                                                 ])
                                                     .catch(err => {
-                                                        old_comments?.map(item => {
-                                                            const old_comment_item = item;
-                                                            new_comments?.push({
-                                                                commenter: old_comment_item?.commenter,
-                                                                comment: old_comment_item?.comment,
-                                                                _id: old_comment_item?._id,
-                                                                createdAt: old_comment_item?.createdAt,
-                                                                username: 'Not Found',
-                                                                dp_link: 'none',
-                                                                verified: false,
-                                                                is_c_owner: false,
-                                                            });
-                                                        });
-                                                    })
-                                                    .then(response => {
-                                                        if (response?.length > 0) {
-                                                            const cmt_usernames = response;
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                const user = cmt_usernames?.filter(usernames => usernames?._id?.toString() === item?.commenter?.toString());
-                                                                if (user?.length > 0) {
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
+                                                        old_comments?.map(
+                                                            item => {
+                                                                const old_comment_item =
+                                                                    item;
+                                                                new_comments?.push(
+                                                                    {
+                                                                        commenter:
+                                                                            old_comment_item?.commenter,
+                                                                        comment:
+                                                                            old_comment_item?.comment,
                                                                         _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: user?.[0]?.username,
-                                                                        dp_link: user?.[0]?.dp_link,
-                                                                        verified: none_null_bool(user?.[0]?.verified) ? false : user?.[0]?.verified,
-                                                                        is_c_owner: uid === item?.commenter?.toString(),
-                                                                    });
-                                                                } else {
-                                                                    new_comments?.push({
-                                                                        commenter: old_comment_item?.commenter,
-                                                                        comment: old_comment_item?.comment,
-                                                                        _id: old_comment_item?._id,
-                                                                        createdAt: old_comment_item?.createdAt,
-                                                                        username: 'Not Found',
-                                                                        dp_link: 'none',
+                                                                        createdAt:
+                                                                            old_comment_item?.createdAt,
+                                                                        username:
+                                                                            'Not Found',
+                                                                        dp_link:
+                                                                            'none',
                                                                         verified: false,
                                                                         is_c_owner: false,
-                                                                    });
-                                                                }
-                                                            });
+                                                                    },
+                                                                );
+                                                            },
+                                                        );
+                                                    })
+                                                    .then(response => {
+                                                        if (
+                                                            response?.length > 0
+                                                        ) {
+                                                            const cmt_usernames =
+                                                                response;
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    const user =
+                                                                        cmt_usernames?.filter(
+                                                                            usernames =>
+                                                                                usernames?._id?.toString() ===
+                                                                                item?.commenter?.toString(),
+                                                                        );
+                                                                    if (
+                                                                        user?.length >
+                                                                        0
+                                                                    ) {
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    user?.[0]
+                                                                                        ?.username,
+                                                                                dp_link:
+                                                                                    user?.[0]
+                                                                                        ?.dp_link,
+                                                                                verified:
+                                                                                    none_null_bool(
+                                                                                        user?.[0]
+                                                                                            ?.verified,
+                                                                                    )
+                                                                                        ? false
+                                                                                        : user?.[0]
+                                                                                              ?.verified,
+                                                                                is_c_owner:
+                                                                                    uid ===
+                                                                                    item?.commenter?.toString(),
+                                                                            },
+                                                                        );
+                                                                    } else {
+                                                                        new_comments?.push(
+                                                                            {
+                                                                                commenter:
+                                                                                    old_comment_item?.commenter,
+                                                                                comment:
+                                                                                    old_comment_item?.comment,
+                                                                                _id: old_comment_item?._id,
+                                                                                createdAt:
+                                                                                    old_comment_item?.createdAt,
+                                                                                username:
+                                                                                    'Not Found',
+                                                                                dp_link:
+                                                                                    'none',
+                                                                                verified: false,
+                                                                                is_c_owner: false,
+                                                                            },
+                                                                        );
+                                                                    }
+                                                                },
+                                                            );
                                                         } else {
-                                                            old_comments?.map(item => {
-                                                                const old_comment_item = item;
-                                                                new_comments?.push({
-                                                                    commenter: old_comment_item?.commenter,
-                                                                    comment: old_comment_item?.comment,
-                                                                    _id: old_comment_item?._id,
-                                                                    createdAt: old_comment_item?.createdAt,
-                                                                    username: 'Not Found',
-                                                                    dp_link: 'none',
-                                                                    verified: false,
-                                                                    is_c_owner: false,
-                                                                });
-                                                            });
+                                                            old_comments?.map(
+                                                                item => {
+                                                                    const old_comment_item =
+                                                                        item;
+                                                                    new_comments?.push(
+                                                                        {
+                                                                            commenter:
+                                                                                old_comment_item?.commenter,
+                                                                            comment:
+                                                                                old_comment_item?.comment,
+                                                                            _id: old_comment_item?._id,
+                                                                            createdAt:
+                                                                                old_comment_item?.createdAt,
+                                                                            username:
+                                                                                'Not Found',
+                                                                            dp_link:
+                                                                                'none',
+                                                                            verified: false,
+                                                                            is_c_owner: false,
+                                                                        },
+                                                                    );
+                                                                },
+                                                            );
                                                         }
                                                     });
                                             } catch (error) {
                                                 old_comments?.map(item => {
-                                                    const old_comment_item = item;
+                                                    const old_comment_item =
+                                                        item;
                                                     new_comments?.push({
-                                                        commenter: old_comment_item?.commenter,
-                                                        comment: old_comment_item?.comment,
+                                                        commenter:
+                                                            old_comment_item?.commenter,
+                                                        comment:
+                                                            old_comment_item?.comment,
                                                         _id: old_comment_item?._id,
-                                                        createdAt: old_comment_item?.createdAt,
+                                                        createdAt:
+                                                            old_comment_item?.createdAt,
                                                         username: 'Not Found',
                                                         dp_link: 'none',
                                                         verified: false,
@@ -4539,10 +7137,13 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                             old_comments?.map(item => {
                                                 const old_comment_item = item;
                                                 new_comments?.push({
-                                                    commenter: old_comment_item?.commenter,
-                                                    comment: old_comment_item?.comment,
+                                                    commenter:
+                                                        old_comment_item?.commenter,
+                                                    comment:
+                                                        old_comment_item?.comment,
                                                     _id: old_comment_item?._id,
-                                                    createdAt: old_comment_item?.createdAt,
+                                                    createdAt:
+                                                        old_comment_item?.createdAt,
                                                     username: 'Not Found',
                                                     dp_link: 'none',
                                                     verified: false,
@@ -4566,8 +7167,10 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 b_dp_link: result[0]?.dp_link,
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
-                                                comments: new_comments?.reverse(),
-                                                comments_l: result[0]?.comments_l,
+                                                comments:
+                                                    new_comments?.reverse(),
+                                                comments_l:
+                                                    result[0]?.comments_l,
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
@@ -4592,7 +7195,8 @@ router.get('/:bid', verifyJWTHeaderIA, async (req, res) => {
                                                 message: result[0]?.message,
                                                 likes_l: result[0]?.likes_l,
                                                 comments: result[0]?.comments,
-                                                comments_l: result[0]?.comments_l,
+                                                comments_l:
+                                                    result[0]?.comments_l,
                                                 tags: result[0]?.tags,
                                                 liked: false,
                                                 createdAt: result[0]?.createdAt,
@@ -4687,7 +7291,9 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                             if (result !== null || result !== undefined) {
                                 if (result?.length > 0) {
                                     const authors = [];
-                                    result?.map(blog => authors.push(blog?.author));
+                                    result?.map(blog =>
+                                        authors.push(blog?.author),
+                                    );
                                     const authors_info = [];
                                     try {
                                         await User.aggregate([
@@ -4706,9 +7312,16 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                                 },
                                             },
                                         ]).then(res_author_name => {
-                                            if (res_author_name !== undefined || res_author_name !== null) {
-                                                if (res_author_name?.length > 0) {
-                                                    res_author_name?.map(item => authors_info.push(item));
+                                            if (
+                                                res_author_name !== undefined ||
+                                                res_author_name !== null
+                                            ) {
+                                                if (
+                                                    res_author_name?.length > 0
+                                                ) {
+                                                    res_author_name?.map(item =>
+                                                        authors_info.push(item),
+                                                    );
                                                 }
                                             }
                                         });
@@ -4717,23 +7330,54 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     }
                                     const blogs_arr = [];
                                     result.map(item => {
-                                        const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                        const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                        const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                        const p_author_username =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.username;
+                                        const p_author_verified =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.verified;
+                                        const p_p_author_verified =
+                                            none_null_bool(p_author_verified)
+                                                ? false
+                                                : p_author_verified;
                                         const blog_item = {};
-                                        blog_item['bid'] = item?._id?.toString();
-                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                        blog_item['bid'] =
+                                            item?._id?.toString();
+                                        blog_item['aid'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : item?.author?.toString();
+                                        blog_item['author'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : p_author_username;
+                                        blog_item['averified'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? false
+                                            : p_p_author_verified;
                                         blog_item['isowner'] = false;
                                         blog_item['title'] = item?.title;
                                         blog_item['b_dp_link'] = item?.dp_link;
                                         blog_item['likes_l'] = item?.likes_l;
-                                        blog_item['comments_l'] = item?.comments_l;
-                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['comments_l'] =
+                                            item?.comments_l;
+                                        blog_item['tags'] = item?.tags
+                                            ? item?.tags
+                                            : [];
                                         blog_item['liked'] = false;
-                                        blog_item['createdAt'] = item?.createdAt;
-                                        blog_item['updatedAt'] = item?.updatedAt;
+                                        blog_item['createdAt'] =
+                                            item?.createdAt;
+                                        blog_item['updatedAt'] =
+                                            item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
@@ -4797,7 +7441,9 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                             if (result !== null || result !== undefined) {
                                 if (result?.length > 0) {
                                     const authors = [];
-                                    result?.map(blog => authors.push(blog?.author));
+                                    result?.map(blog =>
+                                        authors.push(blog?.author),
+                                    );
                                     const authors_info = [];
                                     try {
                                         await User.aggregate([
@@ -4816,9 +7462,16 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                                 },
                                             },
                                         ]).then(res_author_name => {
-                                            if (res_author_name !== null || res_author_name !== undefined) {
-                                                if (res_author_name?.length > 0) {
-                                                    res_author_name?.map(item => authors_info.push(item));
+                                            if (
+                                                res_author_name !== null ||
+                                                res_author_name !== undefined
+                                            ) {
+                                                if (
+                                                    res_author_name?.length > 0
+                                                ) {
+                                                    res_author_name?.map(item =>
+                                                        authors_info.push(item),
+                                                    );
                                                 }
                                             }
                                         });
@@ -4827,23 +7480,54 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     }
                                     const blogs_arr = [];
                                     result.map(item => {
-                                        const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                        const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                        const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                        const p_author_username =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.username;
+                                        const p_author_verified =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.verified;
+                                        const p_p_author_verified =
+                                            none_null_bool(p_author_verified)
+                                                ? false
+                                                : p_author_verified;
                                         const blog_item = {};
-                                        blog_item['bid'] = item?._id?.toString();
-                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
+                                        blog_item['bid'] =
+                                            item?._id?.toString();
+                                        blog_item['aid'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : item?.author?.toString();
+                                        blog_item['author'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : p_author_username;
+                                        blog_item['averified'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? false
+                                            : p_p_author_verified;
                                         blog_item['isowner'] = false;
                                         blog_item['title'] = item?.title;
                                         blog_item['b_dp_link'] = item?.dp_link;
                                         blog_item['likes_l'] = item?.likes_l;
-                                        blog_item['comments_l'] = item?.comments_l;
-                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['comments_l'] =
+                                            item?.comments_l;
+                                        blog_item['tags'] = item?.tags
+                                            ? item?.tags
+                                            : [];
                                         blog_item['liked'] = false;
-                                        blog_item['createdAt'] = item?.createdAt;
-                                        blog_item['updatedAt'] = item?.updatedAt;
+                                        blog_item['createdAt'] =
+                                            item?.createdAt;
+                                        blog_item['updatedAt'] =
+                                            item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
@@ -4913,7 +7597,9 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                             if (result !== null || result !== undefined) {
                                 if (result?.length > 0) {
                                     const authors = [];
-                                    result?.map(blog => authors.push(blog?.author));
+                                    result?.map(blog =>
+                                        authors.push(blog?.author),
+                                    );
                                     const authors_info = [];
                                     try {
                                         await User.aggregate([
@@ -4932,9 +7618,16 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                                 },
                                             },
                                         ]).then(res_author_name => {
-                                            if (res_author_name !== null || res_author_name !== undefined) {
-                                                if (res_author_name?.length > 0) {
-                                                    res_author_name?.map(item => authors_info.push(item));
+                                            if (
+                                                res_author_name !== null ||
+                                                res_author_name !== undefined
+                                            ) {
+                                                if (
+                                                    res_author_name?.length > 0
+                                                ) {
+                                                    res_author_name?.map(item =>
+                                                        authors_info.push(item),
+                                                    );
                                                 }
                                             }
                                         });
@@ -4943,23 +7636,58 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     }
                                     const blogs_arr = [];
                                     result.map(item => {
-                                        const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                        const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                        const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                        const p_author_username =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.username;
+                                        const p_author_verified =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.verified;
+                                        const p_p_author_verified =
+                                            none_null_bool(p_author_verified)
+                                                ? false
+                                                : p_author_verified;
                                         const blog_item = {};
-                                        blog_item['bid'] = item?._id?.toString();
-                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
-                                        blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                        blog_item['bid'] =
+                                            item?._id?.toString();
+                                        blog_item['aid'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : item?.author?.toString();
+                                        blog_item['author'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : p_author_username;
+                                        blog_item['averified'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? false
+                                            : p_p_author_verified;
+                                        blog_item['isowner'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? false
+                                            : item?.author?.toString() === uid;
                                         blog_item['title'] = item?.title;
                                         blog_item['b_dp_link'] = item?.dp_link;
                                         blog_item['likes_l'] = item?.likes_l;
-                                        blog_item['comments_l'] = item?.comments_l;
-                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['comments_l'] =
+                                            item?.comments_l;
+                                        blog_item['tags'] = item?.tags
+                                            ? item?.tags
+                                            : [];
                                         blog_item['liked'] = item?.liked;
-                                        blog_item['createdAt'] = item?.createdAt;
-                                        blog_item['updatedAt'] = item?.updatedAt;
+                                        blog_item['createdAt'] =
+                                            item?.createdAt;
+                                        blog_item['updatedAt'] =
+                                            item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({
@@ -5024,7 +7752,9 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                             if (result !== null || result !== undefined) {
                                 if (result?.length > 0) {
                                     const authors = [];
-                                    result?.map(blog => authors.push(blog?.author));
+                                    result?.map(blog =>
+                                        authors.push(blog?.author),
+                                    );
                                     const authors_info = [];
                                     try {
                                         await User.aggregate([
@@ -5043,9 +7773,16 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                                 },
                                             },
                                         ]).then(res_author_name => {
-                                            if (res_author_name !== null || res_author_name !== undefined) {
-                                                if (res_author_name?.length > 0) {
-                                                    res_author_name?.map(item => authors_info.push(item));
+                                            if (
+                                                res_author_name !== null ||
+                                                res_author_name !== undefined
+                                            ) {
+                                                if (
+                                                    res_author_name?.length > 0
+                                                ) {
+                                                    res_author_name?.map(item =>
+                                                        authors_info.push(item),
+                                                    );
                                                 }
                                             }
                                         });
@@ -5054,23 +7791,58 @@ router.get('/', verifyJWTHeaderIA, async (req, res) => {
                                     }
                                     const blogs_arr = [];
                                     result.map(item => {
-                                        const p_author_username = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.username;
-                                        const p_author_verified = authors_info?.filter(a_info => a_info?._id?.toString() === item?.author?.toString())?.[0]?.verified;
-                                        const p_p_author_verified = none_null_bool(p_author_verified) ? false : p_author_verified;
+                                        const p_author_username =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.username;
+                                        const p_author_verified =
+                                            authors_info?.filter(
+                                                a_info =>
+                                                    a_info?._id?.toString() ===
+                                                    item?.author?.toString(),
+                                            )?.[0]?.verified;
+                                        const p_p_author_verified =
+                                            none_null_bool(p_author_verified)
+                                                ? false
+                                                : p_author_verified;
                                         const blog_item = {};
-                                        blog_item['bid'] = item?._id?.toString();
-                                        blog_item['aid'] = none_null(p_author_username) ? 'Not Found' : item?.author?.toString();
-                                        blog_item['author'] = none_null(p_author_username) ? 'Not Found' : p_author_username;
-                                        blog_item['averified'] = none_null(p_author_username) ? false : p_p_author_verified;
-                                        blog_item['isowner'] = none_null(p_author_username) ? false : item?.author?.toString() === uid;
+                                        blog_item['bid'] =
+                                            item?._id?.toString();
+                                        blog_item['aid'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : item?.author?.toString();
+                                        blog_item['author'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? 'Not Found'
+                                            : p_author_username;
+                                        blog_item['averified'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? false
+                                            : p_p_author_verified;
+                                        blog_item['isowner'] = none_null(
+                                            p_author_username,
+                                        )
+                                            ? false
+                                            : item?.author?.toString() === uid;
                                         blog_item['title'] = item?.title;
                                         blog_item['b_dp_link'] = item?.dp_link;
                                         blog_item['likes_l'] = item?.likes_l;
-                                        blog_item['comments_l'] = item?.comments_l;
-                                        blog_item['tags'] = item?.tags ? item?.tags : [];
+                                        blog_item['comments_l'] =
+                                            item?.comments_l;
+                                        blog_item['tags'] = item?.tags
+                                            ? item?.tags
+                                            : [];
                                         blog_item['liked'] = item?.liked;
-                                        blog_item['createdAt'] = item?.createdAt;
-                                        blog_item['updatedAt'] = item?.updatedAt;
+                                        blog_item['createdAt'] =
+                                            item?.createdAt;
+                                        blog_item['updatedAt'] =
+                                            item?.updatedAt;
                                         blogs_arr.push(blog_item);
                                     });
                                     res.json({

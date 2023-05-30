@@ -25,11 +25,13 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-007',
-        message: "An error occured while trying to upload User's Display Picture to the server",
+        message:
+            "An error occured while trying to upload User's Display Picture to the server",
     },
     {
         code: 'ERR-BLGD-008',
-        message: "No response received from the server after uploading User's Display Picture",
+        message:
+            "No response received from the server after uploading User's Display Picture",
     },
     {
         code: 'ERR-BLGD-009',
@@ -65,7 +67,8 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-017',
-        message: "An error occured while trying to send verification code to user's Email Address",
+        message:
+            "An error occured while trying to send verification code to user's Email Address",
     },
     {
         code: 'ERR-BLGD-018',
@@ -77,11 +80,13 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-020',
-        message: "An error occured while trying to update user's Display Picture",
+        message:
+            "An error occured while trying to update user's Display Picture",
     },
     {
         code: 'ERR-BLGD-021',
-        message: "An error occured while trying to delete User's Display Picture",
+        message:
+            "An error occured while trying to delete User's Display Picture",
     },
     {
         code: 'ERR-BLGD-022',
@@ -97,15 +102,18 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-025',
-        message: "An error occured while trying to upload Blog's Image to the server",
+        message:
+            "An error occured while trying to upload Blog's Image to the server",
     },
     {
         code: 'ERR-BLGD-026',
-        message: "No response received from the server after uploading Blog's Image",
+        message:
+            "No response received from the server after uploading Blog's Image",
     },
     {
         code: 'ERR-BLGD-027',
-        message: "An error occured while trying to update Blog's Display Picture",
+        message:
+            "An error occured while trying to update Blog's Display Picture",
     },
     {
         code: 'ERR-BLGD-028',
@@ -177,7 +185,8 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-045',
-        message: "An error occured while trying to delete Blog's Image from server",
+        message:
+            "An error occured while trying to delete Blog's Image from server",
     },
     {
         code: 'ERR-BLGD-046',
@@ -265,7 +274,8 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-067',
-        message: 'An error occured while trying to load your Personalized Blog posts',
+        message:
+            'An error occured while trying to load your Personalized Blog posts',
     },
     {
         code: 'ERR-BLGD-068',
@@ -273,7 +283,8 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-069',
-        message: "An error occured while updating User's verification code on the Server",
+        message:
+            "An error occured while updating User's verification code on the Server",
     },
     {
         code: 'ERR-BLGD-070',
@@ -285,11 +296,13 @@ const blogged_errors = [
     },
     {
         code: 'ERR-BLGD-072',
-        message: 'An error occured while trying to send new password to Email Address',
+        message:
+            'An error occured while trying to send new password to Email Address',
     },
     {
         code: 'ERR-BLGD-073',
-        message: "An error occured while updating User's password on the Server",
+        message:
+            "An error occured while updating User's password on the Server",
     },
     {
         code: 'ERR-BLGD-074',

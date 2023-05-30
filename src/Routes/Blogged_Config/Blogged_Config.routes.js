@@ -18,85 +18,96 @@ router.post('/setup', (req, res) => {
 
         if (none_null(master_password) === false) {
             try {
-                bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
-                    if (error) {
-                        res.json({
-                            status: 'error',
-                            code: 'ERR-M-BLGD-001',
-                        });
-                    } else {
-                        if (response) {
-                            try {
-                                await BloggedConfig.aggregate([
-                                    {
-                                        $match: {
-                                            _id: ObjectId(process.env.NODE_MASTER_MONGO_CONFIG_ID),
+                bcrypt.compare(
+                    master_password,
+                    process.env.NODE_MASTER_MONGO_CONFIG_PWD,
+                    async (error, response) => {
+                        if (error) {
+                            res.json({
+                                status: 'error',
+                                code: 'ERR-M-BLGD-001',
+                            });
+                        } else {
+                            if (response) {
+                                try {
+                                    await BloggedConfig.aggregate([
+                                        {
+                                            $match: {
+                                                _id: ObjectId(
+                                                    process.env
+                                                        .NODE_MASTER_MONGO_CONFIG_ID,
+                                                ),
+                                            },
                                         },
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                            },
                                         },
-                                    },
-                                ])
-                                    .catch(err => {
-                                        res.json({
-                                            status: 'error',
-                                            code: 'ERR-M-BLGD-003',
-                                        });
-                                    })
-                                    .then(async result => {
-                                        if (result?.length === 0) {
-                                            const blogged_config = new BloggedConfig({
-                                                _id: ObjectId(process.env.NODE_MASTER_MONGO_CONFIG_ID),
+                                    ])
+                                        .catch(err => {
+                                            res.json({
+                                                status: 'error',
+                                                code: 'ERR-M-BLGD-003',
                                             });
-                                            try {
-                                                await blogged_config
-                                                    .save()
-                                                    .catch(err => {
-                                                        res.json({
-                                                            status: 'error',
-                                                            code: 'ERR-M-BLGD-004',
-                                                        });
-                                                    })
-                                                    .then(setup_res => {
-                                                        if (setup_res) {
-                                                            res.json({
-                                                                status: 'success',
-                                                            });
-                                                        } else {
+                                        })
+                                        .then(async result => {
+                                            if (result?.length === 0) {
+                                                const blogged_config =
+                                                    new BloggedConfig({
+                                                        _id: ObjectId(
+                                                            process.env
+                                                                .NODE_MASTER_MONGO_CONFIG_ID,
+                                                        ),
+                                                    });
+                                                try {
+                                                    await blogged_config
+                                                        .save()
+                                                        .catch(err => {
                                                             res.json({
                                                                 status: 'error',
                                                                 code: 'ERR-M-BLGD-004',
                                                             });
-                                                        }
+                                                        })
+                                                        .then(setup_res => {
+                                                            if (setup_res) {
+                                                                res.json({
+                                                                    status: 'success',
+                                                                });
+                                                            } else {
+                                                                res.json({
+                                                                    status: 'error',
+                                                                    code: 'ERR-M-BLGD-004',
+                                                                });
+                                                            }
+                                                        });
+                                                } catch (error) {
+                                                    res.json({
+                                                        status: 'error',
+                                                        code: 'ERR-M-BLGD-004',
                                                     });
-                                            } catch (error) {
+                                                }
+                                            } else {
                                                 res.json({
-                                                    status: 'error',
-                                                    code: 'ERR-M-BLGD-004',
+                                                    status: 'success',
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: 'success',
-                                            });
-                                        }
+                                        });
+                                } catch (err) {
+                                    res.json({
+                                        status: 'error',
+                                        code: 'ERR-M-BLGD-003',
                                     });
-                            } catch (err) {
+                                }
+                            } else {
                                 res.json({
                                     status: 'error',
-                                    code: 'ERR-M-BLGD-003',
+                                    code: 'ERR-M-BLGD-002',
                                 });
                             }
-                        } else {
-                            res.json({
-                                status: 'error',
-                                code: 'ERR-M-BLGD-002',
-                            });
                         }
-                    }
-                });
+                    },
+                );
             } catch (error) {
                 res.json({
                     status: 'error',
@@ -129,84 +140,106 @@ router.patch('/update', (req, res) => {
         if (none_null(master_password) === false) {
             if (none_null_bool(enable_ads) === false) {
                 try {
-                    bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
-                        if (error) {
-                            res.json({
-                                status: 'error',
-                                code: 'ERR-M-BLGD-001',
-                            });
-                        } else {
-                            if (response) {
-                                try {
-                                    await BloggedConfig.aggregate([
-                                        {
-                                            $match: {
-                                                _id: ObjectId(process.env.NODE_MASTER_MONGO_CONFIG_ID),
+                    bcrypt.compare(
+                        master_password,
+                        process.env.NODE_MASTER_MONGO_CONFIG_PWD,
+                        async (error, response) => {
+                            if (error) {
+                                res.json({
+                                    status: 'error',
+                                    code: 'ERR-M-BLGD-001',
+                                });
+                            } else {
+                                if (response) {
+                                    try {
+                                        await BloggedConfig.aggregate([
+                                            {
+                                                $match: {
+                                                    _id: ObjectId(
+                                                        process.env
+                                                            .NODE_MASTER_MONGO_CONFIG_ID,
+                                                    ),
+                                                },
                                             },
-                                        },
-                                        {
-                                            $project: {
-                                                _id: 1,
+                                            {
+                                                $project: {
+                                                    _id: 1,
+                                                },
                                             },
-                                        },
-                                    ])
-                                        .catch(err => {
-                                            res.json({
-                                                status: 'error',
-                                                code: 'ERR-M-BLGD-003',
-                                            });
-                                        })
-                                        .then(async result => {
-                                            if (result?.length === 0) {
+                                        ])
+                                            .catch(err => {
                                                 res.json({
                                                     status: 'error',
                                                     code: 'ERR-M-BLGD-003',
                                                 });
-                                            } else {
-                                                try {
-                                                    await BloggedConfig.findByIdAndUpdate(process.env.NODE_MASTER_MONGO_CONFIG_ID, {
-                                                        enable_ads: enable_ads,
-                                                    })
-                                                        .catch(err => {
-                                                            res.json({
-                                                                status: 'error',
-                                                                code: 'ERR-M-BLGD-005',
-                                                            });
-                                                        })
-                                                        .then(blogged_update_res => {
-                                                            if (none_null(blogged_update_res)) {
+                                            })
+                                            .then(async result => {
+                                                if (result?.length === 0) {
+                                                    res.json({
+                                                        status: 'error',
+                                                        code: 'ERR-M-BLGD-003',
+                                                    });
+                                                } else {
+                                                    try {
+                                                        await BloggedConfig.findByIdAndUpdate(
+                                                            process.env
+                                                                .NODE_MASTER_MONGO_CONFIG_ID,
+                                                            {
+                                                                enable_ads:
+                                                                    enable_ads,
+                                                            },
+                                                        )
+                                                            .catch(err => {
                                                                 res.json({
                                                                     status: 'error',
                                                                     code: 'ERR-M-BLGD-005',
                                                                 });
-                                                            } else {
-                                                                res.json({
-                                                                    status: 'success',
-                                                                });
-                                                            }
+                                                            })
+                                                            .then(
+                                                                blogged_update_res => {
+                                                                    if (
+                                                                        none_null(
+                                                                            blogged_update_res,
+                                                                        )
+                                                                    ) {
+                                                                        res.json(
+                                                                            {
+                                                                                status: 'error',
+                                                                                code: 'ERR-M-BLGD-005',
+                                                                            },
+                                                                        );
+                                                                    } else {
+                                                                        res.json(
+                                                                            {
+                                                                                status: 'success',
+                                                                            },
+                                                                        );
+                                                                    }
+                                                                },
+                                                            );
+                                                    } catch (error) {
+                                                        res.json({
+                                                            status: 'error',
+                                                            code: 'ERR-M-BLGD-005',
                                                         });
-                                                } catch (error) {
-                                                    res.json({
-                                                        status: 'error',
-                                                        code: 'ERR-M-BLGD-005',
-                                                    });
+                                                    }
                                                 }
-                                            }
+                                            });
+                                    } catch (err) {
+                                        res.json({
+                                            status: 'error',
+                                            code: 'ERR-M-BLGD-003',
                                         });
-                                } catch (err) {
+                                    }
+                                } else {
                                     res.json({
                                         status: 'error',
-                                        code: 'ERR-M-BLGD-003',
+                                        code: 'ERR-M-BLGD-002',
                                     });
                                 }
-                            } else {
-                                res.json({
-                                    status: 'error',
-                                    code: 'ERR-M-BLGD-002',
-                                });
                             }
-                        }
-                    });
+                        },
+                    );
                 } catch (error) {
                     res.json({
                         status: 'error',
@@ -242,82 +275,98 @@ router.delete('/delete', (req, res) => {
 
         if (none_null(master_password) === false) {
             try {
-                bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
-                    if (error) {
-                        res.json({
-                            status: 'error',
-                            code: 'ERR-M-BLGD-001',
-                        });
-                    } else {
-                        if (response) {
-                            try {
-                                await BloggedConfig.aggregate([
-                                    {
-                                        $match: {
-                                            _id: ObjectId(process.env.NODE_MASTER_MONGO_CONFIG_ID),
+                bcrypt.compare(
+                    master_password,
+                    process.env.NODE_MASTER_MONGO_CONFIG_PWD,
+                    async (error, response) => {
+                        if (error) {
+                            res.json({
+                                status: 'error',
+                                code: 'ERR-M-BLGD-001',
+                            });
+                        } else {
+                            if (response) {
+                                try {
+                                    await BloggedConfig.aggregate([
+                                        {
+                                            $match: {
+                                                _id: ObjectId(
+                                                    process.env
+                                                        .NODE_MASTER_MONGO_CONFIG_ID,
+                                                ),
+                                            },
                                         },
-                                    },
-                                    {
-                                        $project: {
-                                            _id: 1,
+                                        {
+                                            $project: {
+                                                _id: 1,
+                                            },
                                         },
-                                    },
-                                ])
-                                    .catch(err => {
-                                        res.json({
-                                            status: 'error',
-                                            code: 'ERR-M-BLGD-003',
-                                        });
-                                    })
-                                    .then(async result => {
-                                        if (result?.length === 0) {
+                                    ])
+                                        .catch(err => {
                                             res.json({
                                                 status: 'error',
                                                 code: 'ERR-M-BLGD-003',
                                             });
-                                        } else {
-                                            try {
-                                                await BloggedConfig.findByIdAndDelete(process.env.NODE_MASTER_MONGO_CONFIG_ID)
-                                                    .catch(err => {
-                                                        res.json({
-                                                            status: 'error',
-                                                            code: 'ERR-M-BLGD-006',
-                                                        });
-                                                    })
-                                                    .then(blogged_delete_res => {
-                                                        if (none_null(blogged_delete_res)) {
+                                        })
+                                        .then(async result => {
+                                            if (result?.length === 0) {
+                                                res.json({
+                                                    status: 'error',
+                                                    code: 'ERR-M-BLGD-003',
+                                                });
+                                            } else {
+                                                try {
+                                                    await BloggedConfig.findByIdAndDelete(
+                                                        process.env
+                                                            .NODE_MASTER_MONGO_CONFIG_ID,
+                                                    )
+                                                        .catch(err => {
                                                             res.json({
                                                                 status: 'error',
                                                                 code: 'ERR-M-BLGD-006',
                                                             });
-                                                        } else {
-                                                            res.json({
-                                                                status: 'success',
-                                                            });
-                                                        }
+                                                        })
+                                                        .then(
+                                                            blogged_delete_res => {
+                                                                if (
+                                                                    none_null(
+                                                                        blogged_delete_res,
+                                                                    )
+                                                                ) {
+                                                                    res.json({
+                                                                        status: 'error',
+                                                                        code: 'ERR-M-BLGD-006',
+                                                                    });
+                                                                } else {
+                                                                    res.json({
+                                                                        status: 'success',
+                                                                    });
+                                                                }
+                                                            },
+                                                        );
+                                                } catch (error) {
+                                                    res.json({
+                                                        status: 'error',
+                                                        code: 'ERR-M-BLGD-006',
                                                     });
-                                            } catch (error) {
-                                                res.json({
-                                                    status: 'error',
-                                                    code: 'ERR-M-BLGD-006',
-                                                });
+                                                }
                                             }
-                                        }
+                                        });
+                                } catch (err) {
+                                    res.json({
+                                        status: 'error',
+                                        code: 'ERR-M-BLGD-003',
                                     });
-                            } catch (err) {
+                                }
+                            } else {
                                 res.json({
                                     status: 'error',
-                                    code: 'ERR-M-BLGD-003',
+                                    code: 'ERR-M-BLGD-002',
                                 });
                             }
-                        } else {
-                            res.json({
-                                status: 'error',
-                                code: 'ERR-M-BLGD-002',
-                            });
                         }
-                    }
-                });
+                    },
+                );
             } catch (error) {
                 res.json({
                     status: 'error',
@@ -345,64 +394,74 @@ router.get('/feedbacks', (req, res) => {
     try {
         const master_password = req.headers['master_password'];
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 200)?.first_index;
+        const query_f_i = pagination_indexer(
+            pagination_index,
+            200,
+        )?.first_index;
         const query_l_i = pagination_indexer(pagination_index, 200)?.last_index;
 
         if (none_null(master_password) === false) {
             try {
-                bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
-                    if (error) {
-                        res.json({
-                            status: 'error',
-                            code: 'ERR-M-BLGD-001',
-                        });
-                    } else {
-                        if (response) {
-                            try {
-                                await Feedback.find()
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: 'error',
-                                            code: 'ERR-M-BLGD-007',
-                                        });
-                                    })
-                                    .then(async result => {
-                                        if (result !== null || result !== undefined) {
-                                            if (result?.length > 0) {
-                                                res.json({
-                                                    status: 'success',
-                                                    response: result,
-                                                });
+                bcrypt.compare(
+                    master_password,
+                    process.env.NODE_MASTER_MONGO_CONFIG_PWD,
+                    async (error, response) => {
+                        if (error) {
+                            res.json({
+                                status: 'error',
+                                code: 'ERR-M-BLGD-001',
+                            });
+                        } else {
+                            if (response) {
+                                try {
+                                    await Feedback.find()
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: 'error',
+                                                code: 'ERR-M-BLGD-007',
+                                            });
+                                        })
+                                        .then(async result => {
+                                            if (
+                                                result !== null ||
+                                                result !== undefined
+                                            ) {
+                                                if (result?.length > 0) {
+                                                    res.json({
+                                                        status: 'success',
+                                                        response: result,
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: 'success',
+                                                        response: [],
+                                                    });
+                                                }
                                             } else {
                                                 res.json({
                                                     status: 'success',
                                                     response: [],
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: 'success',
-                                                response: [],
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: 'error',
+                                        code: 'ERR-M-BLGD-007',
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
                                     status: 'error',
-                                    code: 'ERR-M-BLGD-007',
+                                    code: 'ERR-M-BLGD-002',
                                 });
                             }
-                        } else {
-                            res.json({
-                                status: 'error',
-                                code: 'ERR-M-BLGD-002',
-                            });
                         }
-                    }
-                });
+                    },
+                );
             } catch (error) {
                 res.json({
                     status: 'error',
@@ -430,64 +489,74 @@ router.get('/suggesttags', (req, res) => {
     try {
         const master_password = req.headers['master_password'];
         const pagination_index = req.query.pagination_index;
-        const query_f_i = pagination_indexer(pagination_index, 200)?.first_index;
+        const query_f_i = pagination_indexer(
+            pagination_index,
+            200,
+        )?.first_index;
         const query_l_i = pagination_indexer(pagination_index, 200)?.last_index;
 
         if (none_null(master_password) === false) {
             try {
-                bcrypt.compare(master_password, process.env.NODE_MASTER_MONGO_CONFIG_PWD, async (error, response) => {
-                    if (error) {
-                        res.json({
-                            status: 'error',
-                            code: 'ERR-M-BLGD-001',
-                        });
-                    } else {
-                        if (response) {
-                            try {
-                                await SuggestTag.find()
-                                    .sort({ createdAt: -1 })
-                                    .skip(query_f_i)
-                                    .limit(query_l_i)
-                                    .catch(err => {
-                                        res.json({
-                                            status: 'error',
-                                            code: 'ERR-M-BLGD-018',
-                                        });
-                                    })
-                                    .then(async result => {
-                                        if (result !== null || result !== undefined) {
-                                            if (result?.length > 0) {
-                                                res.json({
-                                                    status: 'success',
-                                                    response: result,
-                                                });
+                bcrypt.compare(
+                    master_password,
+                    process.env.NODE_MASTER_MONGO_CONFIG_PWD,
+                    async (error, response) => {
+                        if (error) {
+                            res.json({
+                                status: 'error',
+                                code: 'ERR-M-BLGD-001',
+                            });
+                        } else {
+                            if (response) {
+                                try {
+                                    await SuggestTag.find()
+                                        .sort({ createdAt: -1 })
+                                        .skip(query_f_i)
+                                        .limit(query_l_i)
+                                        .catch(err => {
+                                            res.json({
+                                                status: 'error',
+                                                code: 'ERR-M-BLGD-018',
+                                            });
+                                        })
+                                        .then(async result => {
+                                            if (
+                                                result !== null ||
+                                                result !== undefined
+                                            ) {
+                                                if (result?.length > 0) {
+                                                    res.json({
+                                                        status: 'success',
+                                                        response: result,
+                                                    });
+                                                } else {
+                                                    res.json({
+                                                        status: 'success',
+                                                        response: [],
+                                                    });
+                                                }
                                             } else {
                                                 res.json({
                                                     status: 'success',
                                                     response: [],
                                                 });
                                             }
-                                        } else {
-                                            res.json({
-                                                status: 'success',
-                                                response: [],
-                                            });
-                                        }
+                                        });
+                                } catch (error) {
+                                    res.json({
+                                        status: 'error',
+                                        code: 'ERR-M-BLGD-018',
                                     });
-                            } catch (error) {
+                                }
+                            } else {
                                 res.json({
                                     status: 'error',
-                                    code: 'ERR-M-BLGD-018',
+                                    code: 'ERR-M-BLGD-002',
                                 });
                             }
-                        } else {
-                            res.json({
-                                status: 'error',
-                                code: 'ERR-M-BLGD-002',
-                            });
                         }
-                    }
-                });
+                    },
+                );
             } catch (error) {
                 res.json({
                     status: 'error',
