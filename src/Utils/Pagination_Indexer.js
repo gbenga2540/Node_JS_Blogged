@@ -12,13 +12,9 @@ module.exports = (pagination_index, max_results) => {
         processed_pagination_index <= 0
             ? 0
             : processed_pagination_index * processed_max_result;
-    const last_index =
-        processed_pagination_index <= 0
-            ? processed_max_result
-            : (processed_pagination_index + 1) * processed_max_result;
 
     return {
         first_index,
-        last_index,
+        last_index: processed_max_result,
     };
 };
